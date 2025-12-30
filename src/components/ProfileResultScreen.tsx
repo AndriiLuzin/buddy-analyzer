@@ -69,15 +69,15 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [] }: Profi
             </div>
 
             {/* Share hint */}
-            <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/20">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <button className="w-full flex items-center gap-3 h-16 px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Share2 className="w-5 h-5 text-primary" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-foreground">Поделитесь с друзьями</p>
                 <p className="text-xs text-muted-foreground">Узнайте их тип и совместимость</p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -88,13 +88,13 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [] }: Profi
       </div>
 
       {/* Continue Button */}
-      <Button
+      <button
         onClick={onContinue}
-        className="h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
+        className="w-full flex items-center justify-center gap-2 h-16 mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-base font-medium transition-colors"
       >
         Перейти к друзьям
-        <ArrowRight className="w-5 h-5 ml-2" />
-      </Button>
+        <ArrowRight className="w-5 h-5" />
+      </button>
     </div>
   );
 };
