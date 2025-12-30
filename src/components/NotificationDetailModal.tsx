@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Friend, FriendCategory } from '../types';
+import { CATEGORY_INFO } from '../constants';
 import { 
   ArrowLeft, 
   MessageCircle, 
   Cake, 
   Clock, 
   Sparkles, 
-  Send, 
   Gift, 
   Phone, 
   Coffee, 
   PartyPopper,
   Copy,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { supabase } from '../integrations/supabase/client';
 
 interface Notification {
   id: string;
@@ -130,11 +132,60 @@ export const NotificationDetailModal = ({
   const { toast } = useToast();
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
 
   if (!notification) return null;
 
   const actions = notification.type === 'birthday' ? BIRTHDAY_ACTIONS : CONTACT_ACTIONS;
   const selectedActionData = actions.find(a => a.id === selectedAction);
+
+  const getCategoryLabel = (category?: FriendCategory): string => {
+    if (!category) return 'друг';
+    return CATEGORY_INFO[category]?.label || 'друг';
+  };
+
+  const handleGenerateMessage = async () => {
+    if (!notification.friend.category) return;
+    
+    setIsGenerating(true);
+    setGeneratedMessage(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-message', {
+        body: {
+          friendName: notification.friend.name,
+          category: getCategoryLabel(notification.friend.category),
+          messageType: notification.type,
+          actionType: selectedAction || 'casual'
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        toast({
+          title: "Ошибка",
+          description: data.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setGeneratedMessage(data.message);
+    } catch (error) {
+      console.error('Error generating message:', error);
+      toast({
+        title: "Ошибка генерации",
+        description: "Не удалось сгенерировать сообщение. Попробуйте позже.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleCopyMessage = async (message: string, index: number) => {
     await navigator.clipboard.writeText(message);
@@ -146,13 +197,28 @@ export const NotificationDetailModal = ({
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleCopyGenerated = async () => {
+    if (!generatedMessage) return;
+    await navigator.clipboard.writeText(generatedMessage);
+    toast({
+      title: "Скопировано!",
+      description: "Сообщение скопировано в буфер обмена",
+    });
+  };
+
   const handleMarkAndClose = () => {
     onMarkAsContacted();
     onClose();
   };
 
+  const handleClose = () => {
+    setSelectedAction(null);
+    setGeneratedMessage(null);
+    onClose();
+  };
+
   return (
-    <Dialog open={!!notification} onOpenChange={() => onClose()}>
+    <Dialog open={!!notification} onOpenChange={() => handleClose()}>
       <DialogContent 
         className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
         hideClose
@@ -161,7 +227,7 @@ export const NotificationDetailModal = ({
         <div className="shrink-0 bg-background border-b border-border px-4 py-4">
           <div className="flex items-center gap-3">
             <button 
-              onClick={onClose}
+              onClick={handleClose}
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -218,7 +284,10 @@ export const NotificationDetailModal = ({
           ) : (
             <div className="space-y-3">
               <button 
-                onClick={() => setSelectedAction(null)}
+                onClick={() => {
+                  setSelectedAction(null);
+                  setGeneratedMessage(null);
+                }}
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -231,17 +300,46 @@ export const NotificationDetailModal = ({
               </h3>
 
               {selectedAction === 'generate' ? (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-foreground">AI генерация</span>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <span className="font-medium text-foreground">AI генерация</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      AI сгенерирует персонализированное сообщение для {notification.friend.name}
+                    </p>
+                    <button 
+                      onClick={handleGenerateMessage}
+                      disabled={isGenerating}
+                      className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Генерация...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5" />
+                          Сгенерировать
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Для генерации уникальных сообщений с помощью AI требуется подключение к облаку.
-                  </p>
-                  <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-                    Подключить Cloud
-                  </button>
+
+                  {generatedMessage && (
+                    <button
+                      onClick={handleCopyGenerated}
+                      className="w-full p-4 rounded-xl bg-card border border-primary/30 hover:bg-muted transition-all text-left group"
+                    >
+                      <p className="text-foreground text-sm">{generatedMessage}</p>
+                      <div className="flex items-center gap-1 mt-2 text-xs text-primary">
+                        <Copy className="w-3 h-3" />
+                        Нажмите чтобы скопировать
+                      </div>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
