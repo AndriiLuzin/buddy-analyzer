@@ -13,10 +13,10 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
     <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
       <button
         onClick={() => onSelectCategory('all')}
-        className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+        className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
           selectedCategory === 'all'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            ? 'bg-primary text-primary-foreground border-primary'
+            : 'bg-card text-foreground border-border hover:bg-muted'
         }`}
       >
         Все
@@ -26,10 +26,10 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
         <button
           key={key}
           onClick={() => onSelectCategory(key)}
-          className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+          className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5 border ${
             selectedCategory === key
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-foreground border-border hover:bg-muted'
           }`}
         >
           <span>{info.emoji}</span>
