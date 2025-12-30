@@ -3,6 +3,7 @@ import { CATEGORY_INFO } from '../constants';
 import { Button } from './ui/button';
 import { Sparkles, ArrowRight, Share2 } from 'lucide-react';
 import { FriendshipScoreGauge } from './FriendshipScoreGauge';
+import { FriendshipScoreHistory } from './FriendshipScoreHistory';
 
 interface ProfileResultScreenProps {
   profile: UserProfile;
@@ -83,7 +84,10 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [] }: Profi
 
         {/* Friendship Score Gauge */}
         {friends.length > 0 && (
-          <FriendshipScoreGauge friends={friends} />
+          <>
+            <FriendshipScoreGauge friends={friends} />
+            <FriendshipScoreHistory friends={friends} />
+          </>
         )}
       </div>
 
