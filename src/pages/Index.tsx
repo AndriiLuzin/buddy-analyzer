@@ -12,8 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
 const STORAGE_KEYS = {
-  USER_PROFILE: 'friendify_user_profile',
-  FRIENDS: 'friendify_friends'
+  USER_PROFILE: 'buddybe_user_profile',
+  FRIENDS: 'buddybe_friends'
 };
 
 interface IndexProps {

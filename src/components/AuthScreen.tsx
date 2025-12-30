@@ -82,7 +82,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
         toast({
           title: "Регистрация успешна!",
-          description: "Добро пожаловать в Friendify",
+          description: "Добро пожаловать в BuddyBe",
         });
         onAuthSuccess();
       }
@@ -119,7 +119,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       </div>
 
       <h1 className="text-3xl font-bold text-foreground mb-2 text-center">
-        Friendify
+        BuddyBe
       </h1>
       <p className="text-muted-foreground text-center mb-8 max-w-xs">
         Узнай свой стиль дружбы и укрепи отношения
