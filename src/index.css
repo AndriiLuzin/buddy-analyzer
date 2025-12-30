@@ -7,32 +7,32 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 20 20% 15%;
+    --foreground: 0 0% 11%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 20 20% 15%;
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 15%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 15 90% 60%;
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 25 30% 92%;
-    --secondary-foreground: 20 20% 20%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 11%;
 
-    --muted: 25 20% 94%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 180 50% 45%;
+    --accent: 211 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 20% 88%;
-    --input: 25 20% 88%;
-    --ring: 15 90% 60%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 211 100% 50%;
 
     --radius: 1rem;
 
@@ -44,14 +44,14 @@
     --category-distant: 220 10% 60%;
 
     /* Gradients */
-    --gradient-main: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 50%, hsl(0 0% 100%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.9) 0%, hsl(25 30% 98% / 0.7) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(15 90% 60%) 0%, hsl(25 85% 55%) 100%);
+    --gradient-main: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 100%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 96%) 0%, hsl(0 0% 97%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(211 100% 50%) 0%, hsl(211 100% 45%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(20 20% 20% / 0.1);
-    --shadow-card: 0 8px 32px -8px hsl(20 20% 20% / 0.12);
-    --shadow-glow: 0 0 40px hsl(15 90% 60% / 0.2);
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.06);
+    --shadow-card: 0 4px 16px -4px hsl(0 0% 0% / 0.08);
+    --shadow-glow: 0 0 40px hsl(211 100% 50% / 0.15);
   }
 
   .dark {
