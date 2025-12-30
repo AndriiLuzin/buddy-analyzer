@@ -6,6 +6,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { FriendDetailModal } from './FriendDetailModal';
 import { BottomNavBar } from './BottomNavBar';
 import { ShareModal } from './ShareModal';
+import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
 import { Search, UserPlus } from 'lucide-react';
 
@@ -51,12 +52,15 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
             </p>
           </div>
           
-          {userCategoryInfo && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10">
-              <span className="text-lg">{userCategoryInfo.emoji}</span>
-              <span className="text-sm font-medium text-primary">{userCategoryInfo.label.split(' ')[0]}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {userCategoryInfo && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10">
+                <span className="text-lg">{userCategoryInfo.emoji}</span>
+                <span className="text-sm font-medium text-primary">{userCategoryInfo.label.split(' ')[0]}</span>
+              </div>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Search */}
