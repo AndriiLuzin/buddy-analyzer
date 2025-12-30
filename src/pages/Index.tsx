@@ -5,6 +5,7 @@ import { QuizScreen } from '../components/QuizScreen';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ProfileResultScreen } from '../components/ProfileResultScreen';
 import { FriendListScreen } from '../components/FriendListScreen';
+import { NotificationsPage } from './Notifications';
 import { useFriendClassifier } from '../hooks/useFriendClassifier';
 
 const STORAGE_KEYS = {
@@ -12,7 +13,11 @@ const STORAGE_KEYS = {
   FRIENDS: 'friendify_friends'
 };
 
-const Index = () => {
+interface IndexProps {
+  initialRoute?: 'notifications';
+}
+
+const Index = ({ initialRoute }: IndexProps) => {
   const [screen, setScreen] = useState<Screen>('loading');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -90,6 +95,11 @@ const Index = () => {
         onContinue={handleContinueToList}
       />
     );
+  }
+
+  // Render notifications page
+  if (initialRoute === 'notifications') {
+    return <NotificationsPage friends={friends} />;
   }
 
   // Render friend list screen

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory, UserProfile } from '../types';
 import { FriendCard } from './FriendCard';
 import { BirthdayReminder } from './BirthdayReminder';
@@ -9,7 +10,7 @@ import { BottomNavBar } from './BottomNavBar';
 import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
-import { Search, UserPlus, X } from 'lucide-react';
+import { Search, UserPlus, X, Bell } from 'lucide-react';
 
 interface FriendListScreenProps {
   friends: Friend[];
@@ -18,6 +19,7 @@ interface FriendListScreenProps {
 }
 
 export const FriendListScreen = ({ friends, userProfile, onViewProfile }: FriendListScreenProps) => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<FriendCategory | 'all'>('all');
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -64,6 +66,13 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
               ) : (
                 <Search className="w-5 h-5 text-muted-foreground" />
               )}
+            </button>
+            <button 
+              onClick={() => navigate('/notifications')}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors relative"
+            >
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-destructive rounded-full" />
             </button>
             <ThemeToggle />
           </div>
