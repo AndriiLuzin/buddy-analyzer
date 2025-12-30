@@ -1,23 +1,24 @@
 import { Sparkles, Brain, Heart } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface LoadingScreenProps {
   message?: string;
 }
 
-export const LoadingScreen = ({ message = "Анализируем ваши ответы..." }: LoadingScreenProps) => {
+export const LoadingScreen = ({ message }: LoadingScreenProps) => {
+  const { t } = useLanguage();
+  const displayMessage = message || t('loading.analyzing');
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
       <div className="relative mb-8">
-        {/* Animated rings */}
         <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
         <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
         
-        {/* Main icon container */}
         <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow animate-pulse-glow">
           <Brain className="w-12 h-12 text-primary-foreground animate-float" />
         </div>
 
-        {/* Floating elements */}
         <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center animate-float" style={{ animationDelay: '0.3s' }}>
           <Sparkles className="w-4 h-4 text-amber-900" />
         </div>
@@ -27,13 +28,12 @@ export const LoadingScreen = ({ message = "Анализируем ваши от�
       </div>
 
       <h2 className="text-xl font-bold text-foreground mb-2 text-center">
-        {message}
+        {displayMessage}
       </h2>
       <p className="text-muted-foreground text-center max-w-xs">
-        Искусственный интеллект изучает ваш стиль дружбы
+        {t('loading.ai')}
       </p>
 
-      {/* Loading dots */}
       <div className="flex gap-2 mt-8">
         {[0, 1, 2].map((i) => (
           <div

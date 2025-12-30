@@ -5,6 +5,8 @@ import { Label } from './ui/label';
 import { Users, Heart, Sparkles, Mail, Lock, User, ArrowRight, UserPlus, LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 interface AuthScreenProps {
   onAuthSuccess: () => void;
@@ -17,6 +19,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +35,13 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
             toast({
-              title: "Ошибка входа",
-              description: "Неверный email или пароль",
+              title: t('auth.error_login'),
+              description: t('auth.error_credentials'),
               variant: "destructive",
             });
           } else {
             toast({
-              title: "Ошибка",
+              title: t('common.error'),
               description: error.message,
               variant: "destructive",
             });
@@ -47,8 +50,8 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         }
 
         toast({
-          title: "Добро пожаловать!",
-          description: "Вы успешно вошли в аккаунт",
+          title: t('auth.welcome'),
+          description: t('auth.welcome_login'),
         });
         onAuthSuccess();
       } else {
@@ -66,13 +69,13 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
-              title: "Пользователь существует",
-              description: "Этот email уже зарегистрирован. Попробуйте войти.",
+              title: t('auth.error_exists'),
+              description: t('auth.error_exists_desc'),
               variant: "destructive",
             });
           } else {
             toast({
-              title: "Ошибка регистрации",
+              title: t('auth.error_register'),
               description: error.message,
               variant: "destructive",
             });
@@ -81,15 +84,15 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         }
 
         toast({
-          title: "Регистрация успешна!",
-          description: "Добро пожаловать в BuddyBe",
+          title: t('auth.register_success'),
+          description: t('auth.register_welcome'),
         });
         onAuthSuccess();
       }
     } catch (error) {
       toast({
-        title: "Ошибка",
-        description: "Что-то пошло не так. Попробуйте снова.",
+        title: t('common.error'),
+        description: t('auth.error_generic'),
         variant: "destructive",
       });
     } finally {
@@ -99,17 +102,19 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
+      {/* Language selector */}
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
+
       {/* Logo and branding */}
       <div className="relative mb-8">
-        {/* Animated rings */}
         <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" style={{ animationDuration: '3s' }} />
         
-        {/* Main icon container */}
         <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow animate-pulse-glow">
           <Users className="w-10 h-10 text-primary-foreground" />
         </div>
 
-        {/* Floating elements */}
         <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center animate-float" style={{ animationDelay: '0.3s' }}>
           <Sparkles className="w-3 h-3 text-amber-900" />
         </div>
@@ -119,10 +124,10 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       </div>
 
       <h1 className="text-3xl font-bold text-foreground mb-2 text-center">
-        BuddyBe
+        {t('auth.title')}
       </h1>
       <p className="text-muted-foreground text-center mb-8 max-w-xs">
-        Узнай свой стиль дружбы и укрепи отношения
+        {t('auth.subtitle')}
       </p>
 
       {/* Auth form card */}
@@ -138,7 +143,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             }`}
           >
             <LogIn className="w-4 h-4" />
-            Вход
+            {t('auth.login')}
           </button>
           <button
             onClick={() => setIsLogin(false)}
@@ -149,7 +154,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             }`}
           >
             <UserPlus className="w-4 h-4" />
-            Регистрация
+            {t('auth.register')}
           </button>
         </div>
 
@@ -157,14 +162,14 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           {!isLogin && (
             <div className="space-y-2 animate-fade-in">
               <Label htmlFor="name" className="text-foreground font-medium">
-                Имя
+                {t('auth.name')}
               </Label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Как вас зовут?"
+                  placeholder={t('auth.name_placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
@@ -176,7 +181,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="email" className="text-foreground font-medium">
-              Email
+              {t('auth.email')}
             </Label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -194,7 +199,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-foreground font-medium">
-              Пароль
+              {t('auth.password')}
             </Label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -211,7 +216,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             </div>
             {!isLogin && (
               <p className="text-xs text-muted-foreground">
-                Минимум 6 символов
+                {t('auth.password_min')}
               </p>
             )}
           </div>
@@ -224,11 +229,11 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                <span>Загрузка...</span>
+                <span>{t('auth.loading')}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span>{isLogin ? 'Войти' : 'Создать аккаунт'}</span>
+                <span>{isLogin ? t('auth.submit_login') : t('auth.submit_register')}</span>
                 <ArrowRight className="w-5 h-5" />
               </div>
             )}
@@ -238,7 +243,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
       {/* Footer */}
       <p className="text-xs text-muted-foreground mt-8 text-center max-w-xs">
-        Продолжая, вы соглашаетесь с условиями использования сервиса
+        {t('auth.terms')}
       </p>
     </div>
   );
