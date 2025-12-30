@@ -24,7 +24,7 @@ export interface UserProfile {
   completedAt: string;
 }
 
-export type Screen = 'auth' | 'friendRegistration' | 'userQuiz' | 'userProfileResult' | 'list' | 'loading' | 'friendQuiz';
+export type Screen = 'auth' | 'friendRegistration' | 'userQuiz' | 'userProfileResult' | 'list' | 'loading' | 'friendQuiz' | 'accountPrompt';
 
 export interface QuizQuestion {
   id: number;

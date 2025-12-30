@@ -9,10 +9,12 @@ import { FriendListScreen } from '../components/FriendListScreen';
 import { NotificationsPage } from './Notifications';
 import { AuthScreen } from '../components/AuthScreen';
 import { FriendRegistrationScreen } from '../components/FriendRegistrationScreen';
+import { CreateAccountPrompt } from '../components/CreateAccountPrompt';
 import { useFriendClassifier } from '../hooks/useFriendClassifier';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const STORAGE_KEYS = {
   USER_PROFILE: 'buddybe_user_profile',
@@ -40,8 +42,11 @@ const Index = ({ initialRoute }: IndexProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [friendInfo, setFriendInfo] = useState<FriendInfo | null>(null);
   const [referrerName, setReferrerName] = useState<string>('');
+  const [pendingQuizAnswers, setPendingQuizAnswers] = useState<number[] | null>(null);
+  const [pendingProfile, setPendingProfile] = useState<UserProfile | null>(null);
   const { classifyUser, isLoading } = useFriendClassifier();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Auth state listener
   useEffect(() => {
@@ -155,28 +160,89 @@ const Index = ({ initialRoute }: IndexProps) => {
 
   const handleFriendRegistration = (info: FriendInfo) => {
     setFriendInfo(info);
-    setScreen('auth'); // Go to auth after entering info
+    setScreen('userQuiz'); // Go directly to quiz without auth
   };
 
   const handleAuthSuccess = async () => {
-    // If this is a friend registration flow
-    if (referrerId && friendInfo && user) {
+    // If we have pending quiz results from friend flow, save them now
+    if (pendingQuizAnswers && pendingProfile && friendInfo && user) {
       // Save the user's profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           user_id: user.id,
           first_name: friendInfo.firstName,
           last_name: friendInfo.lastName,
-          birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null
+          birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
+          category: pendingProfile.category,
+          description: pendingProfile.description,
+          quiz_answers: pendingQuizAnswers
         });
 
       if (profileError) {
         console.error('Error saving profile:', profileError);
       }
+
+      // If this is a referred friend, add to referrer's friend list
+      if (referrerId) {
+        await addFriendToReferrer(pendingQuizAnswers, pendingProfile);
+      }
+
+      // Clear pending data
+      setPendingQuizAnswers(null);
+      setPendingProfile(null);
+      setUserProfile(pendingProfile);
+      setScreen('userProfileResult');
+      return;
     }
     
+    // Regular auth flow
     setScreen('userQuiz');
+  };
+
+  const addFriendToReferrer = async (answers: number[], profile: UserProfile) => {
+    if (!friendInfo || !referrerId) return;
+
+    // Get referrer's quiz answers for matching
+    const { data: referrerProfile } = await supabase
+      .from('profiles')
+      .select('quiz_answers, category')
+      .eq('user_id', referrerId)
+      .maybeSingle();
+
+    // Calculate match score based on answer similarity
+    let matchScore = 0;
+    if (referrerProfile?.quiz_answers) {
+      const referrerAnswers = referrerProfile.quiz_answers as number[];
+      let matches = 0;
+      for (let i = 0; i < Math.min(answers.length, referrerAnswers.length); i++) {
+        if (answers[i] === referrerAnswers[i]) matches++;
+      }
+      matchScore = Math.round((matches / answers.length) * 100);
+    }
+
+    // Generate a temporary user ID for unauthenticated friend
+    const tempUserId = user?.id || crypto.randomUUID();
+
+    // Add as friend to referrer
+    await supabase
+      .from('friends')
+      .insert({
+        owner_id: referrerId,
+        friend_user_id: tempUserId,
+        friend_name: friendInfo.firstName,
+        friend_last_name: friendInfo.lastName,
+        friend_birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
+        friend_category: profile.category,
+        friend_description: profile.description,
+        friend_quiz_answers: answers,
+        match_score: matchScore
+      });
+
+    toast({
+      title: t('friend_reg.added'),
+      description: `${t('friend_reg.added_desc')} ${referrerName}`,
+    });
   };
 
   const handleQuizComplete = async (answers: number[]) => {
@@ -186,7 +252,7 @@ const Index = ({ initialRoute }: IndexProps) => {
       const profile = await classifyUser(answers);
       setUserProfile(profile);
 
-      // Save to database if user is logged in
+      // If user is logged in, save immediately
       if (user) {
         await supabase
           .from('profiles')
@@ -199,47 +265,24 @@ const Index = ({ initialRoute }: IndexProps) => {
 
         // If this is a referred friend, add to referrer's friend list
         if (referrerId && friendInfo) {
-          // Get referrer's quiz answers for matching
-          const { data: referrerProfile } = await supabase
-            .from('profiles')
-            .select('quiz_answers, category')
-            .eq('user_id', referrerId)
-            .maybeSingle();
-
-          // Calculate match score based on answer similarity
-          let matchScore = 0;
-          if (referrerProfile?.quiz_answers) {
-            const referrerAnswers = referrerProfile.quiz_answers as number[];
-            let matches = 0;
-            for (let i = 0; i < Math.min(answers.length, referrerAnswers.length); i++) {
-              if (answers[i] === referrerAnswers[i]) matches++;
-            }
-            matchScore = Math.round((matches / answers.length) * 100);
-          }
-
-          // Add as friend to referrer
-          await supabase
-            .from('friends')
-            .insert({
-              owner_id: referrerId,
-              friend_user_id: user.id,
-              friend_name: friendInfo.firstName,
-              friend_last_name: friendInfo.lastName,
-              friend_birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
-              friend_category: profile.category,
-              friend_description: profile.description,
-              friend_quiz_answers: answers,
-              match_score: matchScore
-            });
-
-          toast({
-            title: "Отлично!",
-            description: `Вы добавлены в друзья к ${referrerName}`,
-          });
+          await addFriendToReferrer(answers, profile);
         }
-      }
 
-      setScreen('userProfileResult');
+        setScreen('userProfileResult');
+      } else {
+        // User not logged in - this is the friend flow
+        // Save pending data and add friend to referrer immediately (without account)
+        if (referrerId && friendInfo) {
+          await addFriendToReferrer(answers, profile);
+        }
+        
+        // Store for later if they create account
+        setPendingQuizAnswers(answers);
+        setPendingProfile(profile);
+        
+        // Show account creation prompt
+        setScreen('accountPrompt');
+      }
     } catch (error) {
       console.error('Classification error:', error);
       setScreen('userQuiz');
@@ -270,6 +313,29 @@ const Index = ({ initialRoute }: IndexProps) => {
     setFriendInfo(null);
     setScreen('auth');
   };
+
+  const handleCreateAccount = () => {
+    setScreen('auth');
+  };
+
+  const handleSkipAccount = () => {
+    // Show profile result without saving to account
+    if (pendingProfile) {
+      setUserProfile(pendingProfile);
+    }
+    setScreen('userProfileResult');
+  };
+
+  // Render account prompt screen (after friend completes quiz)
+  if (screen === 'accountPrompt') {
+    return (
+      <CreateAccountPrompt
+        onCreateAccount={handleCreateAccount}
+        onSkip={handleSkipAccount}
+        referrerName={referrerName}
+      />
+    );
+  }
 
   // Render friend registration screen (for referral links)
   if (screen === 'friendRegistration') {
