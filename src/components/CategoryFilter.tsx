@@ -1,5 +1,6 @@
 import { FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface CategoryFilterProps {
   selectedCategory: FriendCategory | 'all';
@@ -7,7 +8,10 @@ interface CategoryFilterProps {
 }
 
 export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryFilterProps) => {
+  const { t } = useLanguage();
   const categories = Object.entries(CATEGORY_INFO) as [FriendCategory, typeof CATEGORY_INFO[FriendCategory]][];
+
+  const getCategoryLabel = (category: FriendCategory) => t(`category.${category}`);
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
@@ -19,7 +23,7 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
             : 'bg-card text-foreground border-border hover:bg-muted'
         }`}
       >
-        Все
+        {t('friends.all')}
       </button>
 
       {categories.map(([key, info]) => (
@@ -33,7 +37,7 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
           }`}
         >
           <span>{info.emoji}</span>
-          <span>{info.label.split(' ')[0]}</span>
+          <span>{getCategoryLabel(key).split(' ')[0]}</span>
         </button>
       ))}
     </div>

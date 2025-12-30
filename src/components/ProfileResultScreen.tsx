@@ -32,6 +32,11 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Get localized category label
+  const getCategoryLabel = (category: FriendCategory) => {
+    return t(`category.${category}`) || categoryInfo.label;
+  };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -95,7 +100,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
           {/* Gradient Header */}
           <div className={`bg-gradient-to-br ${gradientClass} p-8 text-center`}>
             <div className="text-6xl mb-4 animate-float">{categoryInfo.emoji}</div>
-            <h2 className="text-2xl font-bold text-white mb-2">{categoryInfo.label}</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">{getCategoryLabel(profile.category)}</h2>
             <p className="text-white/80 text-sm">{t('profile.your_type')}</p>
           </div>
 

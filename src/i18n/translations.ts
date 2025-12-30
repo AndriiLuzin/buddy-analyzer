@@ -73,6 +73,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Try changing your search',
     'friends.invite': 'Invite friends to take the test',
     'friends.all': 'All',
+    'friends.awaiting_analysis': 'Awaiting analysis',
 
     // Categories
     'category.soul_mate': 'Soul Mate',
@@ -191,6 +192,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Essayez de modifier votre recherche',
     'friends.invite': 'Invitez des amis à passer le test',
     'friends.all': 'Tous',
+    'friends.awaiting_analysis': "En attente d'analyse",
 
     // Categories
     'category.soul_mate': 'Âme sœur',
@@ -296,6 +298,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Intenta cambiar tu búsqueda',
     'friends.invite': 'Invita a amigos a hacer el test',
     'friends.all': 'Todos',
+    'friends.awaiting_analysis': 'Esperando análisis',
 
     // Categories
     'category.soul_mate': 'Alma gemela',
@@ -401,6 +404,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Попробуйте изменить запрос',
     'friends.invite': 'Пригласите друзей пройти тест',
     'friends.all': 'Все',
+    'friends.awaiting_analysis': 'Ожидает анализа',
 
     // Categories
     'category.soul_mate': 'Душа в душу',
@@ -519,6 +523,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Tente mudar sua busca',
     'friends.invite': 'Convide amigos para fazer o teste',
     'friends.all': 'Todos',
+    'friends.awaiting_analysis': 'Aguardando análise',
 
     // Categories
     'category.soul_mate': 'Alma gêmea',
@@ -624,6 +629,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': 'Спробуйте змінити запит',
     'friends.invite': 'Запросіть друзів пройти тест',
     'friends.all': 'Усі',
+    'friends.awaiting_analysis': 'Очікує аналізу',
 
     // Categories
     'category.soul_mate': 'Споріднена душа',
@@ -729,6 +735,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': '검색을 변경해 보세요',
     'friends.invite': '친구를 초대하여 테스트를 받게 하세요',
     'friends.all': '전체',
+    'friends.awaiting_analysis': '분석 대기 중',
 
     // Categories
     'category.soul_mate': '소울메이트',
@@ -834,6 +841,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'friends.not_found_search': '尝试更改搜索内容',
     'friends.invite': '邀请朋友参加测试',
     'friends.all': '全部',
+    'friends.awaiting_analysis': '等待分析',
 
     // Categories
     'category.soul_mate': '灵魂伴侣',
