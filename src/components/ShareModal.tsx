@@ -81,7 +81,12 @@ export const ShareModal = ({ isOpen, onClose }: ShareModalProps) => {
         <div className="p-6">
           {/* QR Code */}
           <div className="bg-secondary rounded-2xl p-6 mb-6 flex flex-col items-center">
-            <div className="bg-white rounded-xl p-3 mb-4 shadow-soft">
+            <a 
+              href={shareUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-white rounded-xl p-3 mb-4 shadow-soft hover:shadow-md transition-shadow cursor-pointer"
+            >
               <QRCodeSVG 
                 value={shareUrl || 'https://example.com'} 
                 size={140}
@@ -90,7 +95,7 @@ export const ShareModal = ({ isOpen, onClose }: ShareModalProps) => {
                 bgColor="#ffffff"
                 fgColor="#1a1a1a"
               />
-            </div>
+            </a>
             <p className="text-sm text-muted-foreground text-center">
               Отсканируйте QR-код камерой телефона
             </p>
