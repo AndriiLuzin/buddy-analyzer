@@ -82,6 +82,11 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         <h1 className="text-2xl font-bold text-foreground">{t('profile.ready')}</h1>
       </div>
 
+      {/* Friendship Score Gauge - At Top */}
+      {friends.length > 0 && (
+        <FriendshipScoreGauge friends={friends} />
+      )}
+
       {/* Result Card */}
       <div className="flex-1 space-y-4">
         <div className="glass rounded-3xl overflow-hidden shadow-card animate-scale-in">
@@ -89,13 +94,13 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
           <div className={`bg-gradient-to-br ${gradientClass} p-8 text-center`}>
             <div className="text-6xl mb-4 animate-float">{categoryInfo.emoji}</div>
             <h2 className="text-2xl font-bold text-white mb-2">{categoryInfo.label}</h2>
-            <p className="text-white/80 text-sm">Ваш тип дружбы</p>
+            <p className="text-white/80 text-sm">{t('profile.your_type')}</p>
           </div>
 
           {/* Content */}
           <div className="p-6">
             <div className="bg-secondary/50 rounded-2xl p-5 mb-6">
-              <h3 className="font-semibold text-foreground mb-3">О вашем типе:</h3>
+              <h3 className="font-semibold text-foreground mb-3">{t('profile.about_type')}</h3>
               <p className="text-muted-foreground leading-relaxed">
                 {profile.description}
               </p>
@@ -105,15 +110,15 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-3 text-center">
                 <div className="text-2xl mb-1">💫</div>
-                <div className="text-xs text-muted-foreground">Глубина</div>
+                <div className="text-xs text-muted-foreground">{t('profile.depth')}</div>
               </div>
               <div className="bg-teal-50 dark:bg-teal-950/30 rounded-xl p-3 text-center">
                 <div className="text-2xl mb-1">🤝</div>
-                <div className="text-xs text-muted-foreground">Преданность</div>
+                <div className="text-xs text-muted-foreground">{t('profile.loyalty')}</div>
               </div>
               <div className="bg-pink-50 dark:bg-pink-950/30 rounded-xl p-3 text-center">
                 <div className="text-2xl mb-1">❤️</div>
-                <div className="text-xs text-muted-foreground">Открытость</div>
+                <div className="text-xs text-muted-foreground">{t('profile.openness')}</div>
               </div>
             </div>
 
@@ -123,19 +128,16 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
                 <Share2 className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-sm font-medium text-foreground">Поделитесь с друзьями</p>
-                <p className="text-xs text-muted-foreground">Узнайте их тип и совместимость</p>
+                <p className="text-sm font-medium text-foreground">{t('profile.share')}</p>
+                <p className="text-xs text-muted-foreground">{t('profile.share_desc')}</p>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Friendship Score Gauge */}
+        {/* Friendship Score History */}
         {friends.length > 0 && (
-          <>
-            <FriendshipScoreGauge friends={friends} />
-            <FriendshipScoreHistory friends={friends} />
-          </>
+          <FriendshipScoreHistory friends={friends} />
         )}
       </div>
 
@@ -144,7 +146,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         onClick={onContinue}
         className="w-full flex items-center justify-center gap-2 h-16 mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-base font-medium transition-colors"
       >
-        Перейти к друзьям
+        {t('profile.continue')}
         <ArrowRight className="w-5 h-5" />
       </button>
     </div>
