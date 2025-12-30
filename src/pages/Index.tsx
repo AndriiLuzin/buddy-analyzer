@@ -6,7 +6,10 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { ProfileResultScreen } from '../components/ProfileResultScreen';
 import { FriendListScreen } from '../components/FriendListScreen';
 import { NotificationsPage } from './Notifications';
+import { AuthScreen } from '../components/AuthScreen';
 import { useFriendClassifier } from '../hooks/useFriendClassifier';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
 const STORAGE_KEYS = {
   USER_PROFILE: 'friendify_user_profile',
@@ -21,11 +24,41 @@ const Index = ({ initialRoute }: IndexProps) => {
   const [screen, setScreen] = useState<Screen>('loading');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const { classifyUser, isLoading } = useFriendClassifier();
 
-  // Initialize app
+  // Auth state listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Initialize app based on auth state
   useEffect(() => {
     const initApp = () => {
+      // If no user is logged in, show auth screen
+      if (user === null && session === null) {
+        // Check if we've completed initial auth check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            setScreen('auth');
+          }
+        });
+        return;
+      }
+
       // Load user profile
       const savedProfile = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
       if (savedProfile) {
@@ -51,7 +84,7 @@ const Index = ({ initialRoute }: IndexProps) => {
 
     // Small delay for smooth initial load
     setTimeout(initApp, 500);
-  }, []);
+  }, [user, session]);
 
   const handleQuizComplete = async (answers: number[]) => {
     setScreen('loading');
@@ -65,6 +98,10 @@ const Index = ({ initialRoute }: IndexProps) => {
       console.error('Classification error:', error);
       setScreen('userQuiz');
     }
+  };
+
+  const handleAuthSuccess = () => {
+    setScreen('userQuiz');
   };
 
   const handleContinueToList = () => {
@@ -84,6 +121,11 @@ const Index = ({ initialRoute }: IndexProps) => {
     setFriends(updatedFriends);
     localStorage.setItem(STORAGE_KEYS.FRIENDS, JSON.stringify(updatedFriends));
   };
+
+  // Render auth screen
+  if (screen === 'auth') {
+    return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
+  }
 
   // Render loading screen
   if (screen === 'loading' || isLoading) {
