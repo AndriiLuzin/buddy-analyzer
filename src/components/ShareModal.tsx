@@ -101,25 +101,29 @@ export const ShareModal = ({ isOpen, onClose }: ShareModalProps) => {
             <p className="text-sm font-medium text-muted-foreground mb-3">Отправить напрямую:</p>
             
             <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={shareToTelegram}
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('Пройди тест и узнай свой тип дружбы! 💫')}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center">
                   <Send className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-medium text-foreground">Telegram</span>
-              </button>
+              </a>
 
-              <button
-                onClick={shareToWhatsApp}
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent('Пройди тест и узнай свой тип дружбы! 💫 ' + shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-medium text-foreground">WhatsApp</span>
-              </button>
+              </a>
             </div>
           </div>
 
