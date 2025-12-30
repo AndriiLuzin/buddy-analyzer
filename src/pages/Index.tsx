@@ -101,6 +101,7 @@ const Index = ({ initialRoute }: IndexProps) => {
       <ProfileResultScreen
         profile={userProfile}
         onContinue={handleContinueToList}
+        friends={friends}
       />
     );
   }
