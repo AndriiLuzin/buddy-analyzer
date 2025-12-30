@@ -30,14 +30,13 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
         <button
           key={key}
           onClick={() => onSelectCategory(key)}
-          className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5 border ${
+          className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
             selectedCategory === key
               ? 'bg-primary text-primary-foreground border-primary'
               : 'bg-card text-foreground border-border hover:bg-muted'
           }`}
         >
-          <span>{info.emoji}</span>
-          <span>{getCategoryLabel(key).split(' ')[0]}</span>
+          {getCategoryLabel(key).split(' ')[0]}
         </button>
       ))}
     </div>
