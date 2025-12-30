@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
-import { ArrowLeft, Bell, MessageCircle, Cake, Clock, UserCheck } from 'lucide-react';
+import { ArrowLeft, Bell, MessageCircle, Cake, Clock, UserCheck, Check } from 'lucide-react';
 import { CATEGORY_INFO } from '../constants';
+import { useToast } from '../hooks/use-toast';
 
 interface NotificationsPageProps {
   friends: Friend[];
+  onUpdateFriend: (friendId: string, updates: Partial<Friend>) => void;
 }
 
 // Интервалы напоминаний в днях для каждой категории
@@ -94,8 +97,20 @@ const getUpcomingBirthdays = (friends: Friend[]) => {
     .filter(item => item.daysUntil <= 30 && item.daysUntil >= 0);
 };
 
-export const NotificationsPage = ({ friends }: NotificationsPageProps) => {
+export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPageProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const handleMarkAsContacted = (notification: Notification) => {
+    const today = new Date().toISOString().split('T')[0];
+    onUpdateFriend(notification.friend.id, { lastInteraction: today });
+    setDismissedIds(prev => new Set(prev).add(notification.id));
+    toast({
+      title: "Отмечено!",
+      description: `Дата контакта с ${notification.friend.name} обновлена`,
+    });
+  };
 
   // Генерируем уведомления о контактах
   const contactNotifications: Notification[] = friends
@@ -135,7 +150,8 @@ export const NotificationsPage = ({ friends }: NotificationsPageProps) => {
       daysInfo: daysUntil === 0 ? 'Сегодня' : `Через ${daysUntil} дн.`
     }));
 
-  const allNotifications = [...birthdayNotifications, ...contactNotifications];
+  const visibleNotifications = [...birthdayNotifications, ...contactNotifications]
+    .filter(n => !dismissedIds.has(n.id));
 
   const urgencyStyles = {
     high: 'bg-destructive/10 border-destructive/30',
@@ -163,7 +179,7 @@ export const NotificationsPage = ({ friends }: NotificationsPageProps) => {
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">Уведомления</h1>
             <p className="text-sm text-muted-foreground">
-              {allNotifications.length} {allNotifications.length === 1 ? 'напоминание' : 'напоминаний'}
+              {visibleNotifications.length} {visibleNotifications.length === 1 ? 'напоминание' : 'напоминаний'}
             </p>
           </div>
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -175,52 +191,70 @@ export const NotificationsPage = ({ friends }: NotificationsPageProps) => {
       {/* Content */}
       <main className="px-4 py-4 space-y-6">
         {/* Priority Section */}
-        {allNotifications.filter(n => n.urgency === 'high').length > 0 && (
+        {visibleNotifications.filter(n => n.urgency === 'high').length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
               <h2 className="text-sm font-semibold text-foreground">Срочные</h2>
             </div>
             <div className="space-y-2">
-              {allNotifications.filter(n => n.urgency === 'high').map(notification => (
-                <NotificationCard key={notification.id} notification={notification} urgencyStyles={urgencyStyles} urgencyBadgeStyles={urgencyBadgeStyles} />
+              {visibleNotifications.filter(n => n.urgency === 'high').map(notification => (
+                <NotificationCard 
+                  key={notification.id} 
+                  notification={notification} 
+                  urgencyStyles={urgencyStyles} 
+                  urgencyBadgeStyles={urgencyBadgeStyles}
+                  onMarkAsContacted={notification.type === 'contact' ? () => handleMarkAsContacted(notification) : undefined}
+                />
               ))}
             </div>
           </section>
         )}
 
         {/* Medium Priority */}
-        {allNotifications.filter(n => n.urgency === 'medium').length > 0 && (
+        {visibleNotifications.filter(n => n.urgency === 'medium').length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-amber-500" />
               <h2 className="text-sm font-semibold text-foreground">На этой неделе</h2>
             </div>
             <div className="space-y-2">
-              {allNotifications.filter(n => n.urgency === 'medium').map(notification => (
-                <NotificationCard key={notification.id} notification={notification} urgencyStyles={urgencyStyles} urgencyBadgeStyles={urgencyBadgeStyles} />
+              {visibleNotifications.filter(n => n.urgency === 'medium').map(notification => (
+                <NotificationCard 
+                  key={notification.id} 
+                  notification={notification} 
+                  urgencyStyles={urgencyStyles} 
+                  urgencyBadgeStyles={urgencyBadgeStyles}
+                  onMarkAsContacted={notification.type === 'contact' ? () => handleMarkAsContacted(notification) : undefined}
+                />
               ))}
             </div>
           </section>
         )}
 
         {/* Low Priority */}
-        {allNotifications.filter(n => n.urgency === 'low').length > 0 && (
+        {visibleNotifications.filter(n => n.urgency === 'low').length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-muted-foreground" />
               <h2 className="text-sm font-semibold text-foreground">Позже</h2>
             </div>
             <div className="space-y-2">
-              {allNotifications.filter(n => n.urgency === 'low').map(notification => (
-                <NotificationCard key={notification.id} notification={notification} urgencyStyles={urgencyStyles} urgencyBadgeStyles={urgencyBadgeStyles} />
+              {visibleNotifications.filter(n => n.urgency === 'low').map(notification => (
+                <NotificationCard 
+                  key={notification.id} 
+                  notification={notification} 
+                  urgencyStyles={urgencyStyles} 
+                  urgencyBadgeStyles={urgencyBadgeStyles}
+                  onMarkAsContacted={notification.type === 'contact' ? () => handleMarkAsContacted(notification) : undefined}
+                />
               ))}
             </div>
           </section>
         )}
 
         {/* Empty State */}
-        {allNotifications.length === 0 && (
+        {visibleNotifications.length === 0 && (
           <div className="text-center py-16">
             <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
               <UserCheck className="w-10 h-10 text-muted-foreground" />
@@ -252,9 +286,10 @@ interface NotificationCardProps {
   notification: Notification;
   urgencyStyles: Record<string, string>;
   urgencyBadgeStyles: Record<string, string>;
+  onMarkAsContacted?: () => void;
 }
 
-const NotificationCard = ({ notification, urgencyStyles, urgencyBadgeStyles }: NotificationCardProps) => {
+const NotificationCard = ({ notification, urgencyStyles, urgencyBadgeStyles, onMarkAsContacted }: NotificationCardProps) => {
   const categoryInfo = notification.friend.category ? CATEGORY_INFO[notification.friend.category] : null;
   
   return (
@@ -277,13 +312,24 @@ const NotificationCard = ({ notification, urgencyStyles, urgencyBadgeStyles }: N
         <p className="text-sm text-muted-foreground">{notification.message}</p>
       </div>
 
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className={`text-xs px-2 py-0.5 rounded-full ${urgencyBadgeStyles[notification.urgency]}`}>
-          {notification.daysInfo}
-        </span>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="w-3 h-3" />
-          <span>{notification.type === 'birthday' ? 'ДР' : 'Связь'}</span>
+      <div className="flex items-center gap-2 shrink-0">
+        {onMarkAsContacted && (
+          <button
+            onClick={onMarkAsContacted}
+            className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center hover:bg-primary/30 transition-colors"
+            title="Отметить как связался"
+          >
+            <Check className="w-5 h-5 text-primary" />
+          </button>
+        )}
+        <div className="flex flex-col items-end gap-1">
+          <span className={`text-xs px-2 py-0.5 rounded-full ${urgencyBadgeStyles[notification.urgency]}`}>
+            {notification.daysInfo}
+          </span>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="w-3 h-3" />
+            <span>{notification.type === 'birthday' ? 'ДР' : 'Связь'}</span>
+          </div>
         </div>
       </div>
     </div>

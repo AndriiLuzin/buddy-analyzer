@@ -77,6 +77,14 @@ const Index = ({ initialRoute }: IndexProps) => {
     }
   };
 
+  const handleUpdateFriend = (friendId: string, updates: Partial<Friend>) => {
+    const updatedFriends = friends.map(f => 
+      f.id === friendId ? { ...f, ...updates } : f
+    );
+    setFriends(updatedFriends);
+    localStorage.setItem(STORAGE_KEYS.FRIENDS, JSON.stringify(updatedFriends));
+  };
+
   // Render loading screen
   if (screen === 'loading' || isLoading) {
     return <LoadingScreen />;
@@ -99,7 +107,7 @@ const Index = ({ initialRoute }: IndexProps) => {
 
   // Render notifications page
   if (initialRoute === 'notifications') {
-    return <NotificationsPage friends={friends} />;
+    return <NotificationsPage friends={friends} onUpdateFriend={handleUpdateFriend} />;
   }
 
   // Render friend list screen
