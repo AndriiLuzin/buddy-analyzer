@@ -154,11 +154,11 @@ export const NotificationDetailModal = ({
   return (
     <Dialog open={!!notification} onOpenChange={() => onClose()}>
       <DialogContent 
-        className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl"
+        className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
         hideClose
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-4">
+        <div className="shrink-0 bg-background border-b border-border px-4 py-4">
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
@@ -181,7 +181,7 @@ export const NotificationDetailModal = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {/* Days info */}
           <div className="flex items-center gap-2 p-3 rounded-xl bg-muted">
             <Clock className="w-5 h-5 text-muted-foreground" />
@@ -275,7 +275,7 @@ export const NotificationDetailModal = ({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-background border-t border-border p-4">
+        <div className="shrink-0 bg-background border-t border-border p-4">
           <button
             onClick={handleMarkAndClose}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
