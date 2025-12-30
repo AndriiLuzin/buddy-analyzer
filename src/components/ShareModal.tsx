@@ -64,7 +64,7 @@ export const ShareModal = ({ isOpen, onClose }: ShareModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-card border-0 rounded-3xl">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-card border-0 rounded-3xl" hideClose>
         {/* Header */}
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
