@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
 import { QUIZ_QUESTIONS_LOCALIZED } from '@/i18n/quizQuestions';
+
+const QUIZ_PROGRESS_KEY = 'buddybe_quiz_progress';
+
+interface QuizProgress {
+  currentQuestion: number;
+  answers: number[];
+  timestamp: number;
+}
 
 interface QuizScreenProps {
   onComplete: (answers: number[]) => void;
@@ -18,6 +26,7 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { t, language } = useLanguage();
 
   const displayTitle = title || t('quiz.title');
@@ -26,6 +35,46 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
   const questions = QUIZ_QUESTIONS_LOCALIZED[language];
   const question = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  // Load saved progress on mount
+  useEffect(() => {
+    const savedProgress = localStorage.getItem(QUIZ_PROGRESS_KEY);
+    if (savedProgress) {
+      try {
+        const parsed: QuizProgress = JSON.parse(savedProgress);
+        // Only restore if less than 24 hours old
+        const isRecent = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
+        if (isRecent && parsed.answers.length > 0) {
+          setCurrentQuestion(parsed.currentQuestion);
+          setAnswers(parsed.answers);
+          // If we have an answer for current question, preselect it
+          if (parsed.answers[parsed.currentQuestion] !== undefined) {
+            setSelectedOption(parsed.answers[parsed.currentQuestion]);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading quiz progress:', e);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save progress whenever answers change
+  useEffect(() => {
+    if (isLoaded && answers.length > 0) {
+      const progress: QuizProgress = {
+        currentQuestion,
+        answers,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(QUIZ_PROGRESS_KEY, JSON.stringify(progress));
+    }
+  }, [answers, currentQuestion, isLoaded]);
+
+  // Clear progress when quiz is completed
+  const clearProgress = () => {
+    localStorage.removeItem(QUIZ_PROGRESS_KEY);
+  };
 
   const handleOptionSelect = (optionIndex: number) => {
     setSelectedOption(optionIndex);
@@ -41,6 +90,7 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
       setCurrentQuestion(currentQuestion + 1);
       setSelectedOption(null);
     } else {
+      clearProgress();
       onComplete(newAnswers);
     }
   };
