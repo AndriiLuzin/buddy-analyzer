@@ -1,5 +1,6 @@
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface FriendCardProps {
   friend: Friend;
@@ -16,8 +17,11 @@ const categoryBgStyles: Record<FriendCategory, string> = {
 };
 
 export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
+  const { t } = useLanguage();
   const categoryInfo = friend.category ? CATEGORY_INFO[friend.category] : null;
   const initials = friend.name.split(' ').map(n => n[0]).join('').toUpperCase();
+  
+  const getCategoryLabel = (category: FriendCategory) => t(`category.${category}`);
 
   return (
     <button
@@ -51,7 +55,7 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
           )}
         </div>
         <p className="text-sm text-muted-foreground truncate">
-          {friend.description || (categoryInfo ? categoryInfo.label : 'Ожидает анализа')}
+          {friend.description || (friend.category ? getCategoryLabel(friend.category) : t('friends.awaiting_analysis'))}
         </p>
       </div>
 
@@ -63,9 +67,9 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
             <span className="text-xs">💫</span>
           </div>
         )}
-        {categoryInfo && (
-          <div className={`px-3 py-1.5 rounded-full text-xs font-medium border category-${friend.category?.replace('_', '-')}`}>
-            {categoryInfo.label.split(' ')[0]}
+        {friend.category && (
+          <div className={`px-3 py-1.5 rounded-full text-xs font-medium border category-${friend.category.replace('_', '-')}`}>
+            {getCategoryLabel(friend.category).split(' ')[0]}
           </div>
         )}
       </div>
