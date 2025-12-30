@@ -137,6 +137,15 @@ const Index = ({ initialRoute }: IndexProps) => {
     return <QuizScreen onComplete={handleQuizComplete} />;
   }
 
+  const handleLogout = () => {
+    setUser(null);
+    setSession(null);
+    setUserProfile(null);
+    localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+    localStorage.removeItem(STORAGE_KEYS.FRIENDS);
+    setScreen('auth');
+  };
+
   // Render profile result screen
   if (screen === 'userProfileResult' && userProfile) {
     return (
@@ -144,6 +153,8 @@ const Index = ({ initialRoute }: IndexProps) => {
         profile={userProfile}
         onContinue={handleContinueToList}
         friends={friends}
+        user={user}
+        onLogout={handleLogout}
       />
     );
   }

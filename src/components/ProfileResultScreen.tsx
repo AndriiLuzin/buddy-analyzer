@@ -1,14 +1,19 @@
 import { UserProfile, FriendCategory, Friend } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from './ui/button';
-import { Sparkles, ArrowRight, Share2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Share2, LogOut, Mail } from 'lucide-react';
 import { FriendshipScoreGauge } from './FriendshipScoreGauge';
 import { FriendshipScoreHistory } from './FriendshipScoreHistory';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { User } from '@supabase/supabase-js';
 
 interface ProfileResultScreenProps {
   profile: UserProfile;
   onContinue: () => void;
   friends?: Friend[];
+  user?: User | null;
+  onLogout?: () => void;
 }
 
 const categoryStyles: Record<FriendCategory, string> = {
@@ -19,14 +24,51 @@ const categoryStyles: Record<FriendCategory, string> = {
   distant: 'from-slate-400 to-gray-500'
 };
 
-export const ProfileResultScreen = ({ profile, onContinue, friends = [] }: ProfileResultScreenProps) => {
+export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, onLogout }: ProfileResultScreenProps) => {
   const categoryInfo = CATEGORY_INFO[profile.category];
   const gradientClass = categoryStyles[profile.category];
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "До свидания!",
+        description: "Вы вышли из аккаунта",
+      });
+      if (onLogout) {
+        onLogout();
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось выйти из аккаунта",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col p-4 pb-24 animate-fade-in">
-      {/* Header */}
-      <div className="text-center pt-8 mb-8">
+      {/* Header with user info */}
+      <div className="flex items-center justify-between pt-4 mb-4">
+        {user?.email && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-secondary text-sm">
+            <Mail className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground truncate max-w-[150px]">{user.email}</span>
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors text-sm"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Выйти</span>
+        </button>
+      </div>
+
+      {/* Title */}
+      <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
           <Sparkles className="w-4 h-4" />
           <span className="text-sm font-medium">Анализ завершён</span>
