@@ -1,11 +1,13 @@
-import { UserProfile, FriendCategory } from '../types';
+import { UserProfile, FriendCategory, Friend } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from './ui/button';
 import { Sparkles, ArrowRight, Share2 } from 'lucide-react';
+import { FriendshipScoreGauge } from './FriendshipScoreGauge';
 
 interface ProfileResultScreenProps {
   profile: UserProfile;
   onContinue: () => void;
+  friends?: Friend[];
 }
 
 const categoryStyles: Record<FriendCategory, string> = {
@@ -16,7 +18,7 @@ const categoryStyles: Record<FriendCategory, string> = {
   distant: 'from-slate-400 to-gray-500'
 };
 
-export const ProfileResultScreen = ({ profile, onContinue }: ProfileResultScreenProps) => {
+export const ProfileResultScreen = ({ profile, onContinue, friends = [] }: ProfileResultScreenProps) => {
   const categoryInfo = CATEGORY_INFO[profile.category];
   const gradientClass = categoryStyles[profile.category];
 
@@ -32,7 +34,7 @@ export const ProfileResultScreen = ({ profile, onContinue }: ProfileResultScreen
       </div>
 
       {/* Result Card */}
-      <div className="flex-1">
+      <div className="flex-1 space-y-4">
         <div className="glass rounded-3xl overflow-hidden shadow-card animate-scale-in">
           {/* Gradient Header */}
           <div className={`bg-gradient-to-br ${gradientClass} p-8 text-center`}>
@@ -78,6 +80,11 @@ export const ProfileResultScreen = ({ profile, onContinue }: ProfileResultScreen
             </div>
           </div>
         </div>
+
+        {/* Friendship Score Gauge */}
+        {friends.length > 0 && (
+          <FriendshipScoreGauge friends={friends} />
+        )}
       </div>
 
       {/* Continue Button */}
