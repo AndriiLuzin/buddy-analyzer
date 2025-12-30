@@ -84,7 +84,9 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
 
       {/* Friendship Score Gauge - At Top */}
       {friends.length > 0 && (
-        <FriendshipScoreGauge friends={friends} />
+        <div className="mb-6">
+          <FriendshipScoreGauge friends={friends} />
+        </div>
       )}
 
       {/* Result Card */}
