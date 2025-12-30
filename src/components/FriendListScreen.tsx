@@ -16,9 +16,10 @@ interface FriendListScreenProps {
   friends: Friend[];
   userProfile: UserProfile | null;
   onViewProfile: () => void;
+  userId?: string;
 }
 
-export const FriendListScreen = ({ friends, userProfile, onViewProfile }: FriendListScreenProps) => {
+export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<FriendCategory | 'all'>('all');
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
@@ -150,6 +151,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
+        userId={userId}
       />
     </div>
   );

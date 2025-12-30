@@ -113,6 +113,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.share': 'Share',
     'nav.profile': 'Profile',
 
+    // Friend Registration
+    'friend_reg.invited_you': 'invited you',
+    'friend_reg.subtitle': 'Tell us about yourself to discover your friendship style',
+    'friend_reg.first_name': 'First Name',
+    'friend_reg.first_name_placeholder': 'Your first name',
+    'friend_reg.last_name': 'Last Name',
+    'friend_reg.last_name_placeholder': 'Your last name',
+    'friend_reg.birthday': 'Birthday',
+    'friend_reg.birthday_placeholder': 'Select your birthday',
+    'friend_reg.continue': 'Continue to Quiz',
+    'friend_reg.added': 'Great!',
+    'friend_reg.added_desc': 'You have been added as a friend',
+
     // Common
     'common.error': 'Error',
   },
@@ -427,6 +440,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.friends': 'Друзья',
     'nav.share': 'Поделиться',
     'nav.profile': 'Профиль',
+
+    // Friend Registration
+    'friend_reg.invited_you': 'пригласил(а) вас',
+    'friend_reg.subtitle': 'Расскажите о себе, чтобы узнать свой стиль дружбы',
+    'friend_reg.first_name': 'Имя',
+    'friend_reg.first_name_placeholder': 'Ваше имя',
+    'friend_reg.last_name': 'Фамилия',
+    'friend_reg.last_name_placeholder': 'Ваша фамилия',
+    'friend_reg.birthday': 'Дата рождения',
+    'friend_reg.birthday_placeholder': 'Выберите дату рождения',
+    'friend_reg.continue': 'Перейти к тесту',
+    'friend_reg.added': 'Отлично!',
+    'friend_reg.added_desc': 'Вы добавлены в друзья',
 
     // Common
     'common.error': 'Ошибка',

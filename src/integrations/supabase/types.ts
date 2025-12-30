@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      friends: {
+        Row: {
+          created_at: string
+          friend_birthday: string | null
+          friend_category: string | null
+          friend_description: string | null
+          friend_last_name: string
+          friend_name: string
+          friend_quiz_answers: number[] | null
+          friend_user_id: string
+          id: string
+          last_interaction: string | null
+          match_score: number | null
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_birthday?: string | null
+          friend_category?: string | null
+          friend_description?: string | null
+          friend_last_name: string
+          friend_name: string
+          friend_quiz_answers?: number[] | null
+          friend_user_id: string
+          id?: string
+          last_interaction?: string | null
+          match_score?: number | null
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_birthday?: string | null
+          friend_category?: string | null
+          friend_description?: string | null
+          friend_last_name?: string
+          friend_name?: string
+          friend_quiz_answers?: number[] | null
+          friend_user_id?: string
+          id?: string
+          last_interaction?: string | null
+          match_score?: number | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          birthday: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          first_name: string
+          id: string
+          last_name: string
+          quiz_answers: number[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birthday?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          quiz_answers?: number[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birthday?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          quiz_answers?: number[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

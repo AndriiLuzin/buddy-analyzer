@@ -23,7 +23,7 @@ export interface UserProfile {
   completedAt: string;
 }
 
-export type Screen = 'auth' | 'userQuiz' | 'userProfileResult' | 'list' | 'loading' | 'friendQuiz';
+export type Screen = 'auth' | 'friendRegistration' | 'userQuiz' | 'userProfileResult' | 'list' | 'loading' | 'friendQuiz';
 
 export interface QuizQuestion {
   id: number;
