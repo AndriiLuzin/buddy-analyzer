@@ -34,7 +34,7 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch }: FriendDe
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-card border-0 rounded-3xl">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-card border-0 rounded-3xl" hideClose>
         {/* Header with gradient */}
         <div className={`bg-gradient-to-br ${gradient} p-6 pb-16 relative`}>
           <DialogHeader className="relative z-10">
