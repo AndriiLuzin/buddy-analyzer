@@ -46,6 +46,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Back',
     'quiz.next': 'Next',
     'quiz.complete': 'Complete',
+    'quiz.skip': 'Skip for now',
+    'quiz.fill_later': 'You can fill it out later',
 
     // Profile
     'profile.analysis_complete': 'Analysis Complete',
@@ -178,6 +180,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Retour',
     'quiz.next': 'Suivant',
     'quiz.complete': 'Terminer',
+    'quiz.skip': 'Passer pour le moment',
+    'quiz.fill_later': 'Vous pouvez le remplir plus tard',
 
     // Profile
     'profile.analysis_complete': 'Analyse terminée',
@@ -297,6 +301,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Atrás',
     'quiz.next': 'Siguiente',
     'quiz.complete': 'Completar',
+    'quiz.skip': 'Omitir por ahora',
+    'quiz.fill_later': 'Puedes llenarlo después',
 
     // Profile
     'profile.analysis_complete': 'Análisis completado',
@@ -416,6 +422,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Назад',
     'quiz.next': 'Далее',
     'quiz.complete': 'Завершить',
+    'quiz.skip': 'Пропустить',
+    'quiz.fill_later': 'Вы можете заполнить позже',
 
     // Profile
     'profile.analysis_complete': 'Анализ завершён',
@@ -548,6 +556,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Voltar',
     'quiz.next': 'Próximo',
     'quiz.complete': 'Concluir',
+    'quiz.skip': 'Pular por enquanto',
+    'quiz.fill_later': 'Você pode preencher depois',
 
     // Profile
     'profile.analysis_complete': 'Análise concluída',
@@ -667,6 +677,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': 'Назад',
     'quiz.next': 'Далі',
     'quiz.complete': 'Завершити',
+    'quiz.skip': 'Пропустити',
+    'quiz.fill_later': 'Ви можете заповнити пізніше',
 
     // Profile
     'profile.analysis_complete': 'Аналіз завершено',
@@ -786,6 +798,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': '뒤로',
     'quiz.next': '다음',
     'quiz.complete': '완료',
+    'quiz.skip': '나중에 하기',
+    'quiz.fill_later': '나중에 작성할 수 있습니다',
 
     // Profile
     'profile.analysis_complete': '분석 완료',
@@ -905,6 +919,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'quiz.back': '返回',
     'quiz.next': '下一个',
     'quiz.complete': '完成',
+    'quiz.skip': '暂时跳过',
+    'quiz.fill_later': '您可以稍后填写',
 
     // Profile
     'profile.analysis_complete': '分析完成',
