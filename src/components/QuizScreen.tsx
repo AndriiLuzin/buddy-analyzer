@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { QUIZ_QUESTIONS } from '../constants';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
+import { QUIZ_QUESTIONS_LOCALIZED } from '@/i18n/quizQuestions';
 
 interface QuizScreenProps {
   onComplete: (answers: number[]) => void;
@@ -16,13 +16,14 @@ export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const displayTitle = title || t('quiz.title');
   const displaySubtitle = subtitle || t('quiz.subtitle');
 
-  const question = QUIZ_QUESTIONS[currentQuestion];
-  const progress = ((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100;
+  const questions = QUIZ_QUESTIONS_LOCALIZED[language];
+  const question = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   const handleOptionSelect = (optionIndex: number) => {
     setSelectedOption(optionIndex);
@@ -34,7 +35,7 @@ export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => 
     const newAnswers = [...answers, selectedOption];
     setAnswers(newAnswers);
 
-    if (currentQuestion < QUIZ_QUESTIONS.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedOption(null);
     } else {
@@ -61,7 +62,7 @@ export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => 
       <div className="text-center mb-8 pt-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
           <Sparkles className="w-4 h-4" />
-          <span className="text-sm font-medium">{t('quiz.question')} {currentQuestion + 1} {t('quiz.of')} {QUIZ_QUESTIONS.length}</span>
+          <span className="text-sm font-medium">{t('quiz.question')} {currentQuestion + 1} {t('quiz.of')} {questions.length}</span>
         </div>
         <h1 className="text-2xl font-bold text-foreground mb-2">{displayTitle}</h1>
         <p className="text-muted-foreground text-sm">{displaySubtitle}</p>
@@ -113,7 +114,7 @@ export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => 
             disabled={selectedOption === null}
             className="flex-1 h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
           >
-            {currentQuestion === QUIZ_QUESTIONS.length - 1 ? (
+            {currentQuestion === questions.length - 1 ? (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
                 {t('quiz.complete')}
