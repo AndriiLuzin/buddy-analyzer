@@ -8,7 +8,7 @@ import { BottomNavBar } from './BottomNavBar';
 import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
-import { Search, UserPlus } from 'lucide-react';
+import { Search, UserPlus, X } from 'lucide-react';
 
 interface FriendListScreenProps {
   friends: Friend[];
@@ -22,6 +22,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const filteredFriends = friends.filter(friend => {
     const matchesCategory = selectedCategory === 'all' || friend.category === selectedCategory;
@@ -54,26 +55,33 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setSearchQuery('')}
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
-              <Search className="w-5 h-5 text-muted-foreground" />
+              {isSearchOpen ? (
+                <X className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <Search className="w-5 h-5 text-muted-foreground" />
+              )}
             </button>
             <ThemeToggle />
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Поиск друзей..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
+        {/* Search - toggleable */}
+        {isSearchOpen && (
+          <div className="relative mb-4 animate-fade-in">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Поиск друзей..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+              className="w-full h-12 pl-12 pr-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+        )}
 
         {/* Category Filter */}
         <CategoryFilter
