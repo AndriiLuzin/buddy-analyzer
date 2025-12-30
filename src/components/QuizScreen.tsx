@@ -3,6 +3,8 @@ import { QUIZ_QUESTIONS } from '../constants';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 interface QuizScreenProps {
   onComplete: (answers: number[]) => void;
@@ -10,10 +12,14 @@ interface QuizScreenProps {
   subtitle?: string;
 }
 
-export const QuizScreen = ({ onComplete, title = "Узнай свой тип дружбы", subtitle = "Ответь на 25 вопросов, чтобы мы создали твой профиль" }: QuizScreenProps) => {
+export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const { t } = useLanguage();
+
+  const displayTitle = title || t('quiz.title');
+  const displaySubtitle = subtitle || t('quiz.subtitle');
 
   const question = QUIZ_QUESTIONS[currentQuestion];
   const progress = ((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100;
@@ -46,14 +52,19 @@ export const QuizScreen = ({ onComplete, title = "Узнай свой тип д�
 
   return (
     <div className="min-h-screen flex flex-col p-4 pb-24 animate-fade-in">
+      {/* Language selector */}
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-8 pt-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
           <Sparkles className="w-4 h-4" />
-          <span className="text-sm font-medium">Вопрос {currentQuestion + 1} из {QUIZ_QUESTIONS.length}</span>
+          <span className="text-sm font-medium">{t('quiz.question')} {currentQuestion + 1} {t('quiz.of')} {QUIZ_QUESTIONS.length}</span>
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">{title}</h1>
-        <p className="text-muted-foreground text-sm">{subtitle}</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{displayTitle}</h1>
+        <p className="text-muted-foreground text-sm">{displaySubtitle}</p>
       </div>
 
       {/* Progress */}
@@ -94,7 +105,7 @@ export const QuizScreen = ({ onComplete, title = "Узнай свой тип д�
               className="flex-1 h-14 rounded-xl text-base font-medium"
             >
               <ChevronLeft className="w-5 h-5 mr-2" />
-              Назад
+              {t('quiz.back')}
             </Button>
           )}
           <Button
@@ -105,11 +116,11 @@ export const QuizScreen = ({ onComplete, title = "Узнай свой тип д�
             {currentQuestion === QUIZ_QUESTIONS.length - 1 ? (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                Завершить
+                {t('quiz.complete')}
               </>
             ) : (
               <>
-                Далее
+                {t('quiz.next')}
                 <ChevronRight className="w-5 h-5 ml-2" />
               </>
             )}

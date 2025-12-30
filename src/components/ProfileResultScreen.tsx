@@ -7,6 +7,8 @@ import { FriendshipScoreHistory } from './FriendshipScoreHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 interface ProfileResultScreenProps {
   profile: UserProfile;
@@ -28,21 +30,22 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   const categoryInfo = CATEGORY_INFO[profile.category];
   const gradientClass = categoryStyles[profile.category];
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       toast({
-        title: "До свидания!",
-        description: "Вы вышли из аккаунта",
+        title: t('profile.goodbye'),
+        description: t('profile.logout_success'),
       });
       if (onLogout) {
         onLogout();
       }
     } catch (error) {
       toast({
-        title: "Ошибка",
-        description: "Не удалось выйти из аккаунта",
+        title: t('common.error'),
+        description: t('profile.logout_error'),
         variant: "destructive",
       });
     }
@@ -58,22 +61,25 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
             <span className="text-foreground truncate max-w-[150px]">{user.email}</span>
           </div>
         )}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors text-sm"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Выйти</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors text-sm"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>{t('profile.logout')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Title */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
           <Sparkles className="w-4 h-4" />
-          <span className="text-sm font-medium">Анализ завершён</span>
+          <span className="text-sm font-medium">{t('profile.analysis_complete')}</span>
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Ваш профиль готов!</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('profile.ready')}</h1>
       </div>
 
       {/* Result Card */}
