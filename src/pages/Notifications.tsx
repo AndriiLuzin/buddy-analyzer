@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
-import { ArrowLeft, Bell, MessageCircle, Cake, Clock, UserCheck, Check } from 'lucide-react';
+import { ArrowLeft, Bell, MessageCircle, Cake, Clock, UserCheck } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { NotificationDetailModal } from '../components/NotificationDetailModal';
 
 interface NotificationsPageProps {
   friends: Friend[];
@@ -46,7 +47,7 @@ const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
   ]
 };
 
-interface Notification {
+export interface Notification {
   id: string;
   type: 'contact' | 'birthday';
   friend: Friend;
@@ -100,6 +101,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
   const navigate = useNavigate();
   const { toast } = useToast();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
   const handleMarkAsContacted = (notification: Notification) => {
     const today = new Date().toISOString().split('T')[0];
@@ -194,7 +196,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
                 <NotificationCard 
                   key={notification.id} 
                   notification={notification}
-                  onMarkAsContacted={notification.type === 'contact' ? () => handleMarkAsContacted(notification) : undefined}
+                  onClick={() => setSelectedNotification(notification)}
                 />
               ))}
             </div>
@@ -231,20 +233,31 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
           </ul>
         </div>
       </main>
+
+      {/* Notification Detail Modal */}
+      <NotificationDetailModal
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onMarkAsContacted={() => {
+          if (selectedNotification) {
+            handleMarkAsContacted(selectedNotification);
+          }
+        }}
+      />
     </div>
   );
 };
 
 interface NotificationCardProps {
   notification: Notification;
-  onMarkAsContacted?: () => void;
+  onClick: () => void;
 }
 
-const NotificationCard = ({ notification, onMarkAsContacted }: NotificationCardProps) => {
+const NotificationCard = ({ notification, onClick }: NotificationCardProps) => {
   return (
     <div 
       className="flex items-center gap-3 p-4 rounded-xl bg-background border border-border hover:bg-secondary/30 transition-all cursor-pointer"
-      onClick={onMarkAsContacted}
+      onClick={onClick}
     >
       {/* Icon */}
       <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
