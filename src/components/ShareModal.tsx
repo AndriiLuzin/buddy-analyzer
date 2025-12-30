@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { X, Link, Share2, Check, QrCode, MessageCircle, Send } from 'lucide-react';
+import { X, Link, Share2, Check, MessageCircle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShareModalProps {
@@ -78,10 +79,17 @@ export const ShareModal = ({ isOpen, onClose }: ShareModalProps) => {
         </DialogHeader>
 
         <div className="p-6">
-          {/* QR Code placeholder */}
+          {/* QR Code */}
           <div className="bg-secondary rounded-2xl p-6 mb-6 flex flex-col items-center">
-            <div className="w-40 h-40 bg-white rounded-xl flex items-center justify-center mb-4 shadow-soft">
-              <QrCode className="w-32 h-32 text-foreground" />
+            <div className="bg-white rounded-xl p-3 mb-4 shadow-soft">
+              <QRCodeSVG 
+                value={shareUrl || 'https://example.com'} 
+                size={140}
+                level="M"
+                includeMargin={false}
+                bgColor="#ffffff"
+                fgColor="#1a1a1a"
+              />
             </div>
             <p className="text-sm text-muted-foreground text-center">
               Отсканируйте QR-код камерой телефона
