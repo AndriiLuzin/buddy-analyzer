@@ -242,7 +242,10 @@ interface NotificationCardProps {
 
 const NotificationCard = ({ notification, onMarkAsContacted }: NotificationCardProps) => {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border hover:bg-secondary/70 transition-all">
+    <div 
+      className="flex items-center gap-3 p-4 rounded-xl bg-background border border-border hover:bg-secondary/30 transition-all cursor-pointer"
+      onClick={onMarkAsContacted}
+    >
       {/* Icon */}
       <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
         {notification.type === 'birthday' ? (
@@ -258,21 +261,10 @@ const NotificationCard = ({ notification, onMarkAsContacted }: NotificationCardP
         <p className="text-sm text-muted-foreground">{notification.message}</p>
       </div>
 
-      {/* Days Badge & Actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        {onMarkAsContacted && (
-          <button
-            onClick={onMarkAsContacted}
-            className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center hover:bg-primary/30 transition-colors"
-            title="Отметить как связался"
-          >
-            <Check className="w-4 h-4 text-primary" />
-          </button>
-        )}
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          <span className="text-sm">{notification.daysInfo}</span>
-        </div>
+      {/* Days Badge */}
+      <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+        <Clock className="w-4 h-4" />
+        <span className="text-sm">{notification.daysInfo}</span>
       </div>
     </div>
   );
