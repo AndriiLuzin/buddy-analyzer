@@ -8,11 +8,13 @@ import { QUIZ_QUESTIONS_LOCALIZED } from '@/i18n/quizQuestions';
 
 interface QuizScreenProps {
   onComplete: (answers: number[]) => void;
+  onSkip?: () => void;
   title?: string;
   subtitle?: string;
+  showSkip?: boolean;
 }
 
-export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => {
+export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = false }: QuizScreenProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -53,8 +55,16 @@ export const QuizScreen = ({ onComplete, title, subtitle }: QuizScreenProps) => 
 
   return (
     <div className="min-h-screen flex flex-col p-4 pb-24 animate-fade-in">
-      {/* Language selector */}
-      <div className="absolute top-4 right-4">
+      {/* Skip & Language selector */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        {showSkip && onSkip && (
+          <button
+            onClick={onSkip}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t('quiz.skip')}
+          </button>
+        )}
         <LanguageSelector />
       </div>
 

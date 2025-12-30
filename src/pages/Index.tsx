@@ -326,6 +326,33 @@ const Index = ({ initialRoute }: IndexProps) => {
     setScreen('userProfileResult');
   };
 
+  const handleSkipQuiz = async () => {
+    // Skip quiz and go directly to friend list
+    // Create a default profile for the user
+    if (user) {
+      // Check if profile exists, if not create a minimal one
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            first_name: user.email?.split('@')[0] || 'User',
+            last_name: '',
+          });
+      }
+    }
+    
+    // Load friends and go to list
+    await loadFriendsFromDB();
+    setScreen('list');
+  };
+
   // Render account prompt screen (after friend completes quiz)
   if (screen === 'accountPrompt') {
     return (
@@ -359,7 +386,15 @@ const Index = ({ initialRoute }: IndexProps) => {
 
   // Render quiz screen
   if (screen === 'userQuiz') {
-    return <QuizScreen onComplete={handleQuizComplete} />;
+    // Show skip option only for regular users (not from referral)
+    const showSkipOption = !referrerId && !!user;
+    return (
+      <QuizScreen 
+        onComplete={handleQuizComplete} 
+        onSkip={handleSkipQuiz}
+        showSkip={showSkipOption}
+      />
+    );
   }
 
   // Render profile result screen
