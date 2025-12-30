@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory, UserProfile } from '../types';
 import { FriendCard } from './FriendCard';
 import { BirthdayReminder } from './BirthdayReminder';
-import { ContactReminder } from './ContactReminder';
+
 import { CategoryFilter } from './CategoryFilter';
 import { FriendDetailModal } from './FriendDetailModal';
 import { BottomNavBar } from './BottomNavBar';
@@ -102,9 +102,6 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
 
       {/* Content */}
       <main className="px-4 pt-4">
-        {/* Contact Reminders */}
-        <ContactReminder friends={friends} />
-
         {/* Birthday Reminder */}
         <BirthdayReminder friends={friends} />
 
