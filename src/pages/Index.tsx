@@ -296,6 +296,9 @@ const Index = ({ initialRoute }: IndexProps) => {
   const handleViewProfile = () => {
     if (userProfile) {
       setScreen('userProfileResult');
+    } else {
+      // If no profile yet, redirect to quiz
+      setScreen('userQuiz');
     }
   };
 
