@@ -127,6 +127,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'friend_reg.added': 'Great!',
     'friend_reg.added_desc': 'You have been added as a friend',
 
+    // Account Prompt
+    'account_prompt.title': 'Quiz Complete!',
+    'account_prompt.subtitle': 'Create an account to save your results and invite your friends',
+    'account_prompt.benefits_title': 'Why create an account?',
+    'account_prompt.benefit_1': 'Invite your friends',
+    'account_prompt.benefit_1_desc': 'Share your link and see compatibility',
+    'account_prompt.benefit_2': 'Track your friendship score',
+    'account_prompt.benefit_2_desc': 'Monitor how your relationships grow',
+    'account_prompt.benefit_3': 'Never miss important dates',
+    'account_prompt.benefit_3_desc': 'Get reminders for birthdays',
+    'account_prompt.create_account': 'Create Account',
+    'account_prompt.skip': 'Skip for now',
+
     // Common
     'common.error': 'Error',
   },
@@ -233,6 +246,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.share': 'Partager',
     'nav.profile': 'Profil',
 
+    // Account Prompt
+    'account_prompt.title': 'Quiz terminé!',
+    'account_prompt.subtitle': 'Créez un compte pour sauvegarder vos résultats et inviter vos amis',
+    'account_prompt.benefits_title': 'Pourquoi créer un compte?',
+    'account_prompt.benefit_1': 'Invitez vos amis',
+    'account_prompt.benefit_1_desc': 'Partagez votre lien et découvrez la compatibilité',
+    'account_prompt.benefit_2': 'Suivez votre score d\'amitié',
+    'account_prompt.benefit_2_desc': 'Observez comment vos relations évoluent',
+    'account_prompt.benefit_3': 'Ne manquez pas les dates importantes',
+    'account_prompt.benefit_3_desc': 'Recevez des rappels d\'anniversaire',
+    'account_prompt.create_account': 'Créer un compte',
+    'account_prompt.skip': 'Passer',
+
     // Common
     'common.error': 'Erreur',
   },
@@ -338,6 +364,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.friends': 'Amigos',
     'nav.share': 'Compartir',
     'nav.profile': 'Perfil',
+
+    // Account Prompt
+    'account_prompt.title': '¡Cuestionario completado!',
+    'account_prompt.subtitle': 'Crea una cuenta para guardar tus resultados e invitar a tus amigos',
+    'account_prompt.benefits_title': '¿Por qué crear una cuenta?',
+    'account_prompt.benefit_1': 'Invita a tus amigos',
+    'account_prompt.benefit_1_desc': 'Comparte tu enlace y descubre la compatibilidad',
+    'account_prompt.benefit_2': 'Sigue tu puntuación de amistad',
+    'account_prompt.benefit_2_desc': 'Observa cómo crecen tus relaciones',
+    'account_prompt.benefit_3': 'No te pierdas fechas importantes',
+    'account_prompt.benefit_3_desc': 'Recibe recordatorios de cumpleaños',
+    'account_prompt.create_account': 'Crear cuenta',
+    'account_prompt.skip': 'Omitir',
 
     // Common
     'common.error': 'Error',
@@ -458,6 +497,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'friend_reg.added': 'Отлично!',
     'friend_reg.added_desc': 'Вы добавлены в друзья',
 
+    // Account Prompt
+    'account_prompt.title': 'Анкета заполнена!',
+    'account_prompt.subtitle': 'Создайте аккаунт, чтобы сохранить результаты и приглашать друзей',
+    'account_prompt.benefits_title': 'Зачем создавать аккаунт?',
+    'account_prompt.benefit_1': 'Приглашайте друзей',
+    'account_prompt.benefit_1_desc': 'Делитесь ссылкой и смотрите совместимость',
+    'account_prompt.benefit_2': 'Следите за оценкой дружбы',
+    'account_prompt.benefit_2_desc': 'Наблюдайте, как развиваются отношения',
+    'account_prompt.benefit_3': 'Не пропускайте важные даты',
+    'account_prompt.benefit_3_desc': 'Получайте напоминания о днях рождения',
+    'account_prompt.create_account': 'Создать аккаунт',
+    'account_prompt.skip': 'Пропустить',
+
     // Common
     'common.error': 'Ошибка',
   },
@@ -563,6 +615,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.friends': 'Amigos',
     'nav.share': 'Compartilhar',
     'nav.profile': 'Perfil',
+
+    // Account Prompt
+    'account_prompt.title': 'Quiz concluído!',
+    'account_prompt.subtitle': 'Crie uma conta para salvar seus resultados e convidar amigos',
+    'account_prompt.benefits_title': 'Por que criar uma conta?',
+    'account_prompt.benefit_1': 'Convide seus amigos',
+    'account_prompt.benefit_1_desc': 'Compartilhe seu link e veja a compatibilidade',
+    'account_prompt.benefit_2': 'Acompanhe sua pontuação de amizade',
+    'account_prompt.benefit_2_desc': 'Observe como seus relacionamentos crescem',
+    'account_prompt.benefit_3': 'Não perca datas importantes',
+    'account_prompt.benefit_3_desc': 'Receba lembretes de aniversário',
+    'account_prompt.create_account': 'Criar conta',
+    'account_prompt.skip': 'Pular',
 
     // Common
     'common.error': 'Erro',
@@ -670,6 +735,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.share': 'Поділитися',
     'nav.profile': 'Профіль',
 
+    // Account Prompt
+    'account_prompt.title': 'Анкету завершено!',
+    'account_prompt.subtitle': 'Створіть акаунт, щоб зберегти результати та запрошувати друзів',
+    'account_prompt.benefits_title': 'Навіщо створювати акаунт?',
+    'account_prompt.benefit_1': 'Запрошуйте друзів',
+    'account_prompt.benefit_1_desc': 'Діліться посиланням та дивіться сумісність',
+    'account_prompt.benefit_2': 'Слідкуйте за оцінкою дружби',
+    'account_prompt.benefit_2_desc': 'Спостерігайте, як розвиваються стосунки',
+    'account_prompt.benefit_3': 'Не пропускайте важливі дати',
+    'account_prompt.benefit_3_desc': 'Отримуйте нагадування про дні народження',
+    'account_prompt.create_account': 'Створити акаунт',
+    'account_prompt.skip': 'Пропустити',
+
     // Common
     'common.error': 'Помилка',
   },
@@ -776,6 +854,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.share': '공유',
     'nav.profile': '프로필',
 
+    // Account Prompt
+    'account_prompt.title': '퀴즈 완료!',
+    'account_prompt.subtitle': '계정을 만들어 결과를 저장하고 친구를 초대하세요',
+    'account_prompt.benefits_title': '왜 계정을 만들어야 하나요?',
+    'account_prompt.benefit_1': '친구 초대',
+    'account_prompt.benefit_1_desc': '링크를 공유하고 호환성을 확인하세요',
+    'account_prompt.benefit_2': '우정 점수 추적',
+    'account_prompt.benefit_2_desc': '관계가 어떻게 성장하는지 관찰하세요',
+    'account_prompt.benefit_3': '중요한 날짜를 놓치지 마세요',
+    'account_prompt.benefit_3_desc': '생일 알림을 받으세요',
+    'account_prompt.create_account': '계정 만들기',
+    'account_prompt.skip': '건너뛰기',
+
     // Common
     'common.error': '오류',
   },
@@ -881,6 +972,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.friends': '朋友',
     'nav.share': '分享',
     'nav.profile': '个人资料',
+
+    // Account Prompt
+    'account_prompt.title': '问卷完成！',
+    'account_prompt.subtitle': '创建账户以保存结果并邀请朋友',
+    'account_prompt.benefits_title': '为什么要创建账户？',
+    'account_prompt.benefit_1': '邀请朋友',
+    'account_prompt.benefit_1_desc': '分享链接并查看兼容性',
+    'account_prompt.benefit_2': '跟踪友谊分数',
+    'account_prompt.benefit_2_desc': '观察你的关系如何成长',
+    'account_prompt.benefit_3': '不要错过重要日期',
+    'account_prompt.benefit_3_desc': '收到生日提醒',
+    'account_prompt.create_account': '创建账户',
+    'account_prompt.skip': '跳过',
 
     // Common
     'common.error': '错误',
