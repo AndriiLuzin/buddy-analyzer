@@ -144,6 +144,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Error',
+
+    // Install
+    'install.title': 'Install BUNDO',
+    'install.subtitle': 'Add the app to your home screen for quick access',
+    'install.back': 'Back',
+    'install.already_installed': 'App is already installed!',
+    'install.install_button': 'Install App',
+    'install.ios_title': 'Install on iPhone',
+    'install.android_title': 'Install on Android',
+    'install.manual_instruction': 'Follow these steps to install the app:',
+    'install.ios_step1': 'Tap the Share button in Safari',
+    'install.ios_step2': 'Scroll down and tap "Add to Home Screen"',
+    'install.ios_step3': 'Tap "Add" to confirm',
+    'install.android_step1': 'Tap the menu button (three dots)',
+    'install.android_step2': 'Tap "Install app" or "Add to Home Screen"',
+    'install.android_step3': 'Tap "Install" to confirm',
+    'install.benefits_title': 'Why install?',
+    'install.benefit1': 'Quick access from home screen',
+    'install.benefit2': 'Works offline',
+    'install.benefit3': 'Full screen experience',
   },
 
   fr: {
@@ -265,6 +285,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Erreur',
+
+    // Install
+    'install.title': 'Installer BUNDO',
+    'install.subtitle': "Ajoutez l'application à votre écran d'accueil",
+    'install.back': 'Retour',
+    'install.already_installed': "L'application est déjà installée!",
+    'install.install_button': "Installer l'application",
+    'install.ios_title': 'Installer sur iPhone',
+    'install.android_title': 'Installer sur Android',
+    'install.manual_instruction': "Suivez ces étapes pour installer l'application:",
+    'install.ios_step1': 'Appuyez sur le bouton Partager dans Safari',
+    'install.ios_step2': "Faites défiler et appuyez sur \"Sur l'écran d'accueil\"",
+    'install.ios_step3': 'Appuyez sur "Ajouter" pour confirmer',
+    'install.android_step1': 'Appuyez sur le menu (trois points)',
+    'install.android_step2': "Appuyez sur \"Installer l'application\"",
+    'install.android_step3': 'Appuyez sur "Installer" pour confirmer',
+    'install.benefits_title': 'Pourquoi installer?',
+    'install.benefit1': "Accès rapide depuis l'écran d'accueil",
+    'install.benefit2': 'Fonctionne hors ligne',
+    'install.benefit3': 'Expérience plein écran',
   },
 
   es: {
@@ -386,6 +426,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Error',
+
+    // Install
+    'install.title': 'Instalar BUNDO',
+    'install.subtitle': 'Añade la app a tu pantalla de inicio',
+    'install.back': 'Volver',
+    'install.already_installed': '¡La app ya está instalada!',
+    'install.install_button': 'Instalar app',
+    'install.ios_title': 'Instalar en iPhone',
+    'install.android_title': 'Instalar en Android',
+    'install.manual_instruction': 'Sigue estos pasos para instalar:',
+    'install.ios_step1': 'Toca el botón Compartir en Safari',
+    'install.ios_step2': 'Desplázate y toca "Añadir a pantalla de inicio"',
+    'install.ios_step3': 'Toca "Añadir" para confirmar',
+    'install.android_step1': 'Toca el menú (tres puntos)',
+    'install.android_step2': 'Toca "Instalar app"',
+    'install.android_step3': 'Toca "Instalar" para confirmar',
+    'install.benefits_title': '¿Por qué instalar?',
+    'install.benefit1': 'Acceso rápido desde la pantalla de inicio',
+    'install.benefit2': 'Funciona sin conexión',
+    'install.benefit3': 'Experiencia a pantalla completa',
   },
 
   ru: {
@@ -520,6 +580,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Ошибка',
+
+    // Install
+    'install.title': 'Установить BUNDO',
+    'install.subtitle': 'Добавьте приложение на главный экран',
+    'install.back': 'Назад',
+    'install.already_installed': 'Приложение уже установлено!',
+    'install.install_button': 'Установить',
+    'install.ios_title': 'Установка на iPhone',
+    'install.android_title': 'Установка на Android',
+    'install.manual_instruction': 'Следуйте этим шагам для установки:',
+    'install.ios_step1': 'Нажмите кнопку «Поделиться» в Safari',
+    'install.ios_step2': 'Прокрутите вниз и нажмите «На экран Домой»',
+    'install.ios_step3': 'Нажмите «Добавить» для подтверждения',
+    'install.android_step1': 'Нажмите меню (три точки)',
+    'install.android_step2': 'Нажмите «Установить приложение»',
+    'install.android_step3': 'Нажмите «Установить» для подтверждения',
+    'install.benefits_title': 'Зачем устанавливать?',
+    'install.benefit1': 'Быстрый доступ с главного экрана',
+    'install.benefit2': 'Работает офлайн',
+    'install.benefit3': 'Полноэкранный режим',
   },
 
   pt: {
@@ -641,6 +721,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Erro',
+
+    // Install
+    'install.title': 'Instalar BUNDO',
+    'install.subtitle': 'Adicione o app à sua tela inicial',
+    'install.back': 'Voltar',
+    'install.already_installed': 'O app já está instalado!',
+    'install.install_button': 'Instalar app',
+    'install.ios_title': 'Instalar no iPhone',
+    'install.android_title': 'Instalar no Android',
+    'install.manual_instruction': 'Siga estes passos para instalar:',
+    'install.ios_step1': 'Toque no botão Compartilhar no Safari',
+    'install.ios_step2': 'Role para baixo e toque em "Adicionar à Tela Inicial"',
+    'install.ios_step3': 'Toque em "Adicionar" para confirmar',
+    'install.android_step1': 'Toque no menu (três pontos)',
+    'install.android_step2': 'Toque em "Instalar app"',
+    'install.android_step3': 'Toque em "Instalar" para confirmar',
+    'install.benefits_title': 'Por que instalar?',
+    'install.benefit1': 'Acesso rápido da tela inicial',
+    'install.benefit2': 'Funciona offline',
+    'install.benefit3': 'Experiência em tela cheia',
   },
 
   uk: {
@@ -762,6 +862,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': 'Помилка',
+
+    // Install
+    'install.title': 'Встановити BUNDO',
+    'install.subtitle': 'Додайте додаток на головний екран',
+    'install.back': 'Назад',
+    'install.already_installed': 'Додаток вже встановлено!',
+    'install.install_button': 'Встановити',
+    'install.ios_title': 'Встановлення на iPhone',
+    'install.android_title': 'Встановлення на Android',
+    'install.manual_instruction': 'Виконайте ці кроки для встановлення:',
+    'install.ios_step1': 'Натисніть кнопку «Поділитися» в Safari',
+    'install.ios_step2': 'Прокрутіть вниз і натисніть «На Початковий екран»',
+    'install.ios_step3': 'Натисніть «Додати» для підтвердження',
+    'install.android_step1': 'Натисніть меню (три крапки)',
+    'install.android_step2': 'Натисніть «Встановити додаток»',
+    'install.android_step3': 'Натисніть «Встановити» для підтвердження',
+    'install.benefits_title': 'Навіщо встановлювати?',
+    'install.benefit1': 'Швидкий доступ з головного екрану',
+    'install.benefit2': 'Працює офлайн',
+    'install.benefit3': 'Повноекранний режим',
   },
 
   ko: {
@@ -883,6 +1003,26 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': '오류',
+
+    // Install
+    'install.title': 'BUNDO 설치',
+    'install.subtitle': '홈 화면에 앱을 추가하세요',
+    'install.back': '뒤로',
+    'install.already_installed': '앱이 이미 설치되어 있습니다!',
+    'install.install_button': '앱 설치',
+    'install.ios_title': 'iPhone에 설치',
+    'install.android_title': 'Android에 설치',
+    'install.manual_instruction': '다음 단계를 따라 설치하세요:',
+    'install.ios_step1': 'Safari에서 공유 버튼을 탭하세요',
+    'install.ios_step2': '아래로 스크롤하여 "홈 화면에 추가"를 탭하세요',
+    'install.ios_step3': '"추가"를 탭하여 확인하세요',
+    'install.android_step1': '메뉴 버튼(점 3개)을 탭하세요',
+    'install.android_step2': '"앱 설치"를 탭하세요',
+    'install.android_step3': '"설치"를 탭하여 확인하세요',
+    'install.benefits_title': '왜 설치해야 하나요?',
+    'install.benefit1': '홈 화면에서 빠른 접근',
+    'install.benefit2': '오프라인에서 작동',
+    'install.benefit3': '전체 화면 경험',
   },
 
   zh: {
@@ -1004,5 +1144,25 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.error': '错误',
+
+    // Install
+    'install.title': '安装 BUNDO',
+    'install.subtitle': '将应用添加到主屏幕',
+    'install.back': '返回',
+    'install.already_installed': '应用已安装！',
+    'install.install_button': '安装应用',
+    'install.ios_title': '在iPhone上安装',
+    'install.android_title': '在Android上安装',
+    'install.manual_instruction': '按照以下步骤安装：',
+    'install.ios_step1': '点击Safari中的"共享"按钮',
+    'install.ios_step2': '向下滚动并点击"添加到主屏幕"',
+    'install.ios_step3': '点击"添加"确认',
+    'install.android_step1': '点击菜单按钮（三个点）',
+    'install.android_step2': '点击"安装应用"',
+    'install.android_step3': '点击"安装"确认',
+    'install.benefits_title': '为什么要安装？',
+    'install.benefit1': '从主屏幕快速访问',
+    'install.benefit2': '离线可用',
+    'install.benefit3': '全屏体验',
   },
 };
