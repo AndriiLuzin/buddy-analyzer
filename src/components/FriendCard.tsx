@@ -55,12 +55,20 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
         </p>
       </div>
 
-      {/* Category Badge */}
-      {categoryInfo && (
-        <div className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border category-${friend.category?.replace('_', '-')}`}>
-          {categoryInfo.label.split(' ')[0]}
-        </div>
-      )}
+      {/* Match Score & Category */}
+      <div className="shrink-0 flex flex-col items-end gap-1">
+        {friend.matchScore !== undefined && friend.matchScore > 0 && (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary">
+            <span className="text-xs font-bold">{friend.matchScore}%</span>
+            <span className="text-xs">💫</span>
+          </div>
+        )}
+        {categoryInfo && (
+          <div className={`px-3 py-1.5 rounded-full text-xs font-medium border category-${friend.category?.replace('_', '-')}`}>
+            {categoryInfo.label.split(' ')[0]}
+          </div>
+        )}
+      </div>
     </button>
   );
 };
