@@ -24,8 +24,8 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
           onClick={onAnalyzeClick}
           className="flex flex-col items-center gap-1 -mt-6"
         >
-          <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center shadow-card">
-            <Sparkles className="w-7 h-7 text-primary" />
+          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-card">
+            <Sparkles className="w-7 h-7 text-primary-foreground" />
           </div>
           <span className="text-xs font-medium text-primary mt-1">Анализ</span>
         </button>
