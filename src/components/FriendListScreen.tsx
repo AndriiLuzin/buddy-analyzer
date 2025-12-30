@@ -53,12 +53,12 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile }: Friend
           </div>
           
           <div className="flex items-center gap-2">
-            {userCategoryInfo && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10">
-                <span className="text-lg">{userCategoryInfo.emoji}</span>
-                <span className="text-sm font-medium text-primary">{userCategoryInfo.label.split(' ')[0]}</span>
-              </div>
-            )}
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            >
+              <Search className="w-5 h-5 text-muted-foreground" />
+            </button>
             <ThemeToggle />
           </div>
         </div>
