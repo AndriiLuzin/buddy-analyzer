@@ -160,6 +160,78 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_participants: {
+        Row: {
+          added_at: string
+          friend_id: string
+          id: string
+          meeting_id: string
+          status: string | null
+        }
+        Insert: {
+          added_at?: string
+          friend_id: string
+          id?: string
+          meeting_id: string
+          status?: string | null
+        }
+        Update: {
+          added_at?: string
+          friend_id?: string
+          id?: string
+          meeting_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          meeting_date: string
+          meeting_time: string | null
+          owner_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          meeting_date: string
+          meeting_time?: string | null
+          owner_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          meeting_date?: string
+          meeting_time?: string | null
+          owner_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

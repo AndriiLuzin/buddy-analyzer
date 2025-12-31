@@ -110,7 +110,10 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
 
         {/* Meetings */}
         <button
-          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
+          onClick={() => navigate('/meetings')}
+          className={`p-3 rounded-full transition-all ${
+            isActive('/meetings') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+          }`}
         >
           <Calendar className="w-5 h-5" strokeWidth={1.5} />
         </button>
