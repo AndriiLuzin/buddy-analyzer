@@ -245,41 +245,39 @@ const Admin = () => {
         </div>
 
         {/* Today Stats */}
-        <div className="glass rounded-xl p-3">
-          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-primary" />
-            {t('admin.today')}
+        <div className="bg-card rounded-2xl p-4 shadow-sm">
+          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
+            🕐 {t('admin.today')}
           </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-secondary/50 rounded-lg p-2 text-center">
-              <p className="text-lg font-bold text-foreground">{stats?.usersToday || 0}</p>
-              <p className="text-[10px] text-muted-foreground">{t('admin.new_users')}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-secondary/50 rounded-xl p-3 text-center">
+              <p className="text-xl font-bold text-foreground">{stats?.usersToday || 0}</p>
+              <p className="text-xs text-muted-foreground">{t('admin.new_users')}</p>
             </div>
-            <div className="bg-secondary/50 rounded-lg p-2 text-center">
-              <p className="text-lg font-bold text-foreground">{stats?.friendsToday || 0}</p>
-              <p className="text-[10px] text-muted-foreground">{t('admin.new_friends')}</p>
+            <div className="bg-secondary/50 rounded-xl p-3 text-center">
+              <p className="text-xl font-bold text-foreground">{stats?.friendsToday || 0}</p>
+              <p className="text-xs text-muted-foreground">{t('admin.new_friends')}</p>
             </div>
           </div>
         </div>
 
         {/* Category Distribution */}
-        <div className="glass rounded-xl p-3">
-          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
-            <Cake className="w-3.5 h-3.5 text-primary" />
-            {t('admin.category_distribution')}
+        <div className="bg-card rounded-2xl p-4 shadow-sm">
+          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
+            🎂 {t('admin.category_distribution')}
           </h3>
-          <div className="space-y-1.5">
+          <div className="space-y-2.5">
             {categoryDistribution.map(({ category, count }) => {
               const total = stats?.usersWithQuiz || 1;
               const percentage = Math.round((count / total) * 100);
               
               return (
-                <div key={category} className="space-y-0.5">
-                  <div className="flex items-center justify-between text-xs">
+                <div key={category}>
+                  <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-foreground">{getCategoryLabel(category)}</span>
-                    <span className="text-muted-foreground">{count} ({percentage}%)</span>
+                    <span className="text-muted-foreground">{count}({percentage}%)</span>
                   </div>
-                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className={`h-full ${getCategoryColor(category)} transition-all duration-500`}
                       style={{ width: `${percentage}%` }}
@@ -289,7 +287,7 @@ const Admin = () => {
               );
             })}
             {categoryDistribution.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-2">
+              <p className="text-sm text-muted-foreground text-center py-3">
                 {t('admin.no_category_data')}
               </p>
             )}
@@ -297,18 +295,17 @@ const Admin = () => {
         </div>
 
         {/* Recent Users */}
-        <div className="glass rounded-xl p-3">
-          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-primary" />
-            {t('admin.recent_registrations')}
+        <div className="bg-card rounded-2xl p-4 shadow-sm">
+          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
+            👥 {t('admin.recent_registrations')}
           </h3>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {recentUsers.map((user) => (
               <div 
                 key={user.id}
-                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/50"
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold ${
                   user.category ? getCategoryColor(user.category) : 'bg-muted'
                 }`}>
                   {user.first_name[0]}
@@ -317,7 +314,7 @@ const Admin = () => {
                   <p className="text-sm font-medium text-foreground truncate">
                     {user.first_name} {user.last_name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString(language === 'en' ? 'en-US' : language === 'ru' ? 'ru-RU' : language, {
                       day: 'numeric',
                       month: 'short',
@@ -327,14 +324,14 @@ const Admin = () => {
                   </p>
                 </div>
                 {user.category && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-background">
+                  <span className="text-xs px-2 py-1 rounded-full bg-background">
                     {getCategoryLabel(user.category).split(' ')[0]}
                   </span>
                 )}
               </div>
             ))}
             {recentUsers.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-2">
+              <p className="text-sm text-muted-foreground text-center py-3">
                 {t('admin.no_registrations')}
               </p>
             )}
