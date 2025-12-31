@@ -35,9 +35,9 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center px-4 py-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] animate-fade-in">
       {/* Language selector */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 z-10">
         <LanguageSelector />
       </div>
 
@@ -57,22 +57,22 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-foreground mb-2 text-center">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 text-center">
         {t('auth.title')}
       </h1>
       
       {referrerName && (
-        <p className="text-primary text-center mb-2 font-medium">
+        <p className="text-primary text-center mb-2 font-medium text-sm sm:text-base">
           {referrerName} {t('friend_reg.invited_you') || 'invited you'}
         </p>
       )}
       
-      <p className="text-muted-foreground text-center mb-6 max-w-xs">
+      <p className="text-muted-foreground text-center mb-4 sm:mb-6 max-w-xs text-sm sm:text-base px-2">
         {t('friend_reg.subtitle') || 'Tell us about yourself to discover your friendship style'}
       </p>
 
       {/* Form card */}
-      <div className="w-full max-w-sm glass rounded-2xl p-6 shadow-card animate-scale-in">
+      <div className="w-full max-w-sm glass rounded-2xl p-4 sm:p-6 shadow-card animate-scale-in">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-foreground font-medium">

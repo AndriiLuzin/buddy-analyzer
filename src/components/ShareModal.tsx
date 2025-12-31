@@ -76,81 +76,82 @@ export const ShareModal = ({ isOpen, onClose, userId }: ShareModalProps) => {
           <p className="text-sm text-muted-foreground mt-2">{t('share.subtitle')}</p>
         </DialogHeader>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* QR Code */}
-          <div className="bg-secondary rounded-2xl p-6 mb-6 flex flex-col items-center">
+          <div className="bg-secondary rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col items-center">
             <a 
               href={shareUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-white rounded-xl p-3 mb-4 shadow-soft hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 mb-3 sm:mb-4 shadow-soft hover:shadow-md transition-shadow cursor-pointer"
             >
               <QRCodeSVG 
                 value={shareUrl || 'https://example.com'} 
-                size={140}
+                size={120}
                 level="M"
                 includeMargin={false}
                 bgColor="#ffffff"
                 fgColor="#1a1a1a"
+                className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px]"
               />
             </a>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center">
               {t('share.qr')}
             </p>
           </div>
 
           {/* Share options */}
-          <div className="space-y-3 mb-6">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <a
                 href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareMessage)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
+                className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-lg sm:rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
-                  <Send className="w-5 h-5 text-white flex-shrink-0" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 </div>
-                <span className="font-medium text-foreground truncate">{t('share.telegram')}</span>
+                <span className="font-medium text-foreground truncate text-sm sm:text-base">{t('share.telegram')}</span>
               </a>
 
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(shareMessage + ' ' + shareUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
+                className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-lg sm:rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-5 h-5 text-white flex-shrink-0" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 </div>
-                <span className="font-medium text-foreground truncate">{t('share.whatsapp')}</span>
+                <span className="font-medium text-foreground truncate text-sm sm:text-base">{t('share.whatsapp')}</span>
               </a>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <Button
               onClick={handleNativeShare}
-              className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+              className="w-full h-11 sm:h-12 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm sm:text-base"
             >
-              <Share2 className="w-5 h-5 mr-2" />
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {t('nav.share')}
             </Button>
 
             <Button
               onClick={handleCopyLink}
               variant="outline"
-              className="w-full h-12 rounded-xl font-medium"
+              className="w-full h-11 sm:h-12 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base"
             >
               {copied ? (
                 <>
-                  <Check className="w-5 h-5 mr-2 text-green-500" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
                   {t('share.copied')}
                 </>
               ) : (
                 <>
-                  <Link className="w-5 h-5 mr-2" />
+                  <Link className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   {t('share.copy')}
                 </>
               )}

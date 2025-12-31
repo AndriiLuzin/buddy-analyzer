@@ -71,17 +71,17 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border/50 px-4 py-3 safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border/50 px-2 sm:px-4 py-2 sm:py-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {/* Chats */}
         <button
           onClick={handleChatsClick}
-          className={`p-3 rounded-full transition-all ${
+          className={`p-2 sm:p-3 rounded-full transition-all ${
             isActive('/chats') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <div className="relative">
-            <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
+            <MessageCircle className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
             )}
@@ -91,19 +91,19 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
         {/* Groups */}
         <button
           onClick={() => navigate('/groups')}
-          className={`p-3 rounded-full transition-all ${
+          className={`p-2 sm:p-3 rounded-full transition-all ${
             isActive('/groups') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Users className="w-5 h-5" strokeWidth={1.5} />
+          <Users className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
 
         {/* Analyze - Main action */}
         <button
           onClick={handleAnalyzeClick}
-          className="-mt-4"
+          className="-mt-3 sm:-mt-4"
         >
-          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
             <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.5} />
           </div>
         </button>
@@ -111,19 +111,19 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
         {/* Meetings */}
         <button
           onClick={() => navigate('/meetings')}
-          className={`p-3 rounded-full transition-all ${
+          className={`p-2 sm:p-3 rounded-full transition-all ${
             isActive('/meetings') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Calendar className="w-5 h-5" strokeWidth={1.5} />
+          <Calendar className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
 
         {/* Profile */}
         <button
           onClick={handleProfileClick}
-          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
+          className="p-2 sm:p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
         >
-          <User className="w-5 h-5" strokeWidth={1.5} />
+          <User className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
       </div>
     </nav>
