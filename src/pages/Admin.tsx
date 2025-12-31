@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Users, UserCheck, Calendar, MessageSquare, TrendingUp, Clock, Cake, Activity } from 'lucide-react';
+import { ArrowLeft, Users, UserCheck, Calendar, MessageSquare, TrendingUp, Clock, Cake, Activity, CalendarIcon } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { format, subDays, eachDayOfInterval, differenceInDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 // Allowed admin email addresses
 const ADMIN_EMAILS = ['andrii@luzin.ca'];
@@ -51,6 +55,10 @@ const Admin = () => {
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [categoryDistribution, setCategoryDistribution] = useState<CategoryDistribution[]>([]);
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
+  const [chartStartDate, setChartStartDate] = useState<Date>(subDays(new Date(), 6));
+  const [chartEndDate, setChartEndDate] = useState<Date>(new Date());
+  const [allProfiles, setAllProfiles] = useState<{created_at: string}[]>([]);
+  const [allFriendsData, setAllFriendsData] = useState<{created_at: string}[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -135,33 +143,40 @@ const Admin = () => {
       setRecentUsers(recentProfiles || []);
       setCategoryDistribution(distribution);
 
-      // Load 7-day activity
-      const last7Days: DailyActivity[] = [];
-      const { data: allProfiles } = await supabase.from('profiles').select('created_at');
-      const { data: allFriends } = await supabase.from('friends').select('created_at');
+      // Load all profiles and friends for chart
+      const { data: profilesData } = await supabase.from('profiles').select('created_at');
+      const { data: friendsData } = await supabase.from('friends').select('created_at');
       
-      for (let i = 6; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        const dateStr = format(date, 'yyyy-MM-dd');
-        const label = format(date, 'dd.MM');
-        
-        const usersCount = allProfiles?.filter(p => 
-          p.created_at.startsWith(dateStr)
-        ).length || 0;
-        
-        const friendsCount = allFriends?.filter(f => 
-          f.created_at.startsWith(dateStr)
-        ).length || 0;
-        
-        last7Days.push({ date: dateStr, label, users: usersCount, friends: friendsCount });
-      }
-      
-      setDailyActivity(last7Days);
+      setAllProfiles(profilesData || []);
+      setAllFriendsData(friendsData || []);
 
     } catch (error) {
       console.error('Error loading stats:', error);
     }
   };
+
+  // Update chart when date range changes
+  useEffect(() => {
+    if (allProfiles.length === 0 && allFriendsData.length === 0) return;
+    
+    const days = eachDayOfInterval({ start: chartStartDate, end: chartEndDate });
+    const activityData: DailyActivity[] = days.map(date => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const label = format(date, 'dd.MM');
+      
+      const usersCount = allProfiles.filter(p => 
+        p.created_at.startsWith(dateStr)
+      ).length;
+      
+      const friendsCount = allFriendsData.filter(f => 
+        f.created_at.startsWith(dateStr)
+      ).length;
+      
+      return { date: dateStr, label, users: usersCount, friends: friendsCount };
+    });
+    
+    setDailyActivity(activityData);
+  }, [chartStartDate, chartEndDate, allProfiles, allFriendsData]);
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
@@ -275,11 +290,58 @@ const Admin = () => {
           color="bg-purple-500/10 text-purple-500"
         />
 
-        {/* 7-Day Activity Chart */}
+        {/* Activity Chart with Date Filter */}
         <div className="bg-card rounded-2xl p-4 shadow-sm">
-          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
-            📈 {t('admin.activity_7_days')}
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-medium text-foreground flex items-center gap-2">
+              📈 {t('admin.activity_chart')}
+            </h3>
+          </div>
+          
+          {/* Date Range Selector */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <CalendarIcon className="w-3 h-3 mr-1" />
+                  {format(chartStartDate, 'dd.MM.yy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50 bg-card" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={chartStartDate}
+                  onSelect={(date) => date && setChartStartDate(date)}
+                  disabled={(date) => date > chartEndDate || date > new Date()}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <span className="text-muted-foreground self-center text-sm">—</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <CalendarIcon className="w-3 h-3 mr-1" />
+                  {format(chartEndDate, 'dd.MM.yy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50 bg-card" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={chartEndDate}
+                  onSelect={(date) => date && setChartEndDate(date)}
+                  disabled={(date) => date < chartStartDate || date > new Date()}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <span className="text-xs text-muted-foreground self-center ml-auto">
+              {differenceInDays(chartEndDate, chartStartDate) + 1} {t('admin.days')}
+            </span>
+          </div>
+          
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyActivity} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
