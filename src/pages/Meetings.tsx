@@ -231,7 +231,7 @@ export default function Meetings() {
 
       {/* Fullscreen Calendar Modal */}
       <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-        <DialogContent className="max-w-full h-full sm:max-w-full sm:h-auto sm:max-h-[90vh] p-0 gap-0">
+        <DialogContent className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-full p-0 gap-0">
           <div className="flex flex-col h-full min-h-[500px]">
             {/* Calendar Header */}
             <div className="px-4 py-4 flex items-center justify-between border-b border-border/50">

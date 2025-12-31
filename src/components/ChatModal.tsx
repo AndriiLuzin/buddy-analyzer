@@ -230,7 +230,7 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md h-[80vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-full w-full h-[100dvh] sm:h-[90vh] flex flex-col p-0 gap-0 sm:max-w-full">
         <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3">
             <Button
