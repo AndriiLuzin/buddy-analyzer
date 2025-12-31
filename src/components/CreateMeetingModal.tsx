@@ -11,7 +11,15 @@ import {
   Clock, 
   Users, 
   Check,
-  MapPin
+  MapPin,
+  Coffee,
+  Utensils,
+  Film,
+  Dumbbell,
+  ShoppingBag,
+  PartyPopper,
+  Briefcase,
+  MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +39,22 @@ interface CreateMeetingModalProps {
   onSuccess?: () => void;
 }
 
-type Step = 'date' | 'time' | 'friends' | 'details';
+const meetingTypes = [
+  { id: 'coffee', label: 'Кофе', icon: Coffee, emoji: '☕' },
+  { id: 'lunch', label: 'Обед', icon: Utensils, emoji: '🍽️' },
+  { id: 'movie', label: 'Кино', icon: Film, emoji: '🎬' },
+  { id: 'sport', label: 'Спорт', icon: Dumbbell, emoji: '🏃' },
+  { id: 'shopping', label: 'Шоппинг', icon: ShoppingBag, emoji: '🛍️' },
+  { id: 'party', label: 'Вечеринка', icon: PartyPopper, emoji: '🎉' },
+  { id: 'work', label: 'Работа', icon: Briefcase, emoji: '💼' },
+  { id: 'chat', label: 'Прогулка', icon: MessageCircle, emoji: '🚶' },
+];
+
+const quickTimes = [
+  { label: 'Утро', times: ['09:00', '10:00', '11:00'] },
+  { label: 'День', times: ['12:00', '13:00', '14:00', '15:00'] },
+  { label: 'Вечер', times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+];
 
 export const CreateMeetingModal = ({ 
   isOpen, 
@@ -41,25 +64,24 @@ export const CreateMeetingModal = ({
   onSuccess
 }: CreateMeetingModalProps) => {
   const { toast } = useToast();
-  const [step, setStep] = useState<Step>('date');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [title, setTitle] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setStep('date');
-      setSelectedDate(undefined);
+      setSelectedDate(new Date()); // Default to today
       setSelectedTime('');
-      setTitle('');
+      setSelectedType('');
       setLocation('');
+      setShowCalendar(false);
       
-      // If preselected friend, add to selected friends
       if (preselectedFriendId) {
         setSelectedFriends([preselectedFriendId]);
       } else {
@@ -93,7 +115,7 @@ export const CreateMeetingModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!selectedDate || !title.trim()) return;
+    if (!selectedDate || !selectedType || selectedFriends.length === 0) return;
 
     setIsSubmitting(true);
     
@@ -103,11 +125,14 @@ export const CreateMeetingModal = ({
       return;
     }
 
+    const typeInfo = meetingTypes.find(t => t.id === selectedType);
+    const title = typeInfo ? `${typeInfo.emoji} ${typeInfo.label}` : 'Встреча';
+
     const { data: meeting, error } = await supabase
       .from('meetings')
       .insert({
         owner_id: user.id,
-        title: title.trim(),
+        title,
         meeting_date: format(selectedDate, 'yyyy-MM-dd'),
         meeting_time: selectedTime || null,
         location: location.trim() || null,
@@ -137,259 +162,198 @@ export const CreateMeetingModal = ({
     onClose();
   };
 
-  const getStepTitle = () => {
-    switch (step) {
-      case 'date': return 'Выберите дату';
-      case 'time': return 'Выберите время';
-      case 'friends': return 'Пригласите друзей';
-      case 'details': return 'Детали встречи';
-    }
-  };
+  const canSubmit = selectedDate && selectedType && selectedFriends.length > 0;
 
-  const canProceed = () => {
-    switch (step) {
-      case 'date': return !!selectedDate;
-      case 'time': return true; // Time is optional
-      case 'friends': return true; // Friends are optional
-      case 'details': return !!title.trim();
-    }
+  const getSelectedFriendsNames = () => {
+    return friends
+      .filter(f => selectedFriends.includes(f.id))
+      .map(f => f.friend_name)
+      .join(', ');
   };
-
-  const goNext = () => {
-    switch (step) {
-      case 'date': setStep('time'); break;
-      case 'time': setStep('friends'); break;
-      case 'friends': setStep('details'); break;
-      case 'details': handleSubmit(); break;
-    }
-  };
-
-  const goBack = () => {
-    switch (step) {
-      case 'time': setStep('date'); break;
-      case 'friends': setStep('time'); break;
-      case 'details': setStep('friends'); break;
-      default: onClose(); break;
-    }
-  };
-
-  const timeSlots = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
-    '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-lg p-0 gap-0 bg-background border-0 sm:border sm:rounded-3xl flex flex-col overflow-hidden"
+        className="max-w-full w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md p-0 gap-0 bg-background border-0 sm:border sm:rounded-3xl flex flex-col overflow-hidden"
         hideClose
       >
         {/* Header */}
-        <div className="shrink-0 px-5 py-5">
+        <div className="shrink-0 px-5 py-4 border-b border-border/50">
           <div className="flex items-center gap-4">
             <button 
-              onClick={goBack}
-              className="w-12 h-12 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors"
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-foreground">Новая встреча</h2>
-              <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
-            </div>
-            <div className="flex gap-1.5">
-              {['date', 'time', 'friends', 'details'].map((s, i) => (
-                <div 
-                  key={s}
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                    step === s ? "bg-primary scale-110" : 
-                    ['date', 'time', 'friends', 'details'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
-                  )}
-                />
-              ))}
-            </div>
+            <h2 className="text-xl font-bold text-foreground flex-1">Новая встреча</h2>
           </div>
         </div>
 
-        {/* Summary Card - Shows selected info */}
-        {(selectedDate || selectedFriends.length > 0) && step === 'details' && (
-          <div className="mx-5 mb-4">
-            <div className="p-4 rounded-2xl glass space-y-2">
-              <div className="flex items-center gap-4 flex-wrap">
-                {selectedDate && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <CalendarIcon className="w-4 h-4 text-primary" />
-                    <span className="font-medium">
-                      {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-                    </span>
-                  </div>
-                )}
-                {selectedTime && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{selectedTime}</span>
-                  </div>
-                )}
-              </div>
-              {selectedFriends.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span>
-                    {selectedFriends.length} {selectedFriends.length === 1 ? 'участник' : 
-                      selectedFriends.length < 5 ? 'участника' : 'участников'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 pb-4">
-          {step === 'date' && (
-            <div className="flex flex-col items-center animate-fade-in">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                locale={ru}
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                className={cn("p-4 pointer-events-auto rounded-2xl glass w-full")}
-              />
-              {selectedDate && (
-                <div className="mt-4 p-4 rounded-2xl bg-primary/10 text-center w-full animate-scale-in">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Выбранная дата</p>
-                  <p className="font-bold text-lg text-foreground">
-                    {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {step === 'time' && (
-            <div className="space-y-5 animate-fade-in">
-              <p className="text-sm text-muted-foreground text-center">
-                Выберите время или пропустите
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {timeSlots.map(time => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(selectedTime === time ? '' : time)}
-                    className={cn(
-                      "p-4 rounded-2xl text-center transition-all duration-200 font-medium",
-                      selectedTime === time 
-                        ? "bg-primary text-primary-foreground shadow-lg scale-105" 
-                        : "glass hover:scale-[1.02]"
-                    )}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <div className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <Input
-                  type="time"
-                  placeholder="Другое время"
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
-                  className="flex-1 h-12 rounded-xl"
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+          
+          {/* Date Selection */}
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Когда</p>
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="w-full p-4 rounded-2xl glass flex items-center gap-3"
+            >
+              <CalendarIcon className="w-5 h-5 text-primary" />
+              <span className="font-medium">
+                {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: ru }) : 'Выбрать дату'}
+              </span>
+            </button>
+            
+            {showCalendar && (
+              <div className="animate-fade-in">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setShowCalendar(false);
+                  }}
+                  locale={ru}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  className={cn("p-3 pointer-events-auto rounded-2xl glass w-full")}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {step === 'friends' && (
-            <div className="space-y-4 animate-fade-in">
-              {preselectedFriendName && (
-                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Встреча с</p>
-                  <p className="font-bold text-foreground">{preselectedFriendName}</p>
-                </div>
-              )}
-              
-              <p className="text-sm text-muted-foreground">
-                {preselectedFriendId 
-                  ? 'Добавьте ещё друзей (необязательно)' 
-                  : 'Выберите друзей для приглашения'}
-              </p>
-              
-              {friends.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-8 h-8 opacity-50" />
-                  </div>
-                  <p className="font-medium">Нет добавленных друзей</p>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {friends.map(friend => {
-                    const isPreselected = preselectedFriendId === friend.id;
-                    const isSelected = selectedFriends.includes(friend.id);
-                    
-                    return (
+          {/* Time Selection */}
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Время</p>
+            <div className="space-y-2">
+              {quickTimes.map(group => (
+                <div key={group.label} className="space-y-2">
+                  <p className="text-xs text-muted-foreground">{group.label}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.times.map(time => (
                       <button
-                        key={friend.id}
-                        onClick={() => !isPreselected && toggleFriend(friend.id)}
-                        disabled={isPreselected}
+                        key={time}
+                        onClick={() => setSelectedTime(selectedTime === time ? '' : time)}
                         className={cn(
-                          "px-4 py-3 rounded-2xl text-sm transition-all duration-200 flex items-center gap-2",
-                          isSelected || isPreselected
-                            ? "bg-primary text-primary-foreground shadow-lg"
+                          "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                          selectedTime === time 
+                            ? "bg-primary text-primary-foreground" 
                             : "glass hover:scale-[1.02]"
                         )}
                       >
-                        {(isSelected || isPreselected) && <Check className="w-4 h-4" />}
-                        {friend.friend_name} {friend.friend_last_name}
+                        {time}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
-          )}
+          </div>
 
-          {step === 'details' && (
-            <div className="space-y-5 animate-fade-in">
-              <Input
-                placeholder="Название встречи *"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="h-14 rounded-2xl text-base px-4 glass border-0"
-              />
+          {/* Meeting Type */}
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Тип встречи</p>
+            <div className="grid grid-cols-4 gap-2">
+              {meetingTypes.map(type => (
+                <button
+                  key={type.id}
+                  onClick={() => setSelectedType(type.id)}
+                  className={cn(
+                    "p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all duration-200",
+                    selectedType === type.id 
+                      ? "bg-primary text-primary-foreground scale-105" 
+                      : "glass hover:scale-[1.02]"
+                  )}
+                >
+                  <span className="text-xl">{type.emoji}</span>
+                  <span className="text-xs font-medium">{type.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="Место (необязательно)"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="flex-1 h-12 rounded-xl"
-                />
+          {/* Friends Selection */}
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              С кем
+            </p>
+            
+            {preselectedFriendName && (
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center gap-2">
+                <Check className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground">{preselectedFriendName}</span>
               </div>
+            )}
+            
+            {friends.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Нет добавленных друзей</p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {friends.map(friend => {
+                  const isPreselected = preselectedFriendId === friend.id;
+                  const isSelected = selectedFriends.includes(friend.id);
+                  
+                  if (isPreselected) return null;
+                  
+                  return (
+                    <button
+                      key={friend.id}
+                      onClick={() => toggleFriend(friend.id)}
+                      className={cn(
+                        "px-3 py-2 rounded-xl text-sm transition-all duration-200 flex items-center gap-2",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "glass hover:scale-[1.02]"
+                      )}
+                    >
+                      {isSelected && <Check className="w-3 h-3" />}
+                      {friend.friend_name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Location (optional) */}
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Место (необязательно)</p>
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-muted-foreground shrink-0" />
+              <Input
+                placeholder="Где встречаемся?"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="flex-1 h-11 rounded-xl"
+              />
             </div>
-          )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 p-5 pt-0">
+        <div className="shrink-0 p-5 border-t border-border/50">
+          {selectedFriends.length > 0 && selectedType && (
+            <div className="mb-3 p-3 rounded-xl bg-muted/50 text-sm text-center">
+              <span className="text-muted-foreground">
+                {meetingTypes.find(t => t.id === selectedType)?.emoji}{' '}
+                {meetingTypes.find(t => t.id === selectedType)?.label} с{' '}
+              </span>
+              <span className="font-medium text-foreground">
+                {getSelectedFriendsNames()}
+              </span>
+            </div>
+          )}
           <Button 
-            onClick={goNext}
-            disabled={!canProceed() || isSubmitting}
+            onClick={handleSubmit}
+            disabled={!canSubmit || isSubmitting}
             className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg"
           >
-            {step === 'details' ? (
-              isSubmitting ? 'Создание...' : 'Создать встречу'
-            ) : (
-              'Далее'
-            )}
+            {isSubmitting ? 'Создание...' : 'Создать встречу'}
           </Button>
         </div>
       </DialogContent>
