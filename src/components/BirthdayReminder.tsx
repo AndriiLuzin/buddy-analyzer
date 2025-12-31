@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Friend } from '../types';
-import { Cake, Gift } from 'lucide-react';
+import { Cake, Gift, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BirthdayReminderProps {
   friends: Friend[];
@@ -34,40 +36,56 @@ const getUpcomingBirthdays = (friends: Friend[]) => {
 };
 
 export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
+  const [isExpanded, setIsExpanded] = useState(true);
   const upcomingBirthdays = getUpcomingBirthdays(friends);
 
   if (upcomingBirthdays.length === 0) return null;
 
   return (
     <div className="glass rounded-2xl p-4 mb-4 animate-slide-up">
-      <div className="flex items-center gap-2 mb-3">
+      <button 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-2"
+      >
         <div className="w-8 h-8 rounded-full bg-pink-500/30 flex items-center justify-center">
           <Cake className="w-4 h-4 text-pink-400" />
         </div>
-        <h3 className="font-semibold text-foreground">Дни рождения</h3>
-      </div>
+        <h3 className="font-semibold text-foreground flex-1 text-left">Дни рождения</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{upcomingBirthdays.length}</span>
+          <ChevronDown className={cn(
+            "w-5 h-5 text-muted-foreground transition-transform duration-200",
+            isExpanded ? "rotate-180" : ""
+          )} />
+        </div>
+      </button>
 
-      <div className="space-y-2">
-        {upcomingBirthdays.slice(0, 3).map(friend => (
-          <div 
-            key={friend.id} 
-            className="flex items-center gap-3 p-3 glass rounded-xl"
-          >
-            <Gift className="w-5 h-5 text-pink-400 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate">{friend.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {friend.daysUntil === 0 
-                  ? 'Сегодня! 🎉' 
-                  : friend.daysUntil === 1 
-                    ? 'Завтра'
-                    : `Через ${friend.daysUntil} дней`
-                }
-              </p>
+      <div className={cn(
+        "overflow-hidden transition-all duration-300",
+        isExpanded ? "max-h-96 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"
+      )}>
+        <div className="space-y-2">
+          {upcomingBirthdays.slice(0, 3).map(friend => (
+            <div 
+              key={friend.id} 
+              className="flex items-center gap-3 p-3 glass rounded-xl"
+            >
+              <Gift className="w-5 h-5 text-pink-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-foreground truncate">{friend.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {friend.daysUntil === 0 
+                    ? 'Сегодня! 🎉' 
+                    : friend.daysUntil === 1 
+                      ? 'Завтра'
+                      : `Через ${friend.daysUntil} дней`
+                  }
+                </p>
+              </div>
+              <span className="text-2xl">🎂</span>
             </div>
-            <span className="text-2xl">🎂</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
