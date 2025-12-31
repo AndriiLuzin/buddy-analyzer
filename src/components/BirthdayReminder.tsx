@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Friend } from '../types';
 import { Cake, Gift, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,9 +35,18 @@ const getUpcomingBirthdays = (friends: Friend[]) => {
     .sort((a, b) => a.daysUntil - b.daysUntil);
 };
 
+const STORAGE_KEY = 'birthday-reminder-expanded';
+
 export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved !== null ? saved === 'true' : true;
+  });
   const upcomingBirthdays = getUpcomingBirthdays(friends);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, String(isExpanded));
+  }, [isExpanded]);
 
   if (upcomingBirthdays.length === 0) return null;
 
