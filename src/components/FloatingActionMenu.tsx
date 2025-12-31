@@ -9,7 +9,8 @@ import {
   Calendar, 
   Bell,
   Plus,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -63,6 +64,12 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
   }, []);
 
   const menuItems = [
+    {
+      icon: Home,
+      label: 'Главная',
+      onClick: () => navigate('/'),
+      active: isActive('/')
+    },
     {
       icon: MessageCircle,
       label: 'Чаты',
