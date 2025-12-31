@@ -14,7 +14,10 @@ import {
   PartyPopper,
   Copy,
   Check,
-  Loader2
+  Loader2,
+  Send,
+  X,
+  Share2
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
@@ -134,6 +137,8 @@ export const NotificationDetailModal = ({
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   if (!notification) return null;
 
@@ -195,6 +200,59 @@ export const NotificationDetailModal = ({
       description: "Сообщение скопировано в буфер обмена",
     });
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleShareClick = (message: string) => {
+    setShareMessage(message);
+    setShowShareMenu(true);
+  };
+
+  const handleShareVia = async (platform: 'telegram' | 'whatsapp' | 'copy' | 'native') => {
+    if (!shareMessage) return;
+    
+    const encodedMessage = encodeURIComponent(shareMessage);
+    
+    switch (platform) {
+      case 'telegram':
+        window.open(`https://t.me/share/url?text=${encodedMessage}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        break;
+      case 'copy':
+        await navigator.clipboard.writeText(shareMessage);
+        toast({
+          title: "Скопировано!",
+          description: "Сообщение скопировано в буфер обмена",
+        });
+        break;
+      case 'native':
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              text: shareMessage,
+            });
+          } catch (error) {
+            if ((error as Error).name !== 'AbortError') {
+              await navigator.clipboard.writeText(shareMessage);
+              toast({
+                title: "Скопировано!",
+                description: "Сообщение скопировано в буфер обмена",
+              });
+            }
+          }
+        } else {
+          await navigator.clipboard.writeText(shareMessage);
+          toast({
+            title: "Скопировано!",
+            description: "Сообщение скопировано в буфер обмена",
+          });
+        }
+        break;
+    }
+    
+    setShowShareMenu(false);
+    setShareMessage(null);
   };
 
   const handleCopyGenerated = async () => {
@@ -330,13 +388,13 @@ export const NotificationDetailModal = ({
 
                   {generatedMessage && (
                     <button
-                      onClick={handleCopyGenerated}
+                      onClick={() => handleShareClick(generatedMessage)}
                       className="w-full p-4 rounded-xl bg-card border border-primary/30 hover:bg-muted transition-all text-left group"
                     >
                       <p className="text-foreground text-sm">{generatedMessage}</p>
                       <div className="flex items-center gap-1 mt-2 text-xs text-primary">
-                        <Copy className="w-3 h-3" />
-                        Нажмите чтобы скопировать
+                        <Send className="w-3 h-3" />
+                        Нажмите чтобы отправить
                       </div>
                     </button>
                   )}
@@ -347,22 +405,13 @@ export const NotificationDetailModal = ({
                   {selectedActionData?.messages?.map((message, index) => (
                     <button
                       key={index}
-                      onClick={() => handleCopyMessage(message, index)}
+                      onClick={() => handleShareClick(message)}
                       className="w-full p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left group"
                     >
                       <p className="text-foreground text-sm">{message}</p>
-                      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                        {copiedIndex === index ? (
-                          <>
-                            <Check className="w-3 h-3" />
-                            Скопировано
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            Нажмите чтобы скопировать
-                          </>
-                        )}
+                      <div className="flex items-center gap-1 mt-2 text-xs text-primary">
+                        <Send className="w-3 h-3" />
+                        Нажмите чтобы отправить
                       </div>
                     </button>
                   ))}
@@ -383,6 +432,89 @@ export const NotificationDetailModal = ({
           </button>
         </div>
       </DialogContent>
+
+      {/* Share Menu Modal */}
+      {showShareMenu && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowShareMenu(false);
+              setShareMessage(null);
+            }}
+          />
+          
+          {/* Share Menu */}
+          <div className="relative z-10 w-full max-w-md mx-4 mb-4 sm:mb-0 bg-card rounded-2xl shadow-xl animate-slide-up overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold text-foreground">Отправить через</h3>
+              <button
+                onClick={() => {
+                  setShowShareMenu(false);
+                  setShareMessage(null);
+                }}
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Message Preview */}
+            <div className="px-4 py-3 bg-muted/50">
+              <p className="text-sm text-muted-foreground line-clamp-2">{shareMessage}</p>
+            </div>
+
+            {/* Share Options */}
+            <div className="p-4 grid grid-cols-2 gap-3">
+              {/* Telegram */}
+              <button
+                onClick={() => handleShareVia('telegram')}
+                className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
+                  <Send className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-medium text-foreground text-sm">Telegram</span>
+              </button>
+
+              {/* WhatsApp */}
+              <button
+                onClick={() => handleShareVia('whatsapp')}
+                className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-medium text-foreground text-sm">WhatsApp</span>
+              </button>
+
+              {/* Copy */}
+              <button
+                onClick={() => handleShareVia('copy')}
+                className="flex items-center gap-3 p-4 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center flex-shrink-0">
+                  <Copy className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <span className="font-medium text-foreground text-sm">Копировать</span>
+              </button>
+
+              {/* Native Share */}
+              <button
+                onClick={() => handleShareVia('native')}
+                className="flex items-center gap-3 p-4 bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <Share2 className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <span className="font-medium text-foreground text-sm">Ещё...</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 };
