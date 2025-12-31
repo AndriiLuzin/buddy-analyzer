@@ -71,63 +71,53 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-strong rounded-t-3xl px-6 py-4 safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border/50 px-4 py-3 safe-area-inset-bottom">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {/* Chats */}
         <button
           onClick={handleChatsClick}
-          className={`flex flex-col items-center gap-1 p-2 transition-colors relative ${
-            isActive('/chats') ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+          className={`p-3 rounded-full transition-all ${
+            isActive('/chats') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <div className="relative">
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
             {unreadCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
             )}
           </div>
-          <span className="text-xs font-medium">Чаты</span>
         </button>
 
         {/* Groups */}
         <button
-          className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
         >
-          <Users className="w-6 h-6" />
-          <span className="text-xs font-medium">Группы</span>
+          <Users className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
         {/* Analyze - Main action */}
         <button
           onClick={handleAnalyzeClick}
-          className="flex flex-col items-center gap-1 -mt-6"
+          className="-mt-4"
         >
-          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-card">
-            <Sparkles className="w-7 h-7 text-primary-foreground" />
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+            <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.5} />
           </div>
-          <span className="text-xs font-medium text-primary mt-1">Анализ</span>
         </button>
 
         {/* Meetings */}
         <button
-          className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
         >
-          <Calendar className="w-6 h-6" />
-          <span className="text-xs font-medium">Встречи</span>
+          <Calendar className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
         {/* Profile */}
         <button
           onClick={handleProfileClick}
-          className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
         >
-          <User className="w-6 h-6" />
-          <span className="text-xs font-medium">Профиль</span>
+          <User className="w-5 h-5" strokeWidth={1.5} />
         </button>
       </div>
     </nav>
