@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Trash2, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trash2, UserPlus, Settings, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,7 +35,8 @@ export default function Groups() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showGroupDetail, setShowGroupDetail] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groupMembers, setGroupMembers] = useState<string[]>([]);
   const [newGroupName, setNewGroupName] = useState('');
@@ -62,7 +63,6 @@ export default function Groups() {
       return;
     }
 
-    // Get members for each group
     const groupsWithMembers = await Promise.all(
       (groupsData || []).map(async (group) => {
         const { data: membersData } = await supabase
@@ -72,7 +72,6 @@ export default function Groups() {
 
         const memberIds = (membersData || []).map(m => m.friend_id);
         
-        // Get friend details for members
         let members: GroupMember[] = [];
         if (memberIds.length > 0) {
           const { data: friendsData } = await supabase
@@ -144,22 +143,24 @@ export default function Groups() {
     fetchGroups();
   };
 
-  const handleDeleteGroup = async (e: React.MouseEvent, groupId: string) => {
-    e.stopPropagation();
-    const { error } = await supabase.from('groups').delete().eq('id', groupId);
+  const handleDeleteGroup = async () => {
+    if (!selectedGroup) return;
+    const { error } = await supabase.from('groups').delete().eq('id', selectedGroup.id);
     if (error) {
       toast({ title: 'Ошибка', description: 'Не удалось удалить группу', variant: 'destructive' });
       return;
     }
     toast({ title: 'Готово', description: 'Группа удалена' });
+    setShowSettings(false);
+    setShowGroupDetail(false);
+    setSelectedGroup(null);
     fetchGroups();
   };
 
-  const handleOpenMembers = async (e: React.MouseEvent, group: Group) => {
-    e.stopPropagation();
+  const handleOpenGroup = async (group: Group) => {
     setSelectedGroup(group);
     await fetchGroupMembers(group.id);
-    setShowMembersModal(true);
+    setShowGroupDetail(true);
   };
 
   const toggleMember = async (friendId: string) => {
@@ -186,6 +187,12 @@ export default function Groups() {
     if (count === 1) return 'участник';
     if (count >= 2 && count <= 4) return 'участника';
     return 'участников';
+  };
+
+  const handleCloseGroupDetail = () => {
+    setShowGroupDetail(false);
+    setSelectedGroup(null);
+    setShowSettings(false);
   };
 
   return (
@@ -227,7 +234,7 @@ export default function Groups() {
           groups.map((group) => (
             <button
               key={group.id}
-              onClick={(e) => handleOpenMembers(e, group)}
+              onClick={() => handleOpenGroup(group)}
               className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] animate-slide-up"
             >
               {/* Avatar stack or icon */}
@@ -271,22 +278,6 @@ export default function Groups() {
                   </p>
                 )}
               </div>
-
-              {/* Actions */}
-              <div className="shrink-0 flex items-center gap-1">
-                <div
-                  onClick={(e) => handleOpenMembers(e, group)}
-                  className="p-2 rounded-full hover:bg-muted transition-colors"
-                >
-                  <UserPlus className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div
-                  onClick={(e) => handleDeleteGroup(e, group.id)}
-                  className="p-2 rounded-full hover:bg-destructive/10 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </div>
-              </div>
             </button>
           ))
         )}
@@ -316,36 +307,115 @@ export default function Groups() {
         </DialogContent>
       </Dialog>
 
-      {/* Members Modal */}
-      <Dialog open={showMembersModal} onOpenChange={setShowMembersModal}>
+      {/* Fullscreen Group Detail Modal */}
+      <Dialog open={showGroupDetail} onOpenChange={handleCloseGroupDetail}>
+        <DialogContent 
+          className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
+          hideClose
+        >
+          {/* Header */}
+          <div className="shrink-0 bg-background border-b border-border px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleCloseGroupDetail}
+                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-foreground" />
+              </button>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-foreground">{selectedGroup?.name}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedGroup?.members.length} {getPlural(selectedGroup?.members.length || 0)}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              >
+                <Settings className="w-5 h-5 text-foreground" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            {/* Members section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-foreground">Участники</h3>
+                <button
+                  onClick={() => {}}
+                  className="text-sm text-primary flex items-center gap-1"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Добавить
+                </button>
+              </div>
+
+              {selectedGroup?.members.length === 0 ? (
+                <p className="text-center text-muted-foreground py-6">Нет участников</p>
+              ) : (
+                <div className="space-y-2">
+                  {selectedGroup?.members.map((member) => (
+                    <div
+                      key={member.friend_id}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
+                        {member.friend_name[0]}{member.friend_last_name[0]}
+                      </div>
+                      <span className="font-medium">{member.friend_name} {member.friend_last_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add friends list */}
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-3">Добавить в группу:</p>
+                <div className="space-y-2">
+                  {friends.filter(f => !groupMembers.includes(f.id)).map((friend) => (
+                    <button
+                      key={friend.id}
+                      onClick={() => toggleMember(friend.id)}
+                      className="w-full p-3 rounded-xl border border-border hover:bg-muted transition-all text-left flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold text-sm">
+                        {friend.friend_name[0]}{friend.friend_last_name[0]}
+                      </div>
+                      <span className="font-medium">{friend.friend_name} {friend.friend_last_name}</span>
+                      <Plus className="w-4 h-4 ml-auto text-primary" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Modal */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Участники: {selectedGroup?.name}</DialogTitle>
+            <DialogTitle>Настройки группы</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 pt-4 max-h-80 overflow-y-auto">
-            {friends.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">Нет друзей</p>
-            ) : (
-              friends.map((friend) => (
-                <button
-                  key={friend.id}
-                  onClick={() => toggleMember(friend.id)}
-                  className={`w-full p-3 rounded-xl border transition-all text-left flex items-center gap-3 ${
-                    groupMembers.includes(friend.id)
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:bg-muted'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
-                    {friend.friend_name[0]}{friend.friend_last_name[0]}
-                  </div>
-                  <span className="font-medium">{friend.friend_name} {friend.friend_last_name}</span>
-                  {groupMembers.includes(friend.id) && (
-                    <span className="ml-auto text-primary font-bold">✓</span>
-                  )}
-                </button>
-              ))
-            )}
+          <div className="space-y-4 pt-4">
+            <div className="p-4 rounded-xl bg-card border border-border">
+              <h4 className="font-medium mb-1">{selectedGroup?.name}</h4>
+              <p className="text-sm text-muted-foreground">
+                {selectedGroup?.description || 'Нет описания'}
+              </p>
+            </div>
+
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteGroup}
+              className="w-full"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Удалить группу
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
