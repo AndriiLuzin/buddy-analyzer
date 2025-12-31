@@ -10,7 +10,9 @@ import { BottomNavBar } from './BottomNavBar';
 import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
-import { Search, UserPlus, X, Bell } from 'lucide-react';
+import { Search, UserPlus, X, Bell, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useState as useStateHook, useEffect as useEffectHook } from 'react';
 
 interface FriendListScreenProps {
   friends: Friend[];
@@ -18,6 +20,9 @@ interface FriendListScreenProps {
   onViewProfile: () => void;
   userId?: string;
 }
+
+// Разрешённые email адреса для доступа в админку
+const ADMIN_EMAILS = ['andrii@luzin.ca'];
 
 export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
@@ -27,6 +32,18 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Проверяем админ доступ
+  useEffectHook(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && ADMIN_EMAILS.includes(session.user.email || '')) {
+        setIsAdmin(true);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   const filteredFriends = friends.filter(friend => {
     const matchesCategory = selectedCategory === 'all' || friend.category === selectedCategory;
@@ -68,6 +85,14 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
                 <Search className="w-5 h-5 text-muted-foreground" />
               )}
             </button>
+            {isAdmin && (
+              <button 
+                onClick={() => navigate('/admin')}
+                className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+              >
+                <Shield className="w-5 h-5 text-primary" />
+              </button>
+            )}
             <button 
               onClick={() => navigate('/notifications')}
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors relative"

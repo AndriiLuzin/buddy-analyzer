@@ -11,6 +11,7 @@ import NotificationsPage from "./pages/Notifications";
 import Groups from "./pages/Groups";
 import Meetings from "./pages/Meetings";
 import Install from "./pages/Install";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/meetings" element={<Meetings />} />
               <Route path="/notifications" element={<Index initialRoute="notifications" />} />
               <Route path="/install" element={<Install />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

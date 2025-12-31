@@ -1,0 +1,367 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { ArrowLeft, Users, UserCheck, Calendar, MessageSquare, TrendingUp, Clock, Cake, Activity } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
+
+// Разрешённые email адреса для доступа в админку
+const ADMIN_EMAILS = ['andrii@luzin.ca'];
+
+interface AdminStats {
+  totalUsers: number;
+  totalFriends: number;
+  totalGroups: number;
+  totalMeetings: number;
+  totalMessages: number;
+  usersWithQuiz: number;
+  usersToday: number;
+  friendsToday: number;
+}
+
+interface RecentUser {
+  id: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+  category: string | null;
+}
+
+interface CategoryDistribution {
+  category: string;
+  count: number;
+}
+
+const Admin = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [categoryDistribution, setCategoryDistribution] = useState<CategoryDistribution[]>([]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
+      }
+      
+      setUser(session.user);
+      
+      // Проверяем является ли пользователь админом
+      if (ADMIN_EMAILS.includes(session.user.email || '')) {
+        setIsAdmin(true);
+        await loadStats();
+      } else {
+        setIsAdmin(false);
+      }
+      
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  const loadStats = async () => {
+    try {
+      // Получаем общую статистику
+      const [
+        { count: totalUsers },
+        { count: totalFriends },
+        { count: totalGroups },
+        { count: totalMeetings },
+        { count: totalMessages },
+        { data: profiles },
+        { data: recentProfiles }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('friends').select('*', { count: 'exact', head: true }),
+        supabase.from('groups').select('*', { count: 'exact', head: true }),
+        supabase.from('meetings').select('*', { count: 'exact', head: true }),
+        supabase.from('messages').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('category'),
+        supabase.from('profiles').select('id, first_name, last_name, created_at, category').order('created_at', { ascending: false }).limit(10)
+      ]);
+
+      // Подсчёт пользователей с пройденной анкетой
+      const usersWithQuiz = profiles?.filter(p => p.category)?.length || 0;
+
+      // Подсчёт за сегодня
+      const today = new Date().toISOString().split('T')[0];
+      const { count: usersToday } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', today);
+      
+      const { count: friendsToday } = await supabase
+        .from('friends')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', today);
+
+      // Распределение по категориям
+      const categoryCount: Record<string, number> = {};
+      profiles?.forEach(p => {
+        if (p.category) {
+          categoryCount[p.category] = (categoryCount[p.category] || 0) + 1;
+        }
+      });
+      
+      const distribution = Object.entries(categoryCount).map(([category, count]) => ({
+        category,
+        count
+      })).sort((a, b) => b.count - a.count);
+
+      setStats({
+        totalUsers: totalUsers || 0,
+        totalFriends: totalFriends || 0,
+        totalGroups: totalGroups || 0,
+        totalMeetings: totalMeetings || 0,
+        totalMessages: totalMessages || 0,
+        usersWithQuiz,
+        usersToday: usersToday || 0,
+        friendsToday: friendsToday || 0
+      });
+
+      setRecentUsers(recentProfiles || []);
+      setCategoryDistribution(distribution);
+
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      soul_mate: '💫 Душа в душу',
+      close_friend: '❤️ Близкий друг',
+      good_buddy: '🤝 Хороший приятель',
+      situational: '👋 Ситуативный',
+      distant: '🌙 Дальний'
+    };
+    return labels[category] || category;
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      soul_mate: 'bg-amber-500',
+      close_friend: 'bg-orange-500',
+      good_buddy: 'bg-teal-500',
+      situational: 'bg-blue-500',
+      distant: 'bg-slate-400'
+    };
+    return colors[category] || 'bg-muted';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="text-6xl mb-4">🔒</div>
+        <h1 className="text-xl font-bold text-foreground mb-2">Доступ запрещён</h1>
+        <p className="text-muted-foreground text-center mb-6">
+          У вас нет прав для просмотра этой страницы
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
+        >
+          Вернуться на главную
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background animate-fade-in">
+      {/* Header */}
+      <header className="sticky top-0 z-20 glass-strong px-4 pt-8 pb-4">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/')}
+            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-foreground">Админ панель</h1>
+            <p className="text-sm text-muted-foreground">Статистика приложения</p>
+          </div>
+          <button
+            onClick={loadStats}
+            className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+          >
+            <Activity className="w-5 h-5 text-primary" />
+          </button>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="px-4 py-4 space-y-4 pb-8">
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard
+            icon={<Users className="w-5 h-5" />}
+            label="Пользователей"
+            value={stats?.totalUsers || 0}
+            color="bg-primary/10 text-primary"
+          />
+          <StatCard
+            icon={<UserCheck className="w-5 h-5" />}
+            label="Друзей"
+            value={stats?.totalFriends || 0}
+            color="bg-teal-500/10 text-teal-500"
+          />
+          <StatCard
+            icon={<Users className="w-5 h-5" />}
+            label="Групп"
+            value={stats?.totalGroups || 0}
+            color="bg-blue-500/10 text-blue-500"
+          />
+          <StatCard
+            icon={<Calendar className="w-5 h-5" />}
+            label="Встреч"
+            value={stats?.totalMeetings || 0}
+            color="bg-amber-500/10 text-amber-500"
+          />
+          <StatCard
+            icon={<MessageSquare className="w-5 h-5" />}
+            label="Сообщений"
+            value={stats?.totalMessages || 0}
+            color="bg-pink-500/10 text-pink-500"
+          />
+          <StatCard
+            icon={<TrendingUp className="w-5 h-5" />}
+            label="С анкетой"
+            value={stats?.usersWithQuiz || 0}
+            color="bg-purple-500/10 text-purple-500"
+          />
+        </div>
+
+        {/* Today Stats */}
+        <div className="glass rounded-2xl p-4">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Сегодня
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-secondary/50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-foreground">{stats?.usersToday || 0}</p>
+              <p className="text-xs text-muted-foreground">новых пользователей</p>
+            </div>
+            <div className="bg-secondary/50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-foreground">{stats?.friendsToday || 0}</p>
+              <p className="text-xs text-muted-foreground">новых друзей</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Distribution */}
+        <div className="glass rounded-2xl p-4">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Cake className="w-4 h-4 text-primary" />
+            Распределение по категориям
+          </h3>
+          <div className="space-y-2">
+            {categoryDistribution.map(({ category, count }) => {
+              const total = stats?.usersWithQuiz || 1;
+              const percentage = Math.round((count / total) * 100);
+              
+              return (
+                <div key={category} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-foreground">{getCategoryLabel(category)}</span>
+                    <span className="text-muted-foreground">{count} ({percentage}%)</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${getCategoryColor(category)} transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {categoryDistribution.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Нет данных о категориях
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Users */}
+        <div className="glass rounded-2xl p-4">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            Последние регистрации
+          </h3>
+          <div className="space-y-2">
+            {recentUsers.map((user) => (
+              <div 
+                key={user.id}
+                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50"
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  user.category ? getCategoryColor(user.category) : 'bg-muted'
+                }`}>
+                  {user.first_name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">
+                    {user.first_name} {user.last_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(user.created_at).toLocaleDateString('ru-RU', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                {user.category && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-background">
+                    {getCategoryLabel(user.category).split(' ')[0]}
+                  </span>
+                )}
+              </div>
+            ))}
+            {recentUsers.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Нет зарегистрированных пользователей
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  color: string;
+}
+
+const StatCard = ({ icon, label, value, color }: StatCardProps) => (
+  <div className="glass rounded-2xl p-4">
+    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-2`}>
+      {icon}
+    </div>
+    <p className="text-2xl font-bold text-foreground">{value}</p>
+    <p className="text-xs text-muted-foreground">{label}</p>
+  </div>
+);
+
+export default Admin;
