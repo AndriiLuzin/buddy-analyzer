@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Users, UserCheck, Calendar, MessageSquare, TrendingUp, Clock, Cake, Activity } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { format, subDays } from 'date-fns';
 
 // Allowed admin email addresses
 const ADMIN_EMAILS = ['andrii@luzin.ca'];
@@ -32,6 +34,13 @@ interface CategoryDistribution {
   count: number;
 }
 
+interface DailyActivity {
+  date: string;
+  label: string;
+  users: number;
+  friends: number;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
@@ -41,6 +50,7 @@ const Admin = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [categoryDistribution, setCategoryDistribution] = useState<CategoryDistribution[]>([]);
+  const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -124,6 +134,29 @@ const Admin = () => {
 
       setRecentUsers(recentProfiles || []);
       setCategoryDistribution(distribution);
+
+      // Load 7-day activity
+      const last7Days: DailyActivity[] = [];
+      const { data: allProfiles } = await supabase.from('profiles').select('created_at');
+      const { data: allFriends } = await supabase.from('friends').select('created_at');
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const label = format(date, 'dd.MM');
+        
+        const usersCount = allProfiles?.filter(p => 
+          p.created_at.startsWith(dateStr)
+        ).length || 0;
+        
+        const friendsCount = allFriends?.filter(f => 
+          f.created_at.startsWith(dateStr)
+        ).length || 0;
+        
+        last7Days.push({ date: dateStr, label, users: usersCount, friends: friendsCount });
+      }
+      
+      setDailyActivity(last7Days);
 
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -241,6 +274,76 @@ const Admin = () => {
           value={stats?.usersWithQuiz || 0}
           color="bg-purple-500/10 text-purple-500"
         />
+
+        {/* 7-Day Activity Chart */}
+        <div className="bg-card rounded-2xl p-4 shadow-sm">
+          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
+            📈 {t('admin.activity_7_days')}
+          </h3>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dailyActivity} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorFriends" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#14b8a6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="label" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="users" 
+                  stroke="hsl(var(--primary))" 
+                  fillOpacity={1} 
+                  fill="url(#colorUsers)"
+                  name={t('admin.users')}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="friends" 
+                  stroke="#14b8a6" 
+                  fillOpacity={1} 
+                  fill="url(#colorFriends)"
+                  name={t('admin.friends')}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-center gap-4 mt-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-primary" />
+              <span className="text-xs text-muted-foreground">{t('admin.users')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-teal-500" />
+              <span className="text-xs text-muted-foreground">{t('admin.friends')}</span>
+            </div>
+          </div>
+        </div>
 
         {/* Today Stats */}
         <div className="bg-card rounded-2xl p-4 shadow-sm">
