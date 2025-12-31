@@ -310,7 +310,7 @@ export default function Groups() {
       {/* Fullscreen Group Detail Modal */}
       <Dialog open={showGroupDetail} onOpenChange={handleCloseGroupDetail}>
         <DialogContent 
-          className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
+          className="w-full max-w-full h-[100dvh] sm:max-w-md sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border rounded-none sm:rounded-2xl flex flex-col"
           hideClose
         >
           {/* Header */}
