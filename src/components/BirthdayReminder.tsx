@@ -51,7 +51,7 @@ export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
         {upcomingBirthdays.slice(0, 3).map(friend => (
           <div 
             key={friend.id} 
-            className="flex items-center gap-3 p-3 bg-pink-500/10 rounded-xl border border-pink-500/20"
+            className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-xl border border-pink-500/30"
           >
             <Gift className="w-5 h-5 text-pink-400 shrink-0" />
             <div className="flex-1 min-w-0">
