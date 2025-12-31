@@ -263,18 +263,18 @@ export const NotificationDetailModal = ({
           {!selectedAction ? (
             <div className="space-y-3">
               <h3 className="font-semibold text-foreground">Что хотите сделать?</h3>
-              <div className="grid gap-2">
+              <div className="space-y-3">
                 {actions.map((action) => (
                   <button
                     key={action.id}
                     onClick={() => setSelectedAction(action.id)}
-                    className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left"
+                    className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                       {action.icon}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{action.label}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground">{action.label}</p>
                       <p className="text-sm text-muted-foreground">{action.description}</p>
                     </div>
                   </button>
