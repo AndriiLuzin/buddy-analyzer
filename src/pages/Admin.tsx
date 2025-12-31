@@ -424,39 +424,6 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* Category Distribution */}
-        <div className="bg-card rounded-2xl p-4 shadow-sm">
-          <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
-            🎂 {t('admin.category_distribution')}
-          </h3>
-          <div className="space-y-2.5">
-            {categoryDistribution.map(({ category, count }) => {
-              const total = stats?.usersWithQuiz || 1;
-              const percentage = Math.round((count / total) * 100);
-              
-              return (
-                <div key={category}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-foreground">{getCategoryLabel(category)}</span>
-                    <span className="text-muted-foreground">{count}({percentage}%)</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${getCategoryColor(category)} transition-all duration-500`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {categoryDistribution.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-3">
-                {t('admin.no_category_data')}
-              </p>
-            )}
-          </div>
-        </div>
-
         {/* Recent Users */}
         <div className="bg-card rounded-2xl p-4 shadow-sm">
           <h3 className="text-base font-medium text-foreground mb-3 flex items-center gap-2">
