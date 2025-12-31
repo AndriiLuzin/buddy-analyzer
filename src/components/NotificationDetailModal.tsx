@@ -220,7 +220,7 @@ export const NotificationDetailModal = ({
   return (
     <Dialog open={!!notification} onOpenChange={() => handleClose()}>
       <DialogContent 
-        className="sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
+        className="max-w-full w-full h-[100dvh] sm:max-w-md sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col"
         hideClose
       >
         {/* Header */}
