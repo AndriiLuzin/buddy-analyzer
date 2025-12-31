@@ -291,10 +291,17 @@ export default function Meetings() {
 
       {/* Fullscreen Calendar Modal */}
       <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-        <DialogContent className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-full p-0 gap-0">
+         <DialogContent className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-full p-0 gap-0" hideClose>
           <div className="flex flex-col h-full min-h-[500px]">
             {/* Calendar Header */}
-            <div className="px-4 py-4 flex items-center justify-between border-b border-border/50">
+            <div className="px-4 pt-12 pb-4 flex items-center justify-between border-b border-border/50">
+              {/* Close button */}
+              <button
+                onClick={() => setShowCalendar(false)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
                 className="p-2 rounded-full hover:bg-muted transition-colors"
