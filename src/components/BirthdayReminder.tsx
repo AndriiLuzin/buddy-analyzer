@@ -39,7 +39,7 @@ export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
   if (upcomingBirthdays.length === 0) return null;
 
   return (
-    <div className="rounded-2xl p-4 mb-4 animate-slide-up bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 border border-pink-500/30">
+    <div className="glass rounded-2xl p-4 mb-4 animate-slide-up">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-full bg-pink-500/30 flex items-center justify-center">
           <Cake className="w-4 h-4 text-pink-400" />
@@ -51,7 +51,7 @@ export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
         {upcomingBirthdays.slice(0, 3).map(friend => (
           <div 
             key={friend.id} 
-            className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-xl border border-pink-500/30"
+            className="flex items-center gap-3 p-3 glass rounded-xl"
           >
             <Gift className="w-5 h-5 text-pink-400 shrink-0" />
             <div className="flex-1 min-w-0">
