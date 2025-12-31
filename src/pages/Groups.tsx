@@ -334,28 +334,49 @@ export default function Groups() {
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
             {/* Members section */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-foreground">Участники</h3>
-                <button
-                  onClick={() => {}}
-                  className="text-sm text-primary flex items-center gap-1"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Добавить
-                </button>
               </div>
 
               {selectedGroup?.members.length === 0 ? (
                 <p className="text-center text-muted-foreground py-6">Нет участников</p>
               ) : (
-                <div className="space-y-2">
-                  {selectedGroup?.members.map((member) => (
+                <div className="flex items-center gap-3">
+                  {/* Stacked avatars */}
+                  <div className="flex -space-x-3">
+                    {selectedGroup?.members.slice(0, 5).map((member, idx) => (
+                      <div
+                        key={member.friend_id}
+                        className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/30 flex items-center justify-center text-primary font-semibold text-sm ring-2 ring-background"
+                        style={{ zIndex: 10 - idx }}
+                      >
+                        {member.friend_name[0]}{member.friend_last_name[0]}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Count text */}
+                  <p className="text-muted-foreground">
+                    {selectedGroup && selectedGroup.members.length > 5 && (
+                      <span className="text-primary font-semibold">{selectedGroup.members.length}+ </span>
+                    )}
+                    {selectedGroup && selectedGroup.members.length <= 5 && (
+                      <span className="font-semibold">{selectedGroup.members.length} </span>
+                    )}
+                    {getPlural(selectedGroup?.members.length || 0)}
+                  </p>
+                </div>
+              )}
+
+              {/* Member list */}
+              {selectedGroup?.members && selectedGroup.members.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  {selectedGroup.members.map((member) => (
                     <div
                       key={member.friend_id}
                       className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
                     >
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary font-semibold text-sm">
                         {member.friend_name[0]}{member.friend_last_name[0]}
                       </div>
                       <span className="font-medium">{member.friend_name} {member.friend_last_name}</span>
