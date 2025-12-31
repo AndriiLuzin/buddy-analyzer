@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Trash2, Edit2, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trash2, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,12 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BottomNavBar } from '@/components/BottomNavBar';
 
+interface GroupMember {
+  friend_id: string;
+  friend_name: string;
+  friend_last_name: string;
+}
+
 interface Group {
   id: string;
   name: string;
   description: string | null;
   color: string;
-  member_count?: number;
+  members: GroupMember[];
 }
 
 interface Friend {
@@ -52,21 +58,40 @@ export default function Groups() {
 
     if (error) {
       console.error('Error fetching groups:', error);
+      setLoading(false);
       return;
     }
 
-    // Get member counts
-    const groupsWithCounts = await Promise.all(
+    // Get members for each group
+    const groupsWithMembers = await Promise.all(
       (groupsData || []).map(async (group) => {
-        const { count } = await supabase
+        const { data: membersData } = await supabase
           .from('group_members')
-          .select('*', { count: 'exact', head: true })
+          .select('friend_id')
           .eq('group_id', group.id);
-        return { ...group, member_count: count || 0 };
+
+        const memberIds = (membersData || []).map(m => m.friend_id);
+        
+        // Get friend details for members
+        let members: GroupMember[] = [];
+        if (memberIds.length > 0) {
+          const { data: friendsData } = await supabase
+            .from('friends')
+            .select('id, friend_name, friend_last_name')
+            .in('id', memberIds);
+          
+          members = (friendsData || []).map(f => ({
+            friend_id: f.id,
+            friend_name: f.friend_name,
+            friend_last_name: f.friend_last_name
+          }));
+        }
+
+        return { ...group, members };
       })
     );
 
-    setGroups(groupsWithCounts);
+    setGroups(groupsWithMembers);
     setLoading(false);
   };
 
@@ -119,7 +144,8 @@ export default function Groups() {
     fetchGroups();
   };
 
-  const handleDeleteGroup = async (groupId: string) => {
+  const handleDeleteGroup = async (e: React.MouseEvent, groupId: string) => {
+    e.stopPropagation();
     const { error } = await supabase.from('groups').delete().eq('id', groupId);
     if (error) {
       toast({ title: 'Ошибка', description: 'Не удалось удалить группу', variant: 'destructive' });
@@ -129,7 +155,8 @@ export default function Groups() {
     fetchGroups();
   };
 
-  const handleOpenMembers = async (group: Group) => {
+  const handleOpenMembers = async (e: React.MouseEvent, group: Group) => {
+    e.stopPropagation();
     setSelectedGroup(group);
     await fetchGroupMembers(group.id);
     setShowMembersModal(true);
@@ -139,7 +166,6 @@ export default function Groups() {
     if (!selectedGroup) return;
 
     if (groupMembers.includes(friendId)) {
-      // Remove member
       await supabase
         .from('group_members')
         .delete()
@@ -147,7 +173,6 @@ export default function Groups() {
         .eq('friend_id', friendId);
       setGroupMembers(prev => prev.filter(id => id !== friendId));
     } else {
-      // Add member
       await supabase.from('group_members').insert({
         group_id: selectedGroup.id,
         friend_id: friendId,
@@ -155,6 +180,12 @@ export default function Groups() {
       setGroupMembers(prev => [...prev, friendId]);
     }
     fetchGroups();
+  };
+
+  const getPlural = (count: number) => {
+    if (count === 1) return 'участник';
+    if (count >= 2 && count <= 4) return 'участника';
+    return 'участников';
   };
 
   return (
@@ -194,40 +225,69 @@ export default function Groups() {
           </div>
         ) : (
           groups.map((group) => (
-            <div
+            <button
               key={group.id}
-              className="p-4 rounded-xl bg-card border border-border"
+              onClick={(e) => handleOpenMembers(e, group)}
+              className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] animate-slide-up"
             >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `${group.color}20` }}
-                >
-                  <Users className="w-5 h-5" style={{ color: group.color }} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium">{group.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {group.member_count} {group.member_count === 1 ? 'участник' : 'участников'}
+              {/* Avatar stack or icon */}
+              <div className="relative shrink-0">
+                {group.members.length > 0 ? (
+                  <div className="flex -space-x-2">
+                    {group.members.slice(0, 4).map((member, idx) => (
+                      <div
+                        key={member.friend_id}
+                        className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm border-2 border-background"
+                        style={{ zIndex: 4 - idx }}
+                      >
+                        {member.friend_name[0]}{member.friend_last_name[0]}
+                      </div>
+                    ))}
+                    {group.members.length > 4 && (
+                      <div
+                        className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs border-2 border-background"
+                        style={{ zIndex: 0 }}
+                      >
+                        +{group.members.length - 4}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 text-left min-w-0">
+                <h3 className="font-semibold text-foreground truncate">{group.name}</h3>
+                <p className="text-sm text-muted-foreground truncate">
+                  {group.members.length} {getPlural(group.members.length)}
+                </p>
+                {group.description && (
+                  <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
+                    {group.description}
                   </p>
-                </div>
-                <button
-                  onClick={() => handleOpenMembers(group)}
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="shrink-0 flex items-center gap-1">
+                <div
+                  onClick={(e) => handleOpenMembers(e, group)}
                   className="p-2 rounded-full hover:bg-muted transition-colors"
                 >
                   <UserPlus className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button
-                  onClick={() => handleDeleteGroup(group.id)}
+                </div>
+                <div
+                  onClick={(e) => handleDeleteGroup(e, group.id)}
                   className="p-2 rounded-full hover:bg-destructive/10 transition-colors"
                 >
                   <Trash2 className="w-4 h-4 text-destructive" />
-                </button>
+                </div>
               </div>
-              {group.description && (
-                <p className="text-sm text-muted-foreground mt-2">{group.description}</p>
-              )}
-            </div>
+            </button>
           ))
         )}
       </div>
@@ -276,12 +336,12 @@ export default function Groups() {
                       : 'border-border hover:bg-muted'
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                    {friend.friend_name[0]}
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
+                    {friend.friend_name[0]}{friend.friend_last_name[0]}
                   </div>
-                  <span>{friend.friend_name} {friend.friend_last_name}</span>
+                  <span className="font-medium">{friend.friend_name} {friend.friend_last_name}</span>
                   {groupMembers.includes(friend.id) && (
-                    <span className="ml-auto text-primary text-sm">✓</span>
+                    <span className="ml-auto text-primary font-bold">✓</span>
                   )}
                 </button>
               ))
