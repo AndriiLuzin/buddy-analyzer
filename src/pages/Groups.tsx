@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Trash2, Settings, Send, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trash2, Settings, Send, UserPlus, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -53,6 +53,13 @@ export default function Groups() {
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editGroupName, setEditGroupName] = useState('');
+  const [editGroupDescription, setEditGroupDescription] = useState('');
+  const [deleteProgress, setDeleteProgress] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const deleteIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchGroups();
@@ -212,6 +219,72 @@ export default function Groups() {
     setShowSettings(false);
     setShowGroupDetail(false);
     setSelectedGroup(null);
+    fetchGroups();
+  };
+
+  const startDeleteHold = () => {
+    setIsDeleting(true);
+    setDeleteProgress(0);
+    
+    const startTime = Date.now();
+    const duration = 5000;
+    
+    deleteIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      setDeleteProgress(progress);
+    }, 50);
+    
+    deleteTimerRef.current = setTimeout(() => {
+      handleDeleteGroup();
+      cancelDeleteHold();
+    }, duration);
+  };
+
+  const cancelDeleteHold = () => {
+    setIsDeleting(false);
+    setDeleteProgress(0);
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    if (deleteIntervalRef.current) {
+      clearInterval(deleteIntervalRef.current);
+      deleteIntervalRef.current = null;
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    if (selectedGroup) {
+      setEditGroupName(selectedGroup.name);
+      setEditGroupDescription(selectedGroup.description || '');
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateGroup = async () => {
+    if (!selectedGroup || !editGroupName.trim()) return;
+
+    const { error } = await supabase
+      .from('groups')
+      .update({
+        name: editGroupName.trim(),
+        description: editGroupDescription.trim() || null,
+      })
+      .eq('id', selectedGroup.id);
+
+    if (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось обновить группу', variant: 'destructive' });
+      return;
+    }
+
+    toast({ title: 'Готово', description: 'Группа обновлена' });
+    setShowEditModal(false);
+    setSelectedGroup({
+      ...selectedGroup,
+      name: editGroupName.trim(),
+      description: editGroupDescription.trim() || null,
+    });
     fetchGroups();
   };
 
@@ -572,12 +645,59 @@ export default function Groups() {
             </div>
 
             <Button 
-              variant="destructive" 
-              onClick={handleDeleteGroup}
+              variant="outline" 
+              onClick={handleOpenEditModal}
               className="w-full"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Удалить группу
+              <Pencil className="w-4 h-4 mr-2" />
+              Редактировать группу
+            </Button>
+
+            <div className="relative">
+              <Button 
+                variant="destructive" 
+                onMouseDown={startDeleteHold}
+                onMouseUp={cancelDeleteHold}
+                onMouseLeave={cancelDeleteHold}
+                onTouchStart={startDeleteHold}
+                onTouchEnd={cancelDeleteHold}
+                className="w-full overflow-hidden"
+              >
+                {isDeleting && (
+                  <div 
+                    className="absolute inset-0 bg-destructive-foreground/20 transition-all"
+                    style={{ width: `${deleteProgress}%` }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isDeleting ? `Удержите ещё ${Math.ceil((100 - deleteProgress) / 20)}с...` : 'Удержите 5 сек для удаления'}
+                </span>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Group Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать группу</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Input
+              placeholder="Название группы"
+              value={editGroupName}
+              onChange={(e) => setEditGroupName(e.target.value)}
+            />
+            <Input
+              placeholder="Описание (необязательно)"
+              value={editGroupDescription}
+              onChange={(e) => setEditGroupDescription(e.target.value)}
+            />
+            <Button onClick={handleUpdateGroup} className="w-full">
+              Сохранить
             </Button>
           </div>
         </DialogContent>
