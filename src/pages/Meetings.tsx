@@ -511,74 +511,59 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
 
   return (
     <Dialog open={!!meeting} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 gap-0 bg-background border-0 rounded-3xl overflow-hidden">
+      <DialogContent className="max-w-md p-0 gap-0 bg-background border-0 rounded-2xl overflow-hidden">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-primary/20 to-accent/10 p-6 pb-8">
+        <div className="relative bg-gradient-to-br from-primary/10 to-accent/5 px-4 py-3">
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition-colors"
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition-colors"
           >
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
           
-          <h2 className="text-xl font-bold text-foreground pr-10">{meeting.title}</h2>
+          <h2 className="text-lg font-bold text-foreground pr-8">{meeting.title}</h2>
           
           {meeting.description && (
-            <p className="text-sm text-muted-foreground mt-2">{meeting.description}</p>
+            <p className="text-xs text-muted-foreground mt-1">{meeting.description}</p>
           )}
         </div>
 
-        {/* Info Cards */}
-        <div className="p-4 space-y-3">
+        {/* Info - Compact single line items */}
+        <div className="p-3 space-y-2">
           {/* Date & Time */}
-          <div className="glass rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-primary" />
+          <div className="glass rounded-xl px-3 py-2.5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Calendar className="w-4 h-4 text-primary" />
             </div>
-            <div>
-              <p className="font-semibold text-foreground">
-                {format(new Date(meeting.meeting_date), 'd MMMM yyyy', { locale: ru })}
-              </p>
-              {meeting.meeting_time && (
-                <p className="text-sm text-muted-foreground">
-                  {meeting.meeting_time.slice(0, 5)}
-                </p>
-              )}
-            </div>
+            <p className="text-sm font-medium text-foreground">
+              {format(new Date(meeting.meeting_date), 'd MMMM yyyy', { locale: ru })}
+              {meeting.meeting_time && ` · ${meeting.meeting_time.slice(0, 5)}`}
+            </p>
           </div>
 
           {/* Location */}
           {meeting.location && (
-            <div className="glass rounded-2xl p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-teal-500" />
+            <div className="glass rounded-xl px-3 py-2.5 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 text-teal-500" />
               </div>
-              <div>
-                <p className="font-semibold text-foreground">{meeting.location}</p>
-                <p className="text-sm text-muted-foreground">Место встречи</p>
-              </div>
+              <p className="text-sm font-medium text-foreground truncate">{meeting.location}</p>
             </div>
           )}
 
           {/* Participants */}
           {meeting.participants.length > 0 && (
-            <div className="glass rounded-2xl p-4">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">Участники</p>
-                  <p className="text-sm text-muted-foreground">{meeting.participants.length} человек</p>
-                </div>
+            <div className="glass rounded-xl px-3 py-2.5 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4 text-amber-500" />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto">
                 {meeting.participants.map(p => (
                   <div
                     key={p.friend_id}
-                    className="px-3 py-2 rounded-full bg-secondary text-sm flex items-center gap-2"
+                    className="px-2 py-1 rounded-full bg-secondary text-xs flex items-center gap-1.5 shrink-0"
                   >
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-medium text-primary">
                       {p.friend_name[0]}{p.friend_last_name[0]}
                     </div>
                     {p.friend_name}
@@ -590,33 +575,33 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
         </div>
 
         {/* Actions */}
-        <div className="p-4 pt-0 space-y-3">
+        <div className="px-3 pb-3 pt-1 flex gap-2">
           <Button
             variant="secondary"
             onClick={onReschedule}
-            className="w-full h-12 rounded-xl"
+            className="flex-1 h-10 rounded-xl text-sm"
           >
-            <CalendarClock className="w-5 h-5 mr-2" />
-            Перенести встречу
+            <CalendarClock className="w-4 h-4 mr-1.5" />
+            Перенести
           </Button>
 
           {/* Hold to Cancel Button */}
-          <div className="relative">
+          <div className="relative flex-1">
             <Button
               variant="outline"
-              className={`w-full h-12 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all ${isHolding ? 'bg-destructive/10' : ''}`}
+              className={`w-full h-10 rounded-xl text-sm border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all ${isHolding ? 'bg-destructive/10' : ''}`}
               onMouseDown={handleHoldStart}
               onMouseUp={handleHoldEnd}
               onMouseLeave={handleHoldEnd}
               onTouchStart={handleHoldStart}
               onTouchEnd={handleHoldEnd}
             >
-              <X className="w-5 h-5 mr-2" />
-              {isHolding ? 'Удерживайте...' : 'Отменить (зажать)'}
+              <X className="w-4 h-4 mr-1.5" />
+              {isHolding ? `${Math.ceil((100 - holdProgress) / 33)}с` : 'Отменить'}
             </Button>
             
             {isHolding && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-destructive/20 rounded-b-xl overflow-hidden">
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-destructive/20 rounded-b-xl overflow-hidden">
                 <div 
                   className="h-full bg-destructive transition-all duration-100 ease-linear"
                   style={{ width: `${holdProgress}%` }}
@@ -624,12 +609,6 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
               </div>
             )}
           </div>
-          
-          {isHolding && (
-            <p className="text-xs text-center text-muted-foreground animate-pulse">
-              Удерживайте для отмены встречи
-            </p>
-          )}
         </div>
       </DialogContent>
     </Dialog>

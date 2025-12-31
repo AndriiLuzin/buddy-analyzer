@@ -205,41 +205,41 @@ const Admin = () => {
       </header>
 
       {/* Content */}
-      <main className="px-4 py-4 space-y-4 pb-8">
+      <main className="px-3 py-3 space-y-2 pb-6">
         {/* Main Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           <StatCard
-            icon={<Users className="w-5 h-5" />}
+            icon={<Users className="w-4 h-4" />}
             label="Пользователей"
             value={stats?.totalUsers || 0}
             color="bg-primary/10 text-primary"
           />
           <StatCard
-            icon={<UserCheck className="w-5 h-5" />}
+            icon={<UserCheck className="w-4 h-4" />}
             label="Друзей"
             value={stats?.totalFriends || 0}
             color="bg-teal-500/10 text-teal-500"
           />
           <StatCard
-            icon={<Users className="w-5 h-5" />}
+            icon={<Users className="w-4 h-4" />}
             label="Групп"
             value={stats?.totalGroups || 0}
             color="bg-blue-500/10 text-blue-500"
           />
           <StatCard
-            icon={<Calendar className="w-5 h-5" />}
+            icon={<Calendar className="w-4 h-4" />}
             label="Встреч"
             value={stats?.totalMeetings || 0}
             color="bg-amber-500/10 text-amber-500"
           />
           <StatCard
-            icon={<MessageSquare className="w-5 h-5" />}
+            icon={<MessageSquare className="w-4 h-4" />}
             label="Сообщений"
             value={stats?.totalMessages || 0}
             color="bg-pink-500/10 text-pink-500"
           />
           <StatCard
-            icon={<TrendingUp className="w-5 h-5" />}
+            icon={<TrendingUp className="w-4 h-4" />}
             label="С анкетой"
             value={stats?.usersWithQuiz || 0}
             color="bg-purple-500/10 text-purple-500"
@@ -247,41 +247,41 @@ const Admin = () => {
         </div>
 
         {/* Today Stats */}
-        <div className="glass rounded-2xl p-4">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-primary" />
+        <div className="glass rounded-xl p-3">
+          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-primary" />
             Сегодня
           </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-secondary/50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-foreground">{stats?.usersToday || 0}</p>
-              <p className="text-xs text-muted-foreground">новых пользователей</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-secondary/50 rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-foreground">{stats?.usersToday || 0}</p>
+              <p className="text-[10px] text-muted-foreground">новых пользователей</p>
             </div>
-            <div className="bg-secondary/50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-foreground">{stats?.friendsToday || 0}</p>
-              <p className="text-xs text-muted-foreground">новых друзей</p>
+            <div className="bg-secondary/50 rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-foreground">{stats?.friendsToday || 0}</p>
+              <p className="text-[10px] text-muted-foreground">новых друзей</p>
             </div>
           </div>
         </div>
 
         {/* Category Distribution */}
-        <div className="glass rounded-2xl p-4">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Cake className="w-4 h-4 text-primary" />
+        <div className="glass rounded-xl p-3">
+          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+            <Cake className="w-3.5 h-3.5 text-primary" />
             Распределение по категориям
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {categoryDistribution.map(({ category, count }) => {
               const total = stats?.usersWithQuiz || 1;
               const percentage = Math.round((count / total) * 100);
               
               return (
-                <div key={category} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
+                <div key={category} className="space-y-0.5">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-foreground">{getCategoryLabel(category)}</span>
                     <span className="text-muted-foreground">{count} ({percentage}%)</span>
                   </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className={`h-full ${getCategoryColor(category)} transition-all duration-500`}
                       style={{ width: `${percentage}%` }}
@@ -291,7 +291,7 @@ const Admin = () => {
               );
             })}
             {categoryDistribution.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-xs text-muted-foreground text-center py-2">
                 Нет данных о категориях
               </p>
             )}
@@ -299,27 +299,27 @@ const Admin = () => {
         </div>
 
         {/* Recent Users */}
-        <div className="glass rounded-2xl p-4">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" />
+        <div className="glass rounded-xl p-3">
+          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-primary" />
             Последние регистрации
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {recentUsers.map((user) => (
               <div 
                 key={user.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50"
+                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50"
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                   user.category ? getCategoryColor(user.category) : 'bg-muted'
                 }`}>
                   {user.first_name[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {user.first_name} {user.last_name}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'short',
@@ -329,14 +329,14 @@ const Admin = () => {
                   </p>
                 </div>
                 {user.category && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-background">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-background">
                     {getCategoryLabel(user.category).split(' ')[0]}
                   </span>
                 )}
               </div>
             ))}
             {recentUsers.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-xs text-muted-foreground text-center py-2">
                 Нет зарегистрированных пользователей
               </p>
             )}
@@ -355,12 +355,12 @@ interface StatCardProps {
 }
 
 const StatCard = ({ icon, label, value, color }: StatCardProps) => (
-  <div className="glass rounded-2xl p-4">
-    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-2`}>
+  <div className="glass rounded-xl p-2.5">
+    <div className={`w-7 h-7 rounded-lg ${color} flex items-center justify-center mb-1`}>
       {icon}
     </div>
-    <p className="text-2xl font-bold text-foreground">{value}</p>
-    <p className="text-xs text-muted-foreground">{label}</p>
+    <p className="text-lg font-bold text-foreground">{value}</p>
+    <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
   </div>
 );
 
