@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
+import { WelcomeModal } from './WelcomeModal';
 
 interface AuthScreenProps {
   onAuthSuccess: () => void;
@@ -18,6 +19,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -87,7 +89,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           title: t('auth.register_success'),
           description: t('auth.register_welcome'),
         });
-        onAuthSuccess();
+        setShowWelcome(true);
       }
     } catch (error) {
       toast({
@@ -98,6 +100,11 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleWelcomeClose = () => {
+    setShowWelcome(false);
+    onAuthSuccess();
   };
 
   return (
@@ -245,6 +252,9 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       <p className="text-xs text-muted-foreground mt-8 text-center max-w-xs">
         {t('auth.terms')}
       </p>
+
+      {/* Welcome Modal */}
+      <WelcomeModal open={showWelcome} onClose={handleWelcomeClose} />
     </div>
   );
 };
