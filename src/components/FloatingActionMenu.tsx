@@ -154,13 +154,17 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
                 <button
                   key={index}
                   onClick={() => handleItemClick(item)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl transition-all opacity-0 animate-fade-in ${
                     item.active 
                       ? 'bg-primary/10 text-primary' 
                       : item.primary
                         ? 'bg-primary/5 text-primary hover:bg-primary/10'
                         : 'bg-secondary/50 text-foreground hover:bg-secondary'
                   }`}
+                  style={{ 
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: 'forwards'
+                  }}
                 >
                   <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center ${
                     item.active 
