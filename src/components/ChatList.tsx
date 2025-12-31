@@ -196,10 +196,49 @@ export const ChatList = ({ friends, currentUserId, onSelectChat }: ChatListProps
     );
   }
 
+  // Demo data for preview
+  const showDemo = chatPreviews.length === 0;
+  const displayPreviews = showDemo ? [
+    {
+      friendId: 'demo-1',
+      friendUserId: 'demo-user-1',
+      friend: { id: 'demo-1', name: 'Анна Петрова', friendUserId: 'demo-user-1' },
+      lastMessage: 'Привет! Как дела? Давно не виделись 😊',
+      lastMessageTime: new Date().toISOString(),
+      unreadCount: 2,
+      hasMessages: true
+    },
+    {
+      friendId: 'demo-2',
+      friendUserId: 'demo-user-2',
+      friend: { id: 'demo-2', name: 'Максим Иванов', friendUserId: 'demo-user-2' },
+      lastMessage: 'Отличная идея! Давай в субботу',
+      lastMessageTime: new Date(Date.now() - 3600000).toISOString(),
+      unreadCount: 0,
+      hasMessages: true
+    },
+    {
+      friendId: 'demo-3',
+      friendUserId: 'demo-user-3',
+      friend: { id: 'demo-3', name: 'Елена Козлова', friendUserId: 'demo-user-3' },
+      lastMessage: undefined,
+      lastMessageTime: undefined,
+      unreadCount: 0,
+      hasMessages: false
+    }
+  ] as ChatPreview[] : chatPreviews;
+
   return (
     <ScrollArea className="h-full">
+      {showDemo && (
+        <div className="mb-4 p-3 bg-primary/10 rounded-xl border border-primary/20">
+          <p className="text-sm text-primary font-medium text-center">
+            ✨ Демо-режим — пригласите друзей, чтобы начать переписку
+          </p>
+        </div>
+      )}
       <div className="space-y-1">
-        {chatPreviews.map((preview) => (
+        {displayPreviews.map((preview) => (
           <button
             key={preview.friendId}
             onClick={() => onSelectChat(preview.friend, preview.friendUserId)}

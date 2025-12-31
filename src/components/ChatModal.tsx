@@ -35,9 +35,65 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch messages
+  // Check if this is demo mode
+  const isDemo = friendUserId?.startsWith('demo-');
+  
+  // Demo messages for preview
+  const demoMessages: Message[] = [
+    {
+      id: 'demo-1',
+      sender_id: 'demo-user-1',
+      receiver_id: 'current-user',
+      content: 'Привет! Как дела? 👋',
+      is_read: true,
+      created_at: new Date(Date.now() - 3600000 * 2).toISOString()
+    },
+    {
+      id: 'demo-2',
+      sender_id: 'current-user',
+      receiver_id: 'demo-user-1',
+      content: 'Привет! Всё отлично, спасибо! А у тебя?',
+      is_read: true,
+      created_at: new Date(Date.now() - 3600000 * 1.5).toISOString()
+    },
+    {
+      id: 'demo-3',
+      sender_id: 'demo-user-1',
+      receiver_id: 'current-user',
+      content: 'Тоже хорошо! Давно хотела написать — может встретимся на выходных? ☕',
+      is_read: true,
+      created_at: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      id: 'demo-4',
+      sender_id: 'current-user',
+      receiver_id: 'demo-user-1',
+      content: 'Отличная идея! В субботу свободна?',
+      is_read: true,
+      created_at: new Date(Date.now() - 1800000).toISOString()
+    },
+    {
+      id: 'demo-5',
+      sender_id: 'demo-user-1',
+      receiver_id: 'current-user',
+      content: 'Да, суббота идеально подходит! Давай в 15:00 в нашем любимом кафе? 😊',
+      is_read: true,
+      created_at: new Date(Date.now() - 600000).toISOString()
+    },
+    {
+      id: 'demo-6',
+      sender_id: 'demo-user-1',
+      receiver_id: 'current-user',
+      content: 'Кстати, BuddyBe показал что мы идеально совместимы как друзья! ✨',
+      is_read: false,
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  // Fetch messages (skip for demo)
   useEffect(() => {
-    if (!isOpen || !currentUserId || !friendUserId) return;
+    if (!isOpen || isDemo) return;
+    if (!currentUserId || !friendUserId) return;
 
     const fetchMessages = async () => {
       const { data, error } = await supabase
@@ -93,14 +149,18 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isOpen, currentUserId, friendUserId]);
+  }, [isOpen, currentUserId, friendUserId, isDemo]);
+
+  // Get display messages
+  const displayMessages = isDemo ? demoMessages : messages;
+  const effectiveCurrentUserId = isDemo ? 'current-user' : currentUserId;
 
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [displayMessages]);
 
   // Focus input when modal opens
   useEffect(() => {
@@ -110,6 +170,12 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
   }, [isOpen]);
 
   const handleSend = async () => {
+    if (isDemo) {
+      // Demo mode - just show a toast or do nothing
+      setNewMessage('');
+      return;
+    }
+    
     if (!newMessage.trim() || !currentUserId || !friendUserId) return;
 
     setLoading(true);
@@ -181,21 +247,33 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
                 {getInitials(friend.name)}
               </AvatarFallback>
             </Avatar>
-            <DialogTitle className="text-base font-medium">
-              {friend.name}
-            </DialogTitle>
+            <div>
+              <DialogTitle className="text-base font-medium">
+                {friend.name}
+              </DialogTitle>
+              {isDemo && (
+                <p className="text-xs text-muted-foreground">Демо-режим</p>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-4" ref={scrollRef}>
           <div className="py-4 space-y-3">
-            {messages.length === 0 ? (
+            {isDemo && (
+              <div className="text-center mb-4 p-2 bg-primary/10 rounded-lg">
+                <p className="text-xs text-primary">
+                  ✨ Это демо — пригласите друзей для реальной переписки
+                </p>
+              </div>
+            )}
+            {displayMessages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 {t('chat.no_messages')}
               </div>
             ) : (
-              messages.map((message) => {
-                const isOwn = message.sender_id === currentUserId;
+              displayMessages.map((message) => {
+                const isOwn = message.sender_id === effectiveCurrentUserId;
                 return (
                   <div
                     key={message.id}
@@ -233,14 +311,14 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t('chat.placeholder')}
+              placeholder={isDemo ? 'Демо-режим...' : t('chat.placeholder')}
               className="flex-1"
-              disabled={loading}
+              disabled={loading || isDemo}
             />
             <Button
               size="icon"
               onClick={handleSend}
-              disabled={!newMessage.trim() || loading}
+              disabled={!newMessage.trim() || loading || isDemo}
             >
               <Send className="h-4 w-4" />
             </Button>
