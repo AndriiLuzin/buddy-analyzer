@@ -207,7 +207,7 @@ export const NotificationDetailModal = ({
     setShowShareMenu(true);
   };
 
-  const handleShareVia = async (platform: 'telegram' | 'whatsapp' | 'copy' | 'native') => {
+  const handleShareVia = async (platform: 'telegram' | 'whatsapp' | 'viber' | 'sms' | 'copy' | 'native') => {
     if (!shareMessage) return;
     
     const encodedMessage = encodeURIComponent(shareMessage);
@@ -218,6 +218,12 @@ export const NotificationDetailModal = ({
         break;
       case 'whatsapp':
         window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        break;
+      case 'viber':
+        window.open(`viber://forward?text=${encodedMessage}`, '_blank');
+        break;
+      case 'sms':
+        window.open(`sms:?body=${encodedMessage}`, '_blank');
         break;
       case 'copy':
         await navigator.clipboard.writeText(shareMessage);
@@ -467,49 +473,71 @@ export const NotificationDetailModal = ({
             </div>
 
             {/* Share Options */}
-            <div className="p-4 grid grid-cols-2 gap-3">
+            <div className="p-4 grid grid-cols-3 gap-2">
               {/* Telegram */}
               <button
                 onClick={() => handleShareVia('telegram')}
-                className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
+                className="flex flex-col items-center gap-2 p-3 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
-                  <Send className="w-5 h-5 text-white" />
+                <div className="w-12 h-12 rounded-full bg-[#0088cc] flex items-center justify-center">
+                  <Send className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-medium text-foreground text-sm">Telegram</span>
+                <span className="font-medium text-foreground text-xs">Telegram</span>
               </button>
 
               {/* WhatsApp */}
               <button
                 onClick={() => handleShareVia('whatsapp')}
-                className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
+                className="flex flex-col items-center gap-2 p-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-5 h-5 text-white" />
+                <div className="w-12 h-12 rounded-full bg-[#25D366] flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-medium text-foreground text-sm">WhatsApp</span>
+                <span className="font-medium text-foreground text-xs">WhatsApp</span>
+              </button>
+
+              {/* Viber */}
+              <button
+                onClick={() => handleShareVia('viber')}
+                className="flex flex-col items-center gap-2 p-3 bg-[#7360F2]/10 hover:bg-[#7360F2]/20 rounded-xl transition-colors"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#7360F2] flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-medium text-foreground text-xs">Viber</span>
+              </button>
+
+              {/* SMS */}
+              <button
+                onClick={() => handleShareVia('sms')}
+                className="flex flex-col items-center gap-2 p-3 bg-[#34C759]/10 hover:bg-[#34C759]/20 rounded-xl transition-colors"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#34C759] flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-medium text-foreground text-xs">SMS</span>
               </button>
 
               {/* Copy */}
               <button
                 onClick={() => handleShareVia('copy')}
-                className="flex items-center gap-3 p-4 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors"
+                className="flex flex-col items-center gap-2 p-3 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center flex-shrink-0">
-                  <Copy className="w-5 h-5 text-muted-foreground" />
+                <div className="w-12 h-12 rounded-full bg-muted-foreground/20 flex items-center justify-center">
+                  <Copy className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <span className="font-medium text-foreground text-sm">Копировать</span>
+                <span className="font-medium text-foreground text-xs">Копировать</span>
               </button>
 
               {/* Native Share */}
               <button
                 onClick={() => handleShareVia('native')}
-                className="flex items-center gap-3 p-4 bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors"
+                className="flex flex-col items-center gap-2 p-3 bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <Share2 className="w-5 h-5 text-primary-foreground" />
+                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                  <Share2 className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <span className="font-medium text-foreground text-sm">Ещё...</span>
+                <span className="font-medium text-foreground text-xs">Ещё...</span>
               </button>
             </div>
           </div>
