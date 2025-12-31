@@ -274,6 +274,7 @@ export default function Meetings() {
                 {daysInMonth.map(day => {
                   const dayMeetings = getMeetingsForDay(day);
                   const hasMeetings = dayMeetings.length > 0;
+                  const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
                   
                   return (
                     <button
@@ -282,17 +283,20 @@ export default function Meetings() {
                         if (hasMeetings) {
                           setShowCalendar(false);
                           setShowMeetingDetail(dayMeetings[0]);
-                        } else {
+                        } else if (!isPast) {
                           setShowCalendar(false);
                           openCreateModal(day);
                         }
                       }}
-                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all ${
+                      disabled={isPast && !hasMeetings}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all duration-200 font-medium ${
                         isToday(day) 
                           ? 'bg-primary text-primary-foreground font-bold' 
                           : hasMeetings 
-                            ? 'bg-accent/30 text-foreground' 
-                            : 'hover:bg-muted text-foreground'
+                            ? 'bg-secondary/80 text-foreground' 
+                            : isPast
+                              ? 'text-muted-foreground/30'
+                              : 'bg-secondary/50 hover:bg-secondary hover:scale-[1.02] text-foreground'
                       }`}
                     >
                       <span className="text-base">{format(day, 'd')}</span>
