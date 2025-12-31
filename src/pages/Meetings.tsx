@@ -33,9 +33,9 @@ export default function Meetings() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
 
-  const getLocale = () => {
-    const locales: Record<string, Locale> = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
-    return locales[language] || enUS;
+  const getLocale = (): typeof enUS => {
+    const locales = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
+    return locales[language as keyof typeof locales] || enUS;
   };
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -470,6 +470,12 @@ interface MeetingDetailModalProps {
 }
 
 function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: MeetingDetailModalProps) {
+  const { t, language } = useLanguage();
+  const getLocale = (): typeof enUS => {
+    const locales = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
+    return locales[language as keyof typeof locales] || enUS;
+  };
+  
   const [isHolding, setIsHolding] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
