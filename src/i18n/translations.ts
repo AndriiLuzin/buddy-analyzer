@@ -38,6 +38,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.register_success': 'Registration Successful!',
     'auth.register_welcome': 'Welcome to BuddyBe',
 
+    // Welcome message
+    'welcome.title': 'Welcome to BuddyBe!',
+    'welcome.subtitle': 'The Science of Friendship',
+    'welcome.text1': 'We often lose friends not because of serious conflicts, but because of unrealistic expectations.',
+    'welcome.text2': 'We tend to think selfishly, waiting for others to reach out first, while forgetting to do so ourselves.',
+    'welcome.text3': 'Friendship is a skill that can be learned. This app will help you stay connected with the people who matter.',
+    'welcome.text4': 'Stop being offended that someone forgot about you — become the one who remembers.',
+    'welcome.continue': "Let's Start",
+
     // Quiz
     'quiz.title': 'Discover Your Friendship Style',
     'quiz.subtitle': 'Answer 25 questions to create your profile',
@@ -198,6 +207,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.register_success': 'Inscription réussie!',
     'auth.register_welcome': 'Bienvenue sur BuddyBe',
 
+    // Welcome message
+    'welcome.title': 'Bienvenue sur BuddyBe!',
+    'welcome.subtitle': "La Science de l'Amitié",
+    'welcome.text1': "Nous perdons souvent des amis non pas à cause de conflits sérieux, mais à cause d'attentes irréalistes.",
+    'welcome.text2': "Nous avons tendance à penser de manière égoïste, attendant que les autres nous contactent d'abord, tout en oubliant de le faire nous-mêmes.",
+    'welcome.text3': "L'amitié est une compétence qui s'apprend. Cette application vous aidera à rester connecté avec les personnes qui comptent.",
+    'welcome.text4': "Arrêtez d'être offensé que quelqu'un vous ait oublié — devenez celui qui se souvient.",
+    'welcome.continue': 'Commençons',
+
     // Quiz
     'quiz.title': "Découvrez votre style d'amitié",
     'quiz.subtitle': 'Répondez à 25 questions pour créer votre profil',
@@ -345,6 +363,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.register_success': '¡Registro exitoso!',
     'auth.register_welcome': 'Bienvenido a BuddyBe',
 
+    // Welcome message
+    'welcome.title': '¡Bienvenido a BuddyBe!',
+    'welcome.subtitle': 'La Ciencia de la Amistad',
+    'welcome.text1': 'A menudo perdemos amigos no por conflictos serios, sino por expectativas poco realistas.',
+    'welcome.text2': 'Tendemos a pensar de forma egoísta, esperando que otros nos contacten primero, mientras olvidamos hacerlo nosotros.',
+    'welcome.text3': 'La amistad es una habilidad que se puede aprender. Esta app te ayudará a mantener el contacto con las personas importantes.',
+    'welcome.text4': 'Deja de ofenderte porque alguien te olvidó — conviértete en quien recuerda.',
+    'welcome.continue': 'Empecemos',
+
     // Quiz
     'quiz.title': 'Descubre tu estilo de amistad',
     'quiz.subtitle': 'Responde 25 preguntas para crear tu perfil',
@@ -491,6 +518,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Вы успешно вошли в аккаунт',
     'auth.register_success': 'Регистрация успешна!',
     'auth.register_welcome': 'Добро пожаловать в BuddyBe',
+
+    // Welcome message
+    'welcome.title': 'Добро пожаловать в BuddyBe!',
+    'welcome.subtitle': 'Наука Дружбы',
+    'welcome.text1': 'Часто мы теряем друзей не из-за серьёзных конфликтов, а из-за завышенных ожиданий друг к другу.',
+    'welcome.text2': 'Мы склонны думать эгоистично, ожидая, что другие напишут первыми, при этом забывая сделать это сами.',
+    'welcome.text3': 'Дружба — это навык, которому можно научиться. Это приложение поможет вам не терять связь с важными людьми.',
+    'welcome.text4': 'Перестаньте обижаться, что кто-то о вас забыл — станьте тем, кто помнит.',
+    'welcome.continue': 'Начать',
 
     // Quiz
     'quiz.title': 'Узнай свой тип дружбы',
@@ -652,6 +688,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.register_success': 'Cadastro realizado!',
     'auth.register_welcome': 'Bem-vindo ao BuddyBe',
 
+    // Welcome message
+    'welcome.title': 'Bem-vindo ao BuddyBe!',
+    'welcome.subtitle': 'A Ciência da Amizade',
+    'welcome.text1': 'Muitas vezes perdemos amigos não por conflitos sérios, mas por expectativas irreais.',
+    'welcome.text2': 'Tendemos a pensar de forma egoísta, esperando que outros entrem em contato primeiro, enquanto esquecemos de fazer isso.',
+    'welcome.text3': 'Amizade é uma habilidade que pode ser aprendida. Este app vai ajudá-lo a manter contato com as pessoas importantes.',
+    'welcome.text4': 'Pare de se ofender porque alguém esqueceu de você — torne-se aquele que lembra.',
+    'welcome.continue': 'Vamos Começar',
+
     // Quiz
     'quiz.title': 'Descubra seu estilo de amizade',
     'quiz.subtitle': 'Responda 25 perguntas para criar seu perfil',
@@ -798,6 +843,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Ви успішно увійшли в акаунт',
     'auth.register_success': 'Реєстрація успішна!',
     'auth.register_welcome': 'Ласкаво просимо до BuddyBe',
+
+    // Welcome message
+    'welcome.title': 'Ласкаво просимо до BuddyBe!',
+    'welcome.subtitle': 'Наука Дружби',
+    'welcome.text1': 'Часто ми втрачаємо друзів не через серйозні конфлікти, а через завищені очікування один до одного.',
+    'welcome.text2': 'Ми схильні думати егоїстично, чекаючи, що інші напишуть першими, при цьому забуваючи зробити це самі.',
+    'welcome.text3': "Дружба — це навичка, якої можна навчитися. Цей додаток допоможе вам не втрачати зв'язок з важливими людьми.",
+    'welcome.text4': "Перестаньте ображатися, що хтось про вас забув — станьте тим, хто пам'ятає.",
+    'welcome.continue': 'Почати',
 
     // Quiz
     'quiz.title': 'Дізнайся свій тип дружби',
@@ -946,6 +1000,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.register_success': '가입 성공!',
     'auth.register_welcome': 'BuddyBe에 오신 것을 환영합니다',
 
+    // Welcome message
+    'welcome.title': 'BuddyBe에 오신 것을 환영합니다!',
+    'welcome.subtitle': '우정의 과학',
+    'welcome.text1': '우리는 종종 심각한 갈등 때문이 아니라 비현실적인 기대 때문에 친구를 잃습니다.',
+    'welcome.text2': '우리는 이기적으로 생각하며 다른 사람들이 먼저 연락하기를 기다리면서 우리 자신은 잊곤 합니다.',
+    'welcome.text3': '우정은 배울 수 있는 기술입니다. 이 앱은 소중한 사람들과 연결 상태를 유지하는 데 도움을 줄 것입니다.',
+    'welcome.text4': '누군가 당신을 잊었다고 화내지 마세요 — 기억하는 사람이 되세요.',
+    'welcome.continue': '시작하기',
+
     // Quiz
     'quiz.title': '당신의 우정 스타일을 발견하세요',
     'quiz.subtitle': '프로필을 만들기 위해 25개의 질문에 답하세요',
@@ -1092,6 +1155,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': '您已成功登录',
     'auth.register_success': '注册成功！',
     'auth.register_welcome': '欢迎来到BuddyBe',
+
+    // Welcome message
+    'welcome.title': '欢迎来到BuddyBe！',
+    'welcome.subtitle': '友谊的科学',
+    'welcome.text1': '我们经常失去朋友，不是因为严重的冲突，而是因为不切实际的期望。',
+    'welcome.text2': '我们倾向于自私地思考，等待别人先联系我们，同时忘记自己也应该这样做。',
+    'welcome.text3': '友谊是一种可以学习的技能。这个应用程序将帮助您与重要的人保持联系。',
+    'welcome.text4': '不要因为有人忘记了你而生气 — 成为那个记得的人。',
+    'welcome.continue': '开始',
 
     // Quiz
     'quiz.title': '发现你的友谊风格',
