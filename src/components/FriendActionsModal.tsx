@@ -193,7 +193,13 @@ export const FriendActionsModal = ({
                 {CONTACT_ACTIONS.map((action) => (
                   <button
                     key={action.id}
-                    onClick={() => setSelectedAction(action.id)}
+                    onClick={() => {
+                      setSelectedAction(action.id);
+                      // Auto-generate for 'generate' action
+                      if (action.id === 'generate') {
+                        setTimeout(() => handleGenerateMessage(), 100);
+                      }
+                    }}
                     className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left"
                   >
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -227,44 +233,48 @@ export const FriendActionsModal = ({
 
               {selectedAction === 'generate' ? (
                 <div className="space-y-3">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
-                      <span className="font-medium text-foreground">AI генерация</span>
+                  {isGenerating ? (
+                    <div className="p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 flex flex-col items-center justify-center">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
+                      <p className="font-medium text-foreground">Генерация сообщения...</p>
+                      <p className="text-sm text-muted-foreground">AI подбирает слова для {friend.name}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      AI сгенерирует персонализированное сообщение для {friend.name}
-                    </p>
-                    <button 
-                      onClick={handleGenerateMessage}
-                      disabled={isGenerating}
-                      className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Генерация...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-5 h-5" />
-                          Сгенерировать
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {generatedMessage && (
-                    <button
-                      onClick={handleCopyGenerated}
-                      className="w-full p-4 rounded-xl bg-card border border-primary/30 hover:bg-muted transition-all text-left group"
-                    >
-                      <p className="text-foreground text-sm">{generatedMessage}</p>
-                      <div className="flex items-center gap-1 mt-2 text-xs text-primary">
-                        <Copy className="w-3 h-3" />
-                        Нажмите чтобы скопировать
+                  ) : generatedMessage ? (
+                    <div className="space-y-3">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-5 h-5 text-primary" />
+                          <span className="font-medium text-foreground">Готово!</span>
+                        </div>
+                        <p className="text-foreground">{generatedMessage}</p>
                       </div>
-                    </button>
+                      
+                      <button
+                        onClick={handleCopyGenerated}
+                        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Copy className="w-5 h-5" />
+                        Скопировать сообщение
+                      </button>
+                      
+                      <button
+                        onClick={handleGenerateMessage}
+                        className="w-full py-3 rounded-xl bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        Сгенерировать другое
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-6 rounded-xl bg-muted/50 border border-border flex flex-col items-center justify-center">
+                      <p className="text-muted-foreground">Что-то пошло не так</p>
+                      <button
+                        onClick={handleGenerateMessage}
+                        className="mt-3 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm"
+                      >
+                        Попробовать снова
+                      </button>
+                    </div>
                   )}
                 </div>
               ) : (
