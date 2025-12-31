@@ -37,6 +37,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'You have successfully logged in',
     'auth.register_success': 'Registration Successful!',
     'auth.register_welcome': 'Welcome to BuddyBe',
+    'auth.forgot_password': 'Forgot password?',
+    'auth.forgot_password_desc': 'Enter your email and we will send you a link to reset your password',
+    'auth.send_reset_link': 'Send Reset Link',
+    'auth.back_to_login': 'Back to Login',
+    'auth.reset_sent': 'Email Sent!',
+    'auth.reset_sent_desc': 'Check your inbox for the reset link',
+    'auth.reset_check_email': 'Please check your email for a password reset link. It may take a few minutes.',
 
     // Welcome message
     'welcome.title': 'Welcome to BuddyBe!',
@@ -254,6 +261,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Vous êtes connecté avec succès',
     'auth.register_success': 'Inscription réussie!',
     'auth.register_welcome': 'Bienvenue sur BuddyBe',
+    'auth.forgot_password': 'Mot de passe oublié?',
+    'auth.forgot_password_desc': 'Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe',
+    'auth.send_reset_link': 'Envoyer le lien',
+    'auth.back_to_login': 'Retour à la connexion',
+    'auth.reset_sent': 'Email envoyé!',
+    'auth.reset_sent_desc': 'Vérifiez votre boîte de réception',
+    'auth.reset_check_email': 'Veuillez vérifier votre email pour le lien de réinitialisation.',
 
     // Welcome message
     'welcome.title': 'Bienvenue sur BuddyBe!',
@@ -458,6 +472,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Has iniciado sesión exitosamente',
     'auth.register_success': '¡Registro exitoso!',
     'auth.register_welcome': 'Bienvenido a BuddyBe',
+    'auth.forgot_password': '¿Olvidaste tu contraseña?',
+    'auth.forgot_password_desc': 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña',
+    'auth.send_reset_link': 'Enviar enlace',
+    'auth.back_to_login': 'Volver al inicio',
+    'auth.reset_sent': '¡Email enviado!',
+    'auth.reset_sent_desc': 'Revisa tu bandeja de entrada',
+    'auth.reset_check_email': 'Por favor revisa tu email para el enlace de restablecimiento.',
 
     // Welcome message
     'welcome.title': '¡Bienvenido a BuddyBe!',
@@ -662,6 +683,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Вы успешно вошли в аккаунт',
     'auth.register_success': 'Регистрация успешна!',
     'auth.register_welcome': 'Добро пожаловать в BuddyBe',
+    'auth.forgot_password': 'Забыли пароль?',
+    'auth.forgot_password_desc': 'Введите email и мы отправим вам ссылку для сброса пароля',
+    'auth.send_reset_link': 'Отправить ссылку',
+    'auth.back_to_login': 'Вернуться к входу',
+    'auth.reset_sent': 'Письмо отправлено!',
+    'auth.reset_sent_desc': 'Проверьте почту',
+    'auth.reset_check_email': 'Проверьте почту для ссылки сброса пароля. Письмо может прийти через пару минут.',
 
     // Welcome message
     'welcome.title': 'Добро пожаловать в BuddyBe!',
@@ -879,6 +907,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Você entrou com sucesso',
     'auth.register_success': 'Cadastro realizado!',
     'auth.register_welcome': 'Bem-vindo ao BuddyBe',
+    'auth.forgot_password': 'Esqueceu a senha?',
+    'auth.forgot_password_desc': 'Digite seu email e enviaremos um link para redefinir sua senha',
+    'auth.send_reset_link': 'Enviar link',
+    'auth.back_to_login': 'Voltar ao login',
+    'auth.reset_sent': 'Email enviado!',
+    'auth.reset_sent_desc': 'Verifique sua caixa de entrada',
+    'auth.reset_check_email': 'Verifique seu email para o link de redefinição.',
 
     // Welcome message
     'welcome.title': 'Bem-vindo ao BuddyBe!',
@@ -1083,6 +1118,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': 'Ви успішно увійшли в акаунт',
     'auth.register_success': 'Реєстрація успішна!',
     'auth.register_welcome': 'Ласкаво просимо до BuddyBe',
+    'auth.forgot_password': 'Забули пароль?',
+    'auth.forgot_password_desc': 'Введіть email і ми надішлемо посилання для скидання пароля',
+    'auth.send_reset_link': 'Надіслати посилання',
+    'auth.back_to_login': 'Повернутися до входу',
+    'auth.reset_sent': 'Лист надіслано!',
+    'auth.reset_sent_desc': 'Перевірте пошту',
+    'auth.reset_check_email': 'Перевірте пошту для посилання скидання пароля.',
 
     // Welcome message
     'welcome.title': 'Ласкаво просимо до BuddyBe!',
@@ -1287,6 +1329,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': '성공적으로 로그인했습니다',
     'auth.register_success': '가입 성공!',
     'auth.register_welcome': 'BuddyBe에 오신 것을 환영합니다',
+    'auth.forgot_password': '비밀번호를 잊으셨나요?',
+    'auth.forgot_password_desc': '이메일을 입력하시면 비밀번호 재설정 링크를 보내드립니다',
+    'auth.send_reset_link': '링크 보내기',
+    'auth.back_to_login': '로그인으로 돌아가기',
+    'auth.reset_sent': '이메일 전송됨!',
+    'auth.reset_sent_desc': '받은 편지함을 확인하세요',
+    'auth.reset_check_email': '비밀번호 재설정 링크를 위해 이메일을 확인해 주세요.',
 
     // Welcome message
     'welcome.title': 'BuddyBe에 오신 것을 환영합니다!',
@@ -1491,6 +1540,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.welcome_login': '您已成功登录',
     'auth.register_success': '注册成功！',
     'auth.register_welcome': '欢迎来到BuddyBe',
+    'auth.forgot_password': '忘记密码？',
+    'auth.forgot_password_desc': '输入您的邮箱，我们将发送重置密码的链接',
+    'auth.send_reset_link': '发送链接',
+    'auth.back_to_login': '返回登录',
+    'auth.reset_sent': '邮件已发送！',
+    'auth.reset_sent_desc': '请检查您的收件箱',
+    'auth.reset_check_email': '请检查您的邮箱获取密码重置链接。',
 
     // Welcome message
     'welcome.title': '欢迎来到BuddyBe！',
