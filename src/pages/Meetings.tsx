@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BottomNavBar } from '@/components/BottomNavBar';
+import { CreateMeetingModal } from '@/components/CreateMeetingModal';
 
 interface Friend {
   id: string;
@@ -35,6 +36,7 @@ export default function Meetings() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateMeetingModal, setShowCreateMeetingModal] = useState(false);
   const [showMeetingDetail, setShowMeetingDetail] = useState<Meeting | null>(null);
   
   // Form state
@@ -199,14 +201,22 @@ export default function Meetings() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-semibold">Встречи</h1>
+          </div>
           <button
-            onClick={() => navigate('/')}
-            className="p-2 rounded-full hover:bg-muted transition-colors"
+            onClick={() => setShowCreateMeetingModal(true)}
+            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <Plus className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-semibold">Встречи</h1>
         </div>
       </div>
 
@@ -458,6 +468,16 @@ export default function Meetings() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Meeting Modal (new step-by-step flow) */}
+      <CreateMeetingModal
+        isOpen={showCreateMeetingModal}
+        onClose={() => setShowCreateMeetingModal(false)}
+        onSuccess={() => {
+          setShowCreateMeetingModal(false);
+          fetchMeetings();
+        }}
+      />
 
       <BottomNavBar />
     </div>
