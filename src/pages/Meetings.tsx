@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -316,9 +316,8 @@ export default function Meetings() {
         </DialogContent>
       </Dialog>
 
-      {/* Upcoming meetings list */}
-      <div className="px-4 mt-6">
-        <h3 className="text-sm font-medium text-muted-foreground mb-3">Ближайшие встречи</h3>
+      {/* Upcoming meetings list grouped by date */}
+      <div className="px-4 mt-6 space-y-6">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -327,47 +326,83 @@ export default function Meetings() {
           <div className="text-center py-8">
             <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground text-sm">Нет запланированных встреч</p>
-            <p className="text-xs text-muted-foreground mt-1">Нажмите на дату, чтобы создать</p>
+            <p className="text-xs text-muted-foreground mt-1">Нажмите +, чтобы создать</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {meetings.slice(0, 5).map(meeting => (
-              <button
-                key={meeting.id}
-                onClick={() => setShowMeetingDetail(meeting)}
-                className="w-full p-4 rounded-xl glass text-left transition-all hover:shadow-card"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{meeting.title}</h4>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{format(new Date(meeting.meeting_date), 'd MMMM', { locale: ru })}</span>
-                      {meeting.meeting_time && (
-                        <>
-                          <Clock className="w-3.5 h-3.5 ml-2" />
-                          <span>{meeting.meeting_time.slice(0, 5)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {meeting.participants.length > 0 && (
-                    <div className="flex -space-x-2">
-                      {meeting.participants.slice(0, 3).map((p, i) => (
-                        <div
-                          key={p.friend_id}
-                          className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary ring-2 ring-background"
-                          style={{ zIndex: 3 - i }}
-                        >
-                          {p.friend_name[0]}{p.friend_last_name[0]}
+          (() => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const getDateLabel = (dateStr: string) => {
+              const date = new Date(dateStr);
+              date.setHours(0, 0, 0, 0);
+              
+              if (isToday(date)) return 'Сегодня';
+              if (isTomorrow(date)) return 'Завтра';
+              
+              const daysDiff = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              if (daysDiff === 2) return 'Послезавтра';
+              if (daysDiff > 2 && daysDiff <= 7) return format(date, 'EEEE', { locale: ru });
+              
+              return format(date, 'd MMMM', { locale: ru });
+            };
+            
+            // Group meetings by date label
+            const groupedMeetings = meetings.reduce((acc, meeting) => {
+              const label = getDateLabel(meeting.meeting_date);
+              if (!acc[label]) acc[label] = [];
+              acc[label].push(meeting);
+              return acc;
+            }, {} as Record<string, Meeting[]>);
+            
+            return Object.entries(groupedMeetings).map(([label, groupMeetings]) => (
+              <div key={label}>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">{label}</h3>
+                <div className="space-y-2">
+                  {groupMeetings.map(meeting => (
+                    <button
+                      key={meeting.id}
+                      onClick={() => setShowMeetingDetail(meeting)}
+                      className="w-full p-4 rounded-xl glass text-left transition-all hover:shadow-card"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium truncate">{meeting.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                            {meeting.meeting_time && (
+                              <>
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{meeting.meeting_time.slice(0, 5)}</span>
+                              </>
+                            )}
+                            {meeting.location && (
+                              <>
+                                <MapPin className="w-3.5 h-3.5 ml-2" />
+                                <span className="truncate">{meeting.location}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        {meeting.participants.length > 0 && (
+                          <div className="flex -space-x-2">
+                            {meeting.participants.slice(0, 3).map((p, i) => (
+                              <div
+                                key={p.friend_id}
+                                className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary ring-2 ring-background"
+                                style={{ zIndex: 3 - i }}
+                              >
+                                {p.friend_name[0]}{p.friend_last_name[0]}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
-          </div>
+              </div>
+            ));
+          })()
         )}
       </div>
 
