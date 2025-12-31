@@ -44,6 +44,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': 'Email Sent!',
     'auth.reset_sent_desc': 'Check your inbox for the reset link',
     'auth.reset_check_email': 'Please check your email for a password reset link. It may take a few minutes.',
+    'auth.email_confirmation_title': 'Confirm Your Email',
+    'auth.email_confirmation_desc': 'We have sent a confirmation link to your email. Please check your inbox and click the link to activate your account.',
+    'auth.email_confirmation_spam': 'Don\'t see the email? Check your spam folder.',
+    'auth.resend_email': 'Resend Email',
+    'auth.email_resent': 'Email Resent',
+    'auth.email_resent_desc': 'A new confirmation email has been sent',
 
     // Welcome message
     'welcome.title': 'Welcome to BuddyBe!',
@@ -268,6 +274,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': 'Email envoyé!',
     'auth.reset_sent_desc': 'Vérifiez votre boîte de réception',
     'auth.reset_check_email': 'Veuillez vérifier votre email pour le lien de réinitialisation.',
+    'auth.email_confirmation_title': 'Confirmez votre email',
+    'auth.email_confirmation_desc': 'Nous avons envoyé un lien de confirmation à votre email. Veuillez vérifier votre boîte de réception et cliquer sur le lien pour activer votre compte.',
+    'auth.email_confirmation_spam': 'Vous ne voyez pas l\'email? Vérifiez votre dossier spam.',
+    'auth.resend_email': 'Renvoyer l\'email',
+    'auth.email_resent': 'Email renvoyé',
+    'auth.email_resent_desc': 'Un nouvel email de confirmation a été envoyé',
 
     // Welcome message
     'welcome.title': 'Bienvenue sur BuddyBe!',
@@ -479,6 +491,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': '¡Email enviado!',
     'auth.reset_sent_desc': 'Revisa tu bandeja de entrada',
     'auth.reset_check_email': 'Por favor revisa tu email para el enlace de restablecimiento.',
+    'auth.email_confirmation_title': 'Confirma tu email',
+    'auth.email_confirmation_desc': 'Hemos enviado un enlace de confirmación a tu email. Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.',
+    'auth.email_confirmation_spam': '¿No ves el email? Revisa tu carpeta de spam.',
+    'auth.resend_email': 'Reenviar email',
+    'auth.email_resent': 'Email reenviado',
+    'auth.email_resent_desc': 'Se ha enviado un nuevo email de confirmación',
 
     // Welcome message
     'welcome.title': '¡Bienvenido a BuddyBe!',
@@ -690,6 +708,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': 'Письмо отправлено!',
     'auth.reset_sent_desc': 'Проверьте почту',
     'auth.reset_check_email': 'Проверьте почту для ссылки сброса пароля. Письмо может прийти через пару минут.',
+    'auth.email_confirmation_title': 'Подтвердите email',
+    'auth.email_confirmation_desc': 'Мы отправили ссылку для подтверждения на вашу почту. Пожалуйста, проверьте входящие сообщения и нажмите на ссылку для активации аккаунта.',
+    'auth.email_confirmation_spam': 'Не видите письмо? Проверьте папку спам.',
+    'auth.resend_email': 'Отправить повторно',
+    'auth.email_resent': 'Письмо отправлено',
+    'auth.email_resent_desc': 'Новое письмо с подтверждением отправлено',
 
     // Welcome message
     'welcome.title': 'Добро пожаловать в BuddyBe!',
@@ -914,6 +938,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': 'Email enviado!',
     'auth.reset_sent_desc': 'Verifique sua caixa de entrada',
     'auth.reset_check_email': 'Verifique seu email para o link de redefinição.',
+    'auth.email_confirmation_title': 'Confirme seu email',
+    'auth.email_confirmation_desc': 'Enviamos um link de confirmação para seu email. Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.',
+    'auth.email_confirmation_spam': 'Não vê o email? Verifique sua pasta de spam.',
+    'auth.resend_email': 'Reenviar email',
+    'auth.email_resent': 'Email reenviado',
+    'auth.email_resent_desc': 'Um novo email de confirmação foi enviado',
 
     // Welcome message
     'welcome.title': 'Bem-vindo ao BuddyBe!',
@@ -1125,6 +1155,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': 'Лист надіслано!',
     'auth.reset_sent_desc': 'Перевірте пошту',
     'auth.reset_check_email': 'Перевірте пошту для посилання скидання пароля.',
+    'auth.email_confirmation_title': 'Підтвердіть email',
+    'auth.email_confirmation_desc': 'Ми надіслали посилання для підтвердження на вашу пошту. Будь ласка, перевірте вхідні повідомлення та натисніть на посилання для активації акаунту.',
+    'auth.email_confirmation_spam': 'Не бачите листа? Перевірте папку спам.',
+    'auth.resend_email': 'Надіслати повторно',
+    'auth.email_resent': 'Лист надіслано',
+    'auth.email_resent_desc': 'Новий лист з підтвердженням надіслано',
 
     // Welcome message
     'welcome.title': 'Ласкаво просимо до BuddyBe!',
@@ -1336,6 +1372,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': '이메일 전송됨!',
     'auth.reset_sent_desc': '받은 편지함을 확인하세요',
     'auth.reset_check_email': '비밀번호 재설정 링크를 위해 이메일을 확인해 주세요.',
+    'auth.email_confirmation_title': '이메일 확인',
+    'auth.email_confirmation_desc': '확인 링크를 이메일로 보냈습니다. 받은 편지함을 확인하고 링크를 클릭하여 계정을 활성화해 주세요.',
+    'auth.email_confirmation_spam': '이메일이 보이지 않나요? 스팸 폴더를 확인해 주세요.',
+    'auth.resend_email': '이메일 재전송',
+    'auth.email_resent': '이메일 재전송됨',
+    'auth.email_resent_desc': '새 확인 이메일이 전송되었습니다',
 
     // Welcome message
     'welcome.title': 'BuddyBe에 오신 것을 환영합니다!',
@@ -1547,6 +1589,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.reset_sent': '邮件已发送！',
     'auth.reset_sent_desc': '请检查您的收件箱',
     'auth.reset_check_email': '请检查您的邮箱获取密码重置链接。',
+    'auth.email_confirmation_title': '确认您的邮箱',
+    'auth.email_confirmation_desc': '我们已将确认链接发送到您的邮箱。请检查收件箱并点击链接以激活您的账户。',
+    'auth.email_confirmation_spam': '没有看到邮件？请检查垃圾邮件文件夹。',
+    'auth.resend_email': '重新发送邮件',
+    'auth.email_resent': '邮件已重新发送',
+    'auth.email_resent_desc': '新的确认邮件已发送',
 
     // Welcome message
     'welcome.title': '欢迎来到BuddyBe！',
