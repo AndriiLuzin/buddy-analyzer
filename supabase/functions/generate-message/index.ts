@@ -29,38 +29,43 @@ serve(async (req) => {
 
     console.log('Generating message for:', { friendName, category, messageType, actionType });
 
+    // Generate random seed to ensure unique messages each time
+    const randomSeed = Math.random().toString(36).substring(2, 10);
+    
     let systemPrompt = '';
     let userPrompt = '';
 
     if (messageType === 'birthday') {
       systemPrompt = `Ты помощник, который генерирует персонализированные поздравления с днём рождения на русском языке. 
 Твои сообщения должны быть тёплыми, искренними и подходящими для отправки другу.
-Используй эмодзи умеренно. Сообщение должно быть не более 2-3 предложений.`;
+Используй эмодзи умеренно. Сообщение должно быть не более 2-3 предложений.
+ВАЖНО: Каждый раз генерируй УНИКАЛЬНОЕ сообщение, не повторяй предыдущие варианты. Будь креативным!`;
 
       if (actionType === 'congrats') {
-        userPrompt = `Напиши искреннее поздравление с днём рождения для ${friendName}. Категория дружбы: ${category}. Сделай его личным и тёплым.`;
+        userPrompt = `[seed:${randomSeed}] Напиши искреннее поздравление с днём рождения для ${friendName}. Категория дружбы: ${category}. Сделай его личным и тёплым. Придумай что-то оригинальное!`;
       } else if (actionType === 'plan') {
-        userPrompt = `Напиши сообщение для ${friendName} с предложением встретиться и отметить день рождения вместе. Категория дружбы: ${category}.`;
+        userPrompt = `[seed:${randomSeed}] Напиши сообщение для ${friendName} с предложением встретиться и отметить день рождения вместе. Категория дружбы: ${category}. Будь оригинальным!`;
       } else {
-        userPrompt = `Напиши короткое поздравление с днём рождения для ${friendName}. Категория дружбы: ${category}.`;
+        userPrompt = `[seed:${randomSeed}] Напиши короткое поздравление с днём рождения для ${friendName}. Категория дружбы: ${category}. Сделай его уникальным!`;
       }
     } else {
       systemPrompt = `Ты помощник, который генерирует дружеские сообщения на русском языке для поддержания связи с друзьями.
 Твои сообщения должны быть непринуждёнными, естественными и подходящими для мессенджера.
-Используй эмодзи умеренно. Сообщение должно быть не более 2-3 предложений.`;
+Используй эмодзи умеренно. Сообщение должно быть не более 2-3 предложений.
+ВАЖНО: Каждый раз генерируй УНИКАЛЬНОЕ сообщение, не повторяй предыдущие варианты. Будь креативным!`;
 
       if (actionType === 'casual') {
-        userPrompt = `Напиши дружеское приветствие для ${friendName}. Категория дружбы: ${category}. Это должно быть непринуждённое сообщение чтобы узнать как дела.`;
+        userPrompt = `[seed:${randomSeed}] Напиши дружеское приветствие для ${friendName}. Категория дружбы: ${category}. Это должно быть непринуждённое сообщение чтобы узнать как дела. Придумай оригинальный вариант!`;
       } else if (actionType === 'meetup') {
-        userPrompt = `Напиши сообщение для ${friendName} с предложением встретиться на кофе или просто провести время вместе. Категория дружбы: ${category}.`;
+        userPrompt = `[seed:${randomSeed}] Напиши сообщение для ${friendName} с предложением встретиться на кофе или просто провести время вместе. Категория дружбы: ${category}. Сделай его уникальным!`;
       } else if (actionType === 'call') {
-        userPrompt = `Напиши короткое сообщение для ${friendName} чтобы спросить можно ли позвонить. Категория дружбы: ${category}.`;
+        userPrompt = `[seed:${randomSeed}] Напиши короткое сообщение для ${friendName} чтобы спросить можно ли позвонить. Категория дружбы: ${category}. Придумай что-то оригинальное!`;
       } else {
-        userPrompt = `Напиши дружеское сообщение для ${friendName}. Категория дружбы: ${category}.`;
+        userPrompt = `[seed:${randomSeed}] Напиши дружеское сообщение для ${friendName}. Категория дружбы: ${category}. Будь креативным!`;
       }
     }
 
-    console.log('Calling Lovable AI with prompts...');
+    console.log('Calling Lovable AI with prompts...', { randomSeed });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -70,6 +75,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
+        temperature: 1.2,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
