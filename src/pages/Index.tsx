@@ -85,19 +85,23 @@ const Index = ({ initialRoute }: IndexProps) => {
 
   // Initialize app based on auth state
   useEffect(() => {
-    const initApp = () => {
-      // If no user is logged in, show auth screen or friend registration
-      if (user === null && session === null) {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            // If coming from a referral link, show friend registration
-            if (referrerId) {
-              setScreen('friendRegistration');
-            } else {
-              setScreen('auth');
-            }
-          }
-        });
+    const initApp = async () => {
+      // First, check if there's an existing session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      // If no session exists
+      if (!currentSession) {
+        // If coming from a referral link, show friend registration
+        if (referrerId) {
+          setScreen('friendRegistration');
+        } else {
+          setScreen('auth');
+        }
+        return;
+      }
+
+      // If session exists but user state not yet updated, wait
+      if (!user) {
         return;
       }
 
@@ -105,8 +109,8 @@ const Index = ({ initialRoute }: IndexProps) => {
       loadUserProfile();
     };
 
-    setTimeout(initApp, 500);
-  }, [user, session, referrerId]);
+    initApp();
+  }, [user, referrerId]);
 
   const loadUserProfile = async () => {
     if (!user) return;
