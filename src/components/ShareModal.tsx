@@ -108,10 +108,10 @@ export const ShareModal = ({ isOpen, onClose, userId }: ShareModalProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center">
-                  <Send className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
+                  <Send className="w-5 h-5 text-white flex-shrink-0" />
                 </div>
-                <span className="font-medium text-foreground">{t('share.telegram')}</span>
+                <span className="font-medium text-foreground truncate">{t('share.telegram')}</span>
               </a>
 
               <a
@@ -120,10 +120,10 @@ export const ShareModal = ({ isOpen, onClose, userId }: ShareModalProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-5 h-5 text-white flex-shrink-0" />
                 </div>
-                <span className="font-medium text-foreground">{t('share.whatsapp')}</span>
+                <span className="font-medium text-foreground truncate">{t('share.whatsapp')}</span>
               </a>
             </div>
           </div>
