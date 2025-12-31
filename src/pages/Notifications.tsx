@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
-import { ArrowLeft, Bell, MessageCircle, Cake, Clock, UserCheck } from 'lucide-react';
+import { ArrowLeft, UserCheck } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { NotificationDetailModal } from '../components/NotificationDetailModal';
 
@@ -175,51 +175,29 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       </header>
 
       {/* Content */}
-      <main className="px-4 py-4 space-y-4">
-        {/* Main Reminder Card */}
-        <div className="bg-card rounded-2xl p-4 border border-border">
-          {/* Card Header */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center">
-              <Bell className="w-6 h-6 text-destructive" />
+      <main className="px-4 py-4 space-y-3">
+        {/* Notification Items */}
+        {visibleNotifications.length > 0 ? (
+          <>
+            {visibleNotifications.map(notification => (
+              <NotificationCard 
+                key={notification.id} 
+                notification={notification}
+                onClick={() => setSelectedNotification(notification)}
+              />
+            ))}
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
+              <UserCheck className="w-8 h-8 text-muted-foreground" />
             </div>
-            <div>
-              <h2 className="font-bold text-foreground text-lg">Напоминания</h2>
-              <p className="text-sm text-muted-foreground">Сбалансированный график</p>
-            </div>
+            <h3 className="font-semibold text-foreground mb-1">Всё под контролем!</h3>
+            <p className="text-sm text-muted-foreground">
+              Нет срочных напоминаний о друзьях
+            </p>
           </div>
-
-          {/* Notification Items */}
-          {visibleNotifications.length > 0 ? (
-            <div className="space-y-2">
-              {visibleNotifications.map(notification => (
-                <NotificationCard 
-                  key={notification.id} 
-                  notification={notification}
-                  onClick={() => setSelectedNotification(notification)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
-                <UserCheck className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">Всё под контролем!</h3>
-              <p className="text-sm text-muted-foreground">
-                Нет срочных напоминаний о друзьях
-              </p>
-            </div>
-          )}
-
-          {/* Priority Note */}
-          {visibleNotifications.length > 0 && (
-            <div className="flex items-center justify-center gap-2 mt-4 text-sm text-amber-500">
-              <span>💡</span>
-              <span>Показаны только приоритетные контакты</span>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Tips */}
         <div className="glass rounded-2xl p-4">
@@ -253,33 +231,60 @@ interface NotificationCardProps {
   onClick: () => void;
 }
 
+const categoryBgStyles: Record<FriendCategory, string> = {
+  soul_mate: 'bg-amber-500',
+  close_friend: 'bg-orange-500',
+  good_buddy: 'bg-teal-500',
+  situational: 'bg-blue-500',
+  distant: 'bg-slate-400'
+};
+
 const NotificationCard = ({ notification, onClick }: NotificationCardProps) => {
+  const { friend } = notification;
+  const initials = friend.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
   return (
-    <div 
-      className="flex items-center gap-3 p-4 rounded-xl bg-background border border-border hover:bg-secondary/30 transition-all cursor-pointer"
+    <button
       onClick={onClick}
+      className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] animate-slide-up"
     >
-      {/* Icon */}
-      <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
-        {notification.type === 'birthday' ? (
-          <Cake className="w-5 h-5 text-destructive" />
-        ) : (
-          <MessageCircle className="w-5 h-5 text-destructive" />
+      {/* Avatar */}
+      <div className="relative">
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+          friend.category ? categoryBgStyles[friend.category] : 'bg-muted'
+        }`}>
+          {friend.avatar ? (
+            <img src={friend.avatar} alt={friend.name} className="w-full h-full rounded-full object-cover" />
+          ) : (
+            initials
+          )}
+        </div>
+        {notification.type === 'birthday' && (
+          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center">
+            <span className="text-xs">🎂</span>
+          </div>
         )}
       </div>
-      
+
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground truncate">{notification.friend.name}</p>
-        <p className="text-sm text-muted-foreground">{notification.message}</p>
+      <div className="flex-1 text-left min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="font-semibold text-foreground truncate">{friend.name}</h3>
+        </div>
+        <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
       </div>
 
       {/* Days Badge */}
-      <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-        <Clock className="w-4 h-4" />
-        <span className="text-sm">{notification.daysInfo}</span>
+      <div className="shrink-0">
+        <div className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+          notification.urgency === 'high' ? 'border-destructive/30 bg-destructive/10 text-destructive' :
+          notification.urgency === 'medium' ? 'border-amber-500/30 bg-amber-500/10 text-amber-500' :
+          'border-primary/30 bg-primary/10 text-primary'
+        }`}>
+          {notification.daysInfo}
+        </div>
       </div>
-    </div>
+    </button>
   );
 };
 
