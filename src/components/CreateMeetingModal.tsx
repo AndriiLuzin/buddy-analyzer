@@ -41,7 +41,14 @@ const meetingTypes = [
   { id: 'shopping', label: 'Шоппинг', emoji: '🛍️' },
   { id: 'party', label: 'Вечеринка', emoji: '🎉' },
   { id: 'work', label: 'Работа', emoji: '💼' },
-  { id: 'chat', label: 'Прогулка', emoji: '🚶' },
+  { id: 'walk', label: 'Прогулка', emoji: '🚶' },
+  { id: 'bar', label: 'Бар', emoji: '🍺' },
+  { id: 'restaurant', label: 'Ресторан', emoji: '🍴' },
+  { id: 'concert', label: 'Концерт', emoji: '🎵' },
+  { id: 'game', label: 'Игры', emoji: '🎮' },
+  { id: 'travel', label: 'Поездка', emoji: '✈️' },
+  { id: 'study', label: 'Учёба', emoji: '📚' },
+  { id: 'other', label: 'Другое', emoji: '📌' },
 ];
 
 const quickTimes = [
@@ -258,7 +265,7 @@ export const CreateMeetingModal = ({
           {/* Step 1: Meeting Type */}
           {step === 'type' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {meetingTypes.map(type => (
                   <button
                     key={type.id}
