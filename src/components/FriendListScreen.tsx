@@ -103,8 +103,8 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
 
       {/* Content */}
       <main className="px-4 pt-4">
-        {/* Birthday Reminder */}
-        <BirthdayReminder friends={friends} />
+        {/* Birthday Reminder - only show on 'all' tab */}
+        {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 
         {/* Friends List */}
         <div className="space-y-3">
