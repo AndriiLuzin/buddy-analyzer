@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles, Users } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { BottomNavBar } from '@/components/BottomNavBar';
 import { CreateMeetingModal } from '@/components/CreateMeetingModal';
+import { Progress } from '@/components/ui/progress';
 
 interface Friend {
   id: string;
@@ -425,79 +426,15 @@ export default function Meetings() {
 
 
       {/* Meeting Detail Modal */}
-      <Dialog open={!!showMeetingDetail} onOpenChange={() => setShowMeetingDetail(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{showMeetingDetail?.title}</DialogTitle>
-          </DialogHeader>
-          {showMeetingDetail && (
-            <div className="space-y-4 pt-4">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Calendar className="w-4 h-4" />
-                <span>{format(new Date(showMeetingDetail.meeting_date), 'd MMMM yyyy', { locale: ru })}</span>
-              </div>
-
-              {showMeetingDetail.meeting_time && (
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>{showMeetingDetail.meeting_time.slice(0, 5)}</span>
-                </div>
-              )}
-
-              {showMeetingDetail.location && (
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <span>{showMeetingDetail.location}</span>
-                </div>
-              )}
-
-              {showMeetingDetail.participants.length > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Участники:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {showMeetingDetail.participants.map(p => (
-                      <div
-                        key={p.friend_id}
-                        className="px-3 py-2 rounded-full bg-muted text-sm flex items-center gap-2"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
-                          {p.friend_name[0]}{p.friend_last_name[0]}
-                        </div>
-                        {p.friend_name} {p.friend_last_name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    // Close detail modal and open create modal with pre-filled data
-                    const meetingToReschedule = showMeetingDetail;
-                    setShowMeetingDetail(null);
-                    setShowCreateMeetingModal(true);
-                    // Could add logic to pre-fill reschedule data
-                  }}
-                  className="flex-1"
-                >
-                  <CalendarClock className="w-4 h-4 mr-2" />
-                  Перенести
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDeleteMeeting(showMeetingDetail.id)}
-                  className="flex-1"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Отменить
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <MeetingDetailModal
+        meeting={showMeetingDetail}
+        onClose={() => setShowMeetingDetail(null)}
+        onReschedule={() => {
+          setShowMeetingDetail(null);
+          setShowCreateMeetingModal(true);
+        }}
+        onDelete={handleDeleteMeeting}
+      />
 
       {/* Create Meeting Modal (new step-by-step flow) */}
       <CreateMeetingModal
@@ -516,5 +453,185 @@ export default function Meetings() {
 
       <BottomNavBar />
     </div>
+  );
+}
+
+// Meeting Detail Modal Component
+interface MeetingDetailModalProps {
+  meeting: Meeting | null;
+  onClose: () => void;
+  onReschedule: () => void;
+  onDelete: (id: string) => void;
+}
+
+function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: MeetingDetailModalProps) {
+  const [isHolding, setIsHolding] = useState(false);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const HOLD_DURATION = 3000; // 3 секунды для удобства
+  const PROGRESS_INTERVAL = 50; // Обновление прогресса каждые 50мс
+
+  const handleHoldStart = () => {
+    if (!meeting) return;
+    
+    setIsHolding(true);
+    setHoldProgress(0);
+
+    let elapsed = 0;
+    progressIntervalRef.current = setInterval(() => {
+      elapsed += PROGRESS_INTERVAL;
+      const progress = Math.min((elapsed / HOLD_DURATION) * 100, 100);
+      setHoldProgress(progress);
+    }, PROGRESS_INTERVAL);
+
+    holdTimerRef.current = setTimeout(() => {
+      onDelete(meeting.id);
+      clearInterval(progressIntervalRef.current!);
+      setIsHolding(false);
+      setHoldProgress(0);
+    }, HOLD_DURATION);
+  };
+
+  const handleHoldEnd = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    setIsHolding(false);
+    setHoldProgress(0);
+  };
+
+  if (!meeting) return null;
+
+  return (
+    <Dialog open={!!meeting} onOpenChange={onClose}>
+      <DialogContent className="max-w-md p-0 gap-0 bg-background border-0 rounded-3xl overflow-hidden">
+        {/* Header */}
+        <div className="relative bg-gradient-to-br from-primary/20 to-accent/10 p-6 pb-8">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition-colors"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+          
+          <h2 className="text-xl font-bold text-foreground pr-10">{meeting.title}</h2>
+          
+          {meeting.description && (
+            <p className="text-sm text-muted-foreground mt-2">{meeting.description}</p>
+          )}
+        </div>
+
+        {/* Info Cards */}
+        <div className="p-4 space-y-3">
+          {/* Date & Time */}
+          <div className="glass rounded-2xl p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">
+                {format(new Date(meeting.meeting_date), 'd MMMM yyyy', { locale: ru })}
+              </p>
+              {meeting.meeting_time && (
+                <p className="text-sm text-muted-foreground">
+                  {meeting.meeting_time.slice(0, 5)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Location */}
+          {meeting.location && (
+            <div className="glass rounded-2xl p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-teal-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">{meeting.location}</p>
+                <p className="text-sm text-muted-foreground">Место встречи</p>
+              </div>
+            </div>
+          )}
+
+          {/* Participants */}
+          {meeting.participants.length > 0 && (
+            <div className="glass rounded-2xl p-4">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Участники</p>
+                  <p className="text-sm text-muted-foreground">{meeting.participants.length} человек</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {meeting.participants.map(p => (
+                  <div
+                    key={p.friend_id}
+                    className="px-3 py-2 rounded-full bg-secondary text-sm flex items-center gap-2"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
+                      {p.friend_name[0]}{p.friend_last_name[0]}
+                    </div>
+                    {p.friend_name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="p-4 pt-0 space-y-3">
+          <Button
+            variant="secondary"
+            onClick={onReschedule}
+            className="w-full h-12 rounded-xl"
+          >
+            <CalendarClock className="w-5 h-5 mr-2" />
+            Перенести встречу
+          </Button>
+
+          {/* Hold to Cancel Button */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              className={`w-full h-12 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all ${isHolding ? 'bg-destructive/10' : ''}`}
+              onMouseDown={handleHoldStart}
+              onMouseUp={handleHoldEnd}
+              onMouseLeave={handleHoldEnd}
+              onTouchStart={handleHoldStart}
+              onTouchEnd={handleHoldEnd}
+            >
+              <X className="w-5 h-5 mr-2" />
+              {isHolding ? 'Удерживайте...' : 'Отменить (зажать)'}
+            </Button>
+            
+            {isHolding && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-destructive/20 rounded-b-xl overflow-hidden">
+                <div 
+                  className="h-full bg-destructive transition-all duration-100 ease-linear"
+                  style={{ width: `${holdProgress}%` }}
+                />
+              </div>
+            )}
+          </div>
+          
+          {isHolding && (
+            <p className="text-xs text-center text-muted-foreground animate-pulse">
+              Удерживайте для отмены встречи
+            </p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
