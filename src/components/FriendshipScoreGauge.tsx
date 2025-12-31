@@ -120,11 +120,11 @@ export const FriendshipScoreGauge = ({ friends }: FriendshipScoreGaugeProps) => 
         {/* Score display - positioned over the arc */}
         <div className="absolute top-8 flex flex-col items-center">
           {/* Points change */}
-          <div className={`flex items-center gap-1 text-sm font-medium ${pointsChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+          <div className={`flex items-center gap-1 text-xs font-medium ${pointsChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
             {pointsChange >= 0 ? (
-              <TrendingUp className="w-4 h-4" />
+              <TrendingUp className="w-3 h-3" />
             ) : (
-              <TrendingDown className="w-4 h-4" />
+              <TrendingDown className="w-3 h-3" />
             )}
             <span>{pointsChange >= 0 ? '+' : ''}{pointsChange} pts</span>
           </div>
@@ -133,7 +133,7 @@ export const FriendshipScoreGauge = ({ friends }: FriendshipScoreGaugeProps) => 
           <span className="text-5xl font-bold text-foreground">{score}</span>
           
           {/* Label */}
-          <span className={`text-lg font-medium ${level.color}`}>{level.label}</span>
+          <span className={`text-base font-medium ${level.color}`}>{level.label}</span>
         </div>
       </div>
 
