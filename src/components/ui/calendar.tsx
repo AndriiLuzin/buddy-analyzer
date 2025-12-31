@@ -29,7 +29,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         row: "flex w-full justify-between gap-1 mt-1",
         cell: "text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
         day: cn(
-          "h-10 w-10 p-0 font-medium rounded-xl transition-all duration-200",
+          "h-12 w-12 p-0 font-semibold text-lg rounded-xl transition-all duration-200",
           "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]",
           "flex items-center justify-center",
           "aria-selected:opacity-100"
