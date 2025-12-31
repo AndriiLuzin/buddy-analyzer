@@ -27,6 +27,7 @@ interface CreateMeetingModalProps {
   onClose: () => void;
   preselectedFriendId?: string | null;
   preselectedFriendName?: string | null;
+  preselectedDate?: Date | null;
   onSuccess?: () => void;
 }
 
@@ -54,6 +55,7 @@ export const CreateMeetingModal = ({
   onClose, 
   preselectedFriendId,
   preselectedFriendName,
+  preselectedDate,
   onSuccess
 }: CreateMeetingModalProps) => {
   const { toast } = useToast();
@@ -83,8 +85,8 @@ export const CreateMeetingModal = ({
   useEffect(() => {
     if (isOpen) {
       setStep('type');
-      setCurrentMonth(new Date());
-      setSelectedDate(undefined);
+      setCurrentMonth(preselectedDate || new Date());
+      setSelectedDate(preselectedDate || undefined);
       setSelectedTime('');
       setSelectedType('');
       setLocation('');

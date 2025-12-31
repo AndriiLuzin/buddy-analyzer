@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, CalendarClock, Sparkles } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, addDays, differenceInDays } from 'date-fns';
+import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BottomNavBar } from '@/components/BottomNavBar';
 import { CreateMeetingModal } from '@/components/CreateMeetingModal';
@@ -35,16 +34,9 @@ export default function Meetings() {
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateMeetingModal, setShowCreateMeetingModal] = useState(false);
   const [showMeetingDetail, setShowMeetingDetail] = useState<Meeting | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  
-  // Form state
-  const [newTitle, setNewTitle] = useState('');
-  const [newTime, setNewTime] = useState('');
-  const [newLocation, setNewLocation] = useState('');
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
   useEffect(() => {
     fetchMeetings();
@@ -113,45 +105,6 @@ export default function Meetings() {
     }
   };
 
-  const handleCreateMeeting = async () => {
-    if (!newTitle.trim() || !selectedDate) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: meeting, error } = await supabase
-      .from('meetings')
-      .insert({
-        owner_id: user.id,
-        title: newTitle.trim(),
-        meeting_date: format(selectedDate, 'yyyy-MM-dd'),
-        meeting_time: newTime || null,
-        location: newLocation.trim() || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось создать встречу', variant: 'destructive' });
-      return;
-    }
-
-    // Add participants
-    if (selectedFriends.length > 0 && meeting) {
-      await supabase.from('meeting_participants').insert(
-        selectedFriends.map(friendId => ({
-          meeting_id: meeting.id,
-          friend_id: friendId,
-        }))
-      );
-    }
-
-    toast({ title: 'Готово', description: 'Встреча создана' });
-    resetForm();
-    setShowCreateModal(false);
-    fetchMeetings();
-  };
-
   const handleDeleteMeeting = async (meetingId: string) => {
     const { error } = await supabase.from('meetings').delete().eq('id', meetingId);
     if (error) {
@@ -163,25 +116,9 @@ export default function Meetings() {
     fetchMeetings();
   };
 
-  const resetForm = () => {
-    setNewTitle('');
-    setNewTime('');
-    setNewLocation('');
-    setSelectedFriends([]);
-  };
-
-  const toggleFriend = (friendId: string) => {
-    setSelectedFriends(prev => 
-      prev.includes(friendId) 
-        ? prev.filter(id => id !== friendId)
-        : [...prev, friendId]
-    );
-  };
-
   const openCreateModal = (date: Date) => {
     setSelectedDate(date);
-    resetForm();
-    setShowCreateModal(true);
+    setShowCreateMeetingModal(true);
   };
 
   // Calendar logic
@@ -486,72 +423,6 @@ export default function Meetings() {
         )}
       </div>
 
-      {/* Create Meeting Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Новая встреча</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            {selectedDate && (
-              <div className="p-3 rounded-xl bg-muted text-center">
-                <span className="text-sm font-medium">
-                  {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-                </span>
-              </div>
-            )}
-
-            <Input
-              placeholder="Название встречи"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-            />
-
-            <Input
-              type="time"
-              placeholder="Время"
-              value={newTime}
-              onChange={(e) => setNewTime(e.target.value)}
-            />
-
-            <Input
-              placeholder="Место (необязательно)"
-              value={newLocation}
-              onChange={(e) => setNewLocation(e.target.value)}
-            />
-
-            {/* Friends selector */}
-            {friends.length > 0 && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Пригласить друзей
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {friends.map(friend => (
-                    <button
-                      key={friend.id}
-                      onClick={() => toggleFriend(friend.id)}
-                      className={`px-3 py-2 rounded-full text-sm transition-all flex items-center gap-2 ${
-                        selectedFriends.includes(friend.id)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-foreground hover:bg-muted/80'
-                      }`}
-                    >
-                      {selectedFriends.includes(friend.id) && <Check className="w-3 h-3" />}
-                      {friend.friend_name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <Button onClick={handleCreateMeeting} className="w-full" disabled={!newTitle.trim()}>
-              Создать встречу
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Meeting Detail Modal */}
       <Dialog open={!!showMeetingDetail} onOpenChange={() => setShowMeetingDetail(null)}>
@@ -631,9 +502,14 @@ export default function Meetings() {
       {/* Create Meeting Modal (new step-by-step flow) */}
       <CreateMeetingModal
         isOpen={showCreateMeetingModal}
-        onClose={() => setShowCreateMeetingModal(false)}
+        onClose={() => {
+          setShowCreateMeetingModal(false);
+          setSelectedDate(null);
+        }}
+        preselectedDate={selectedDate}
         onSuccess={() => {
           setShowCreateMeetingModal(false);
+          setSelectedDate(null);
           fetchMeetings();
         }}
       />
