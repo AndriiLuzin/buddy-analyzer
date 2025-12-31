@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
@@ -439,9 +440,12 @@ export const NotificationDetailModal = ({
         </div>
       </DialogContent>
 
-      {/* Share Menu Modal */}
-      {showShareMenu && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+      {/* Share Menu Modal - rendered via portal to avoid z-index issues with Dialog */}
+      {showShareMenu && createPortal(
+        <div 
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
+          style={{ pointerEvents: 'auto' }}
+        >
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -541,7 +545,8 @@ export const NotificationDetailModal = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </Dialog>
   );
