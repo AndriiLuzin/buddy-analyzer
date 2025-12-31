@@ -104,9 +104,9 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4 pb-24 animate-fade-in">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
       {/* Skip & Language selector */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+      <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 flex items-center gap-2 z-10">
         {showSkip && onSkip && (
           <button
             onClick={onSkip}
@@ -119,70 +119,70 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
       </div>
 
       {/* Header */}
-      <div className="text-center mb-8 pt-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
-          <Sparkles className="w-4 h-4" />
-          <span className="text-sm font-medium">{t('quiz.question')} {currentQuestion + 1} {t('quiz.of')} {questions.length}</span>
+      <div className="text-center mb-6 sm:mb-8 pt-8 sm:pt-8">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary mb-3 sm:mb-4">
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span className="text-xs sm:text-sm font-medium">{t('quiz.question')} {currentQuestion + 1} {t('quiz.of')} {questions.length}</span>
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">{displayTitle}</h1>
-        <p className="text-muted-foreground text-sm">{displaySubtitle}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 sm:mb-2 px-2">{displayTitle}</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm px-2">{displaySubtitle}</p>
       </div>
 
       {/* Progress */}
-      <div className="mb-8">
-        <Progress value={progress} className="h-2 bg-secondary" />
+      <div className="mb-6 sm:mb-8">
+        <Progress value={progress} className="h-1.5 sm:h-2 bg-secondary" />
       </div>
 
       {/* Question Card */}
       <div className="flex-1 flex flex-col">
-        <div className="glass rounded-2xl p-6 shadow-card mb-6 animate-scale-in" key={currentQuestion}>
-          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed">
+        <div className="glass rounded-2xl p-4 sm:p-6 shadow-card mb-4 sm:mb-6 animate-scale-in" key={currentQuestion}>
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4 sm:mb-6 leading-relaxed">
             {question.text}
           </h2>
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {question.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleOptionSelect(index)}
-                className={`w-full p-4 rounded-xl text-left transition-all duration-200 border-2 ${
+                className={`w-full p-3 sm:p-4 rounded-xl text-left transition-all duration-200 border-2 ${
                   selectedOption === index
                     ? 'border-primary bg-primary/10 text-foreground'
                     : 'border-border bg-card/50 text-foreground hover:border-primary/50 hover:bg-primary/5'
                 }`}
               >
-                <span className="font-medium">{option}</span>
+                <span className="font-medium text-sm sm:text-base">{option}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex gap-2 sm:gap-3 mt-auto sticky bottom-0 pb-2 bg-background/80 backdrop-blur-sm -mx-4 px-4 pt-2">
           {currentQuestion > 0 && (
             <Button
               variant="outline"
               onClick={handleBack}
-              className="flex-1 h-14 rounded-xl text-base font-medium"
+              className="flex-1 h-12 sm:h-14 rounded-xl text-sm sm:text-base font-medium"
             >
-              <ChevronLeft className="w-5 h-5 mr-2" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
               {t('quiz.back')}
             </Button>
           )}
           <Button
             onClick={handleNext}
             disabled={selectedOption === null}
-            className="flex-1 h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+            className="flex-1 h-12 sm:h-14 rounded-xl text-sm sm:text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
           >
             {currentQuestion === questions.length - 1 ? (
               <>
-                <Sparkles className="w-5 h-5 mr-2" />
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                 {t('quiz.complete')}
               </>
             ) : (
               <>
                 {t('quiz.next')}
-                <ChevronRight className="w-5 h-5 ml-2" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
               </>
             )}
           </Button>

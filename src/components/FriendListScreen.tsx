@@ -63,42 +63,42 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const userCategoryInfo = userProfile ? CATEGORY_INFO[userProfile.category] : null;
 
   return (
-    <div className="min-h-screen pb-28 animate-fade-in">
+    <div className="min-h-screen min-h-[100dvh] pb-28 animate-fade-in">
       {/* Header */}
-      <header className="sticky top-0 z-20 glass-strong px-4 pt-8 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Друзья</h1>
-            <p className="text-sm text-muted-foreground">
+      <header className="sticky top-0 z-20 glass-strong px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Друзья</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {friends.length} {friends.length === 1 ? 'друг' : friends.length < 5 ? 'друга' : 'друзей'}
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <button 
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
               {isSearchOpen ? (
-                <X className="w-5 h-5 text-muted-foreground" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               ) : (
-                <Search className="w-5 h-5 text-muted-foreground" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               )}
             </button>
             {isAdmin && (
               <button 
                 onClick={() => navigate('/admin')}
-                className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
               >
-                <Shield className="w-5 h-5 text-primary" />
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </button>
             )}
             <button 
               onClick={() => navigate('/notifications')}
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors relative"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors relative"
             >
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-destructive rounded-full" />
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-destructive rounded-full" />
             </button>
             <ThemeToggle />
           </div>

@@ -167,9 +167,9 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center px-4 py-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] animate-fade-in overflow-y-auto">
       {/* Language selector */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 z-10">
         <LanguageSelector />
       </div>
 
@@ -189,15 +189,15 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-foreground mb-2 text-center">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 text-center">
         {t('auth.title')}
       </h1>
-      <p className="text-muted-foreground text-center mb-8 max-w-xs">
+      <p className="text-muted-foreground text-center mb-6 sm:mb-8 max-w-xs text-sm sm:text-base px-2">
         {t('auth.subtitle')}
       </p>
 
       {/* Auth form card */}
-      <div className="w-full max-w-sm glass rounded-2xl p-6 shadow-card animate-scale-in">
+      <div className="w-full max-w-sm glass rounded-2xl p-4 sm:p-6 shadow-card animate-scale-in">
         {/* Email Confirmation View */}
         {emailConfirmationSent ? (
           <div className="animate-fade-in text-center py-6">
