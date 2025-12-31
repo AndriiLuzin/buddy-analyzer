@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { UserProfile, FriendCategory, Friend } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from './ui/button';
 import { Sparkles, ArrowRight, Share2, LogOut, Mail } from 'lucide-react';
 import { FriendshipScoreGauge } from './FriendshipScoreGauge';
 import { FriendshipScoreHistory } from './FriendshipScoreHistory';
+import { ShareModal } from './ShareModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
@@ -31,6 +33,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   const gradientClass = categoryStyles[profile.category];
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Get localized category label
   const getCategoryLabel = (category: FriendCategory) => {
@@ -130,7 +133,10 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
             </div>
 
             {/* Share hint */}
-            <button className="w-full flex items-center gap-3 h-16 px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors">
+            <button 
+              onClick={() => setShowShareModal(true)}
+              className="w-full flex items-center gap-3 h-16 px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors"
+            >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Share2 className="w-5 h-5 text-primary" />
               </div>
@@ -156,6 +162,13 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         {t('profile.continue')}
         <ArrowRight className="w-5 h-5" />
       </button>
+
+      {/* Share Modal */}
+      <ShareModal 
+        isOpen={showShareModal} 
+        onClose={() => setShowShareModal(false)} 
+        userId={user?.id}
+      />
     </div>
   );
 };
