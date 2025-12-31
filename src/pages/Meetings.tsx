@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, CalendarClock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -519,14 +519,30 @@ export default function Meetings() {
                 </div>
               )}
 
-              <Button
-                variant="destructive"
-                onClick={() => handleDeleteMeeting(showMeetingDetail.id)}
-                className="w-full"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Удалить встречу
-              </Button>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    // Close detail modal and open create modal with pre-filled data
+                    const meetingToReschedule = showMeetingDetail;
+                    setShowMeetingDetail(null);
+                    setShowCreateMeetingModal(true);
+                    // Could add logic to pre-fill reschedule data
+                  }}
+                  className="flex-1"
+                >
+                  <CalendarClock className="w-4 h-4 mr-2" />
+                  Перенести
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteMeeting(showMeetingDetail.id)}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Отменить
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
