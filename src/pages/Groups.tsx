@@ -505,7 +505,7 @@ export default function Groups() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 chat-pattern-telegram">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <Users className="w-12 h-12 text-muted-foreground/50 mb-3" />
