@@ -208,64 +208,44 @@ const Index = ({ initialRoute }: IndexProps) => {
   const addFriendToReferrer = async (answers: number[], profile: UserProfile, newUserId?: string) => {
     if (!friendInfo || !referrerId) return;
 
-    // Get referrer's profile for matching and reverse friend creation
-    const { data: referrerProfile } = await supabase
-      .from('profiles')
-      .select('quiz_answers, category, description, first_name, last_name, birthday')
-      .eq('user_id', referrerId)
-      .maybeSingle();
-
-    // Calculate match score based on answer similarity
-    let matchScore = 0;
-    if (referrerProfile?.quiz_answers) {
-      const referrerAnswers = referrerProfile.quiz_answers as number[];
-      let matches = 0;
-      for (let i = 0; i < Math.min(answers.length, referrerAnswers.length); i++) {
-        if (answers[i] === referrerAnswers[i]) matches++;
-      }
-      matchScore = Math.round((matches / answers.length) * 100);
-    }
-
-    // Use provided userId or generate temporary one
-    const friendUserId = newUserId || user?.id || crypto.randomUUID();
-
-    // Add as friend to referrer (referrer sees the new user)
-    await supabase
-      .from('friends')
-      .insert({
-        owner_id: referrerId,
-        friend_user_id: friendUserId,
-        friend_name: friendInfo.firstName,
-        friend_last_name: friendInfo.lastName,
-        friend_birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
-        friend_category: profile.category,
-        friend_description: profile.description,
-        friend_quiz_answers: answers,
-        match_score: matchScore
+    try {
+      // Use Edge Function to add friend (bypasses RLS for anonymous users)
+      const { data, error } = await supabase.functions.invoke('add-friend-from-referral', {
+        body: {
+          referrerId,
+          friendInfo: {
+            firstName: friendInfo.firstName,
+            lastName: friendInfo.lastName,
+            birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
+          },
+          profile: {
+            category: profile.category,
+            description: profile.description,
+          },
+          answers,
+          newUserId,
+        },
       });
 
-    // Create reverse friendship - add referrer as friend to the new user (new user sees referrer)
-    // Only if the new user has an account
-    if (newUserId && referrerProfile) {
-      await supabase
-        .from('friends')
-        .insert({
-          owner_id: newUserId,
-          friend_user_id: referrerId,
-          friend_name: referrerProfile.first_name,
-          friend_last_name: referrerProfile.last_name || '',
-          friend_birthday: referrerProfile.birthday || null,
-          friend_category: referrerProfile.category || 'good_buddy',
-          friend_description: referrerProfile.description || null,
-          friend_quiz_answers: referrerProfile.quiz_answers || null,
-          match_score: matchScore
+      if (error) {
+        console.error('Error adding friend via edge function:', error);
+        toast({
+          title: t('common.error'),
+          description: error.message,
+          variant: 'destructive',
         });
-    }
+        return;
+      }
 
-    toast({
-      title: t('friend_reg.added'),
-      description: `${t('friend_reg.added_desc')} ${referrerName}`,
-    });
+      console.log('Friend added successfully:', data);
+
+      toast({
+        title: t('friend_reg.added'),
+        description: `${t('friend_reg.added_desc')} ${referrerName}`,
+      });
+    } catch (error) {
+      console.error('Error adding friend:', error);
+    }
   };
 
   const handleQuizComplete = async (answers: number[]) => {

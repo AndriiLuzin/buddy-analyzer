@@ -2,3 +2,6 @@ project_id = "jpndszgkznjmnxldccee"
 
 [functions.meeting-reminders]
 verify_jwt = false
+
+[functions.add-friend-from-referral]
+verify_jwt = false
