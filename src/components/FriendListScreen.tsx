@@ -6,7 +6,7 @@ import { BirthdayReminder } from './BirthdayReminder';
 
 import { CategoryFilter } from './CategoryFilter';
 import { FriendDetailModal } from './FriendDetailModal';
-import { BottomNavBar } from './BottomNavBar';
+import { FloatingActionMenu } from './FloatingActionMenu';
 import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
@@ -157,9 +157,8 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
         </div>
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavBar
-        onFriendsClick={() => {}}
+      {/* Floating Action Menu */}
+      <FloatingActionMenu
         onAnalyzeClick={() => setIsShareOpen(true)}
         onProfileClick={onViewProfile}
       />

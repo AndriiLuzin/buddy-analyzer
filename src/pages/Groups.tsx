@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { BottomNavBar } from '@/components/BottomNavBar';
+import { FloatingActionMenu } from '@/components/FloatingActionMenu';
 
 interface GroupMember {
   friend_id: string;
@@ -703,7 +703,7 @@ export default function Groups() {
         </DialogContent>
       </Dialog>
 
-      <BottomNavBar />
+      <FloatingActionMenu />
     </div>
   );
 }
