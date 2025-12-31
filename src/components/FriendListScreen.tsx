@@ -63,7 +63,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const userCategoryInfo = userProfile ? CATEGORY_INFO[userProfile.category] : null;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] pb-28 animate-fade-in">
+    <div className="h-[100dvh] pb-28 animate-fade-in flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-20 glass-strong px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -127,7 +127,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
       </header>
 
       {/* Content */}
-      <main className="px-4 pt-4">
+      <main className="flex-1 overflow-y-auto min-h-0 px-4 pt-4">
         {/* Birthday Reminder - only show on 'all' tab */}
         {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 

@@ -10,7 +10,7 @@ export const LoadingScreen = ({ message }: LoadingScreenProps) => {
   const displayMessage = message || t('loading.analyzing');
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 animate-fade-in overflow-hidden">
       <div className="relative mb-8">
         <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
         <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />

@@ -202,9 +202,9 @@ export default function Meetings() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-4">
+      <div className="shrink-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -340,7 +340,7 @@ export default function Meetings() {
       </Dialog>
 
       {/* Upcoming meetings list grouped by date */}
-      <div className="px-4 mt-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 mt-6 space-y-6 pb-24">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />

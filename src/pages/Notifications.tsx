@@ -155,9 +155,9 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
     .filter(n => !dismissedIds.has(n.id));
 
   return (
-    <div className="min-h-screen bg-background animate-fade-in">
+    <div className="h-[100dvh] bg-background animate-fade-in flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-20 glass-strong px-4 pt-8 pb-4">
+      <header className="shrink-0 z-20 glass-strong px-4 pt-8 pb-4">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/')}
@@ -175,7 +175,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       </header>
 
       {/* Content */}
-      <main className="px-4 py-4 space-y-3">
+      <main className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
         {/* Notification Items */}
         {visibleNotifications.length > 0 ? (
           <>

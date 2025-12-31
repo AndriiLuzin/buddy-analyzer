@@ -12,7 +12,7 @@ export const CreateAccountPrompt = ({ onCreateAccount, onSkip, referrerName }: C
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 animate-fade-in overflow-y-auto">
       <div className="w-full max-w-md">
         {/* Success Icon */}
         <div className="text-center mb-8">

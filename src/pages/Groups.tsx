@@ -350,9 +350,9 @@ export default function Groups() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-4">
+      <div className="shrink-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
@@ -371,7 +371,7 @@ export default function Groups() {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />

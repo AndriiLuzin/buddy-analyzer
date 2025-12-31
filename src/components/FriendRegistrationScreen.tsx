@@ -35,7 +35,7 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center px-4 py-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] animate-fade-in">
+    <div className="h-[100dvh] flex flex-col items-center justify-center px-4 py-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] animate-fade-in overflow-y-auto">
       {/* Language selector */}
       <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 z-10">
         <LanguageSelector />

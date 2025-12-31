@@ -202,7 +202,7 @@ const Admin = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="h-[100dvh] bg-background flex items-center justify-center overflow-hidden">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -210,7 +210,7 @@ const Admin = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="h-[100dvh] bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
         <div className="text-6xl mb-4">🔒</div>
         <h1 className="text-xl font-bold text-foreground mb-2">{t('admin.access_denied')}</h1>
         <p className="text-muted-foreground text-center mb-6">
@@ -227,9 +227,9 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background animate-fade-in">
+    <div className="h-[100dvh] bg-background animate-fade-in flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-20 glass-strong px-4 pt-8 pb-4">
+      <header className="shrink-0 z-20 glass-strong px-4 pt-8 pb-4">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/')}
@@ -251,7 +251,7 @@ const Admin = () => {
       </header>
 
       {/* Content */}
-      <main className="px-3 py-3 space-y-2 pb-6">
+      <main className="flex-1 overflow-y-auto px-3 py-3 space-y-2 pb-24">
         {/* Main Stats - Each on its own row */}
         <StatCard
           icon={<Users className="w-4 h-4" />}

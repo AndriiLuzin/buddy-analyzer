@@ -66,9 +66,9 @@ const Chats = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      <header className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -88,7 +88,7 @@ const Chats = () => {
       </header>
 
       {/* Chat List */}
-      <main className="flex-1 px-4 py-4 pb-24">
+      <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         <ChatList
           friends={friends}
           currentUserId={currentUserId}

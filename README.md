@@ -60,6 +60,42 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Mobile (iOS/Android) via Capacitor
+
+Этот репозиторий уже подготовлен для сборки **кросплатформенного мобильного приложения** через **Capacitor** (без переписывания на React Native).
+
+### Быстрый старт
+
+1) Установить зависимости:
+
+```sh
+npm i
+```
+
+2) Собрать веб-часть и синхронизировать в нативные проекты:
+
+```sh
+npm run native:build
+```
+
+3) Создать платформы (один раз):
+
+```sh
+npx cap add ios
+npx cap add android
+```
+
+4) Открыть проекты:
+
+```sh
+npm run cap:open:ios
+npm run cap:open:android
+```
+
+### Роутинг
+
+На iOS/Android автоматически используется `HashRouter`, поэтому URL будет вида `#/chats`, `#/meetings` и т.д. (это нормально для Capacitor).
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.

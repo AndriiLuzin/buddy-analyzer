@@ -60,7 +60,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
+    <div className="h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
       {/* Header with user info */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         {user?.email && (

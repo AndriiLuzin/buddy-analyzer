@@ -107,7 +107,7 @@ export const CreateMeetingModal = ({
       
       fetchFriends();
     }
-  }, [isOpen, preselectedFriendId]);
+  }, [isOpen, preselectedFriendId, preselectedDate]);
 
   const fetchFriends = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -226,7 +226,13 @@ export const CreateMeetingModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        // Radix calls onOpenChange for both open/close. We only want to close when it becomes false.
+        if (!open) onClose();
+      }}
+    >
       <DialogContent 
         className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-md p-0 gap-0 bg-background border-0 sm:border sm:rounded-3xl flex flex-col overflow-hidden"
         hideClose
@@ -260,7 +266,7 @@ export const CreateMeetingModal = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 pb-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4">
           
           {/* Step 1: Meeting Type */}
           {step === 'type' && (

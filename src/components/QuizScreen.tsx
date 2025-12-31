@@ -104,7 +104,7 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
+    <div className="h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
       {/* Skip & Language selector */}
       <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 flex items-center gap-2 z-10">
         {showSkip && onSkip && (

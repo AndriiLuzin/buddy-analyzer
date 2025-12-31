@@ -52,7 +52,7 @@ const Install = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
+    <div className="h-[100dvh] bg-background p-4 sm:p-6 overflow-y-auto">
       <div className="max-w-md mx-auto space-y-6">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
