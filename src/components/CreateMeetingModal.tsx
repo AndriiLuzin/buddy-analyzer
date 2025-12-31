@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isTomorrow, addMonths, subMonths, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
@@ -10,15 +10,7 @@ import {
   Clock, 
   Users, 
   Check,
-  MapPin,
-  Coffee,
-  Utensils,
-  Film,
-  Dumbbell,
-  ShoppingBag,
-  PartyPopper,
-  Briefcase,
-  MessageCircle
+  MapPin
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +30,7 @@ interface CreateMeetingModalProps {
   onSuccess?: () => void;
 }
 
-type Step = 'datetime' | 'type' | 'friends';
+type Step = 'type' | 'datetime' | 'friends' | 'location';
 
 const meetingTypes = [
   { id: 'coffee', label: 'Кофе', emoji: '☕' },
@@ -65,7 +57,7 @@ export const CreateMeetingModal = ({
   onSuccess
 }: CreateMeetingModalProps) => {
   const { toast } = useToast();
-  const [step, setStep] = useState<Step>('datetime');
+  const [step, setStep] = useState<Step>('type');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState('');
@@ -74,6 +66,7 @@ export const CreateMeetingModal = ({
   const [selectedType, setSelectedType] = useState('');
   const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Calendar logic
   const monthStart = startOfMonth(currentMonth);
@@ -83,19 +76,22 @@ export const CreateMeetingModal = ({
   const paddingDays = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
   const weekDays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 
+  const today = new Date();
+  const tomorrow = addDays(today, 1);
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setStep('datetime');
+      setStep('type');
       setCurrentMonth(new Date());
-      setSelectedDate(new Date());
+      setSelectedDate(undefined);
       setSelectedTime('');
       setSelectedType('');
       setLocation('');
+      setShowCalendar(false);
       
       if (preselectedFriendId) {
         setSelectedFriends([preselectedFriendId]);
-        setStep('datetime'); // Still start from date/time
       } else {
         setSelectedFriends([]);
       }
@@ -175,38 +171,49 @@ export const CreateMeetingModal = ({
 
   const getStepTitle = () => {
     switch (step) {
-      case 'datetime': return 'Когда встречаемся?';
-      case 'type': return 'Тип встречи';
+      case 'type': return 'Что планируете?';
+      case 'datetime': return 'Когда?';
       case 'friends': return 'С кем?';
+      case 'location': return 'Где?';
     }
   };
 
   const canProceed = () => {
     switch (step) {
-      case 'datetime': return !!selectedDate;
       case 'type': return !!selectedType;
+      case 'datetime': return !!selectedDate;
       case 'friends': return selectedFriends.length > 0;
+      case 'location': return true; // Location is optional
     }
   };
 
   const goNext = () => {
     switch (step) {
-      case 'datetime': setStep('type'); break;
-      case 'type': setStep('friends'); break;
-      case 'friends': handleSubmit(); break;
+      case 'type': setStep('datetime'); break;
+      case 'datetime': setStep('friends'); break;
+      case 'friends': setStep('location'); break;
+      case 'location': handleSubmit(); break;
     }
   };
 
   const goBack = () => {
     switch (step) {
-      case 'type': setStep('datetime'); break;
-      case 'friends': setStep('type'); break;
+      case 'datetime': setStep('type'); break;
+      case 'friends': setStep('datetime'); break;
+      case 'location': setStep('friends'); break;
       default: onClose(); break;
     }
   };
 
   const isSameDay = (date1: Date, date2: Date) => {
     return date1.toDateString() === date2.toDateString();
+  };
+
+  const getSelectedFriendsNames = () => {
+    return friends
+      .filter(f => selectedFriends.includes(f.id))
+      .map(f => f.friend_name)
+      .join(', ');
   };
 
   return (
@@ -229,13 +236,13 @@ export const CreateMeetingModal = ({
               <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
             </div>
             <div className="flex gap-1.5">
-              {['datetime', 'type', 'friends'].map((s, i) => (
+              {['type', 'datetime', 'friends', 'location'].map((s, i) => (
                 <div 
                   key={s}
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all duration-300",
                     step === s ? "bg-primary scale-110" : 
-                    ['datetime', 'type', 'friends'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
+                    ['type', 'datetime', 'friends', 'location'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
                   )}
                 />
               ))}
@@ -246,81 +253,159 @@ export const CreateMeetingModal = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 pb-4">
           
-          {/* Step 1: Date & Time */}
+          {/* Step 1: Meeting Type */}
+          {step === 'type' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="grid grid-cols-4 gap-3">
+                {meetingTypes.map(type => (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedType(type.id)}
+                    className={cn(
+                      "p-4 rounded-2xl flex flex-col items-center gap-2 transition-all duration-200",
+                      selectedType === type.id 
+                        ? "bg-primary text-primary-foreground scale-105" 
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    <span className="text-2xl">{type.emoji}</span>
+                    <span className="text-xs font-medium">{type.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Date & Time */}
           {step === 'datetime' && (
             <div className="space-y-6 animate-fade-in">
-              {/* Selected date display */}
-              <div className="p-4 rounded-2xl glass flex items-center gap-3">
-                <CalendarIcon className="w-5 h-5 text-primary" />
-                <span className="font-medium">
-                  {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: ru }) : 'Выберите дату'}
-                </span>
+              {/* Quick date buttons */}
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setSelectedDate(today);
+                      setShowCalendar(false);
+                    }}
+                    className={cn(
+                      "flex-1 py-4 rounded-2xl font-medium transition-all duration-200",
+                      selectedDate && isSameDay(selectedDate, today)
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    Сегодня
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedDate(tomorrow);
+                      setShowCalendar(false);
+                    }}
+                    className={cn(
+                      "flex-1 py-4 rounded-2xl font-medium transition-all duration-200",
+                      selectedDate && isSameDay(selectedDate, tomorrow)
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    Завтра
+                  </button>
+                  <button
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    className={cn(
+                      "flex-1 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2",
+                      showCalendar || (selectedDate && !isSameDay(selectedDate, today) && !isSameDay(selectedDate, tomorrow))
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    <span>Календарь</span>
+                  </button>
+                </div>
+                
+                {/* Show selected date if from calendar */}
+                {selectedDate && !isSameDay(selectedDate, today) && !isSameDay(selectedDate, tomorrow) && !showCalendar && (
+                  <div className="p-3 rounded-xl bg-primary/10 text-center">
+                    <span className="font-medium">{format(selectedDate, 'd MMMM yyyy', { locale: ru })}</span>
+                  </div>
+                )}
               </div>
 
               {/* Calendar */}
-              <div className="glass rounded-2xl p-4">
-                {/* Month navigation */}
-                <div className="flex items-center justify-between mb-4">
-                  <button
-                    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                    className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                  <h3 className="text-base font-semibold capitalize">
-                    {format(currentMonth, 'LLLL yyyy', { locale: ru })}
-                  </h3>
-                  <button
-                    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                    className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors rotate-180"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                </div>
+              {showCalendar && (
+                <div className="glass rounded-2xl p-4 animate-fade-in">
+                  {/* Month navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <h3 className="text-base font-semibold capitalize">
+                      {format(currentMonth, 'LLLL yyyy', { locale: ru })}
+                    </h3>
+                    <button
+                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors rotate-180"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                {/* Week days */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {weekDays.map(day => (
-                    <div key={day} className="text-center text-xs text-muted-foreground font-medium py-2">
-                      {day}
-                    </div>
-                  ))}
-                </div>
+                  {/* Week days */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {weekDays.map(day => (
+                      <div key={day} className="text-center text-xs text-muted-foreground font-medium py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
 
-                {/* Days grid */}
-                <div className="grid grid-cols-7 gap-1">
-                  {Array.from({ length: paddingDays }).map((_, i) => (
-                    <div key={`pad-${i}`} className="aspect-square" />
-                  ))}
-                  {daysInMonth.map(day => {
-                    const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
-                    const isSelected = selectedDate && isSameDay(day, selectedDate);
-                    
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => !isPast && setSelectedDate(day)}
-                        disabled={isPast}
-                        className={cn(
-                          "aspect-square rounded-2xl flex items-center justify-center text-sm font-medium transition-all duration-200",
-                          isToday(day) && !isSelected && "bg-accent text-accent-foreground",
-                          isSelected 
-                            ? "bg-primary text-primary-foreground" 
-                            : isPast
-                              ? "text-muted-foreground/30"
-                              : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
-                        )}
-                      >
-                        {format(day, 'd')}
-                      </button>
-                    );
-                  })}
+                  {/* Days grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array.from({ length: paddingDays }).map((_, i) => (
+                      <div key={`pad-${i}`} className="aspect-square" />
+                    ))}
+                    {daysInMonth.map(day => {
+                      const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+                      const isSelected = selectedDate && isSameDay(day, selectedDate);
+                      
+                      return (
+                        <button
+                          key={day.toISOString()}
+                          onClick={() => {
+                            if (!isPast) {
+                              setSelectedDate(day);
+                              setShowCalendar(false);
+                            }
+                          }}
+                          disabled={isPast}
+                          className={cn(
+                            "aspect-square rounded-2xl flex items-center justify-center text-sm font-medium transition-all duration-200",
+                            isToday(day) && !isSelected && "bg-accent text-accent-foreground",
+                            isSelected 
+                              ? "bg-primary text-primary-foreground" 
+                              : isPast
+                                ? "text-muted-foreground/30"
+                                : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                          )}
+                        >
+                          {format(day, 'd')}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Time Selection */}
               <div className="space-y-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Время</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Время
+                </p>
                 {quickTimes.map(group => (
                   <div key={group.label} className="space-y-2">
                     <p className="text-xs text-muted-foreground">{group.label}</p>
@@ -346,83 +431,23 @@ export const CreateMeetingModal = ({
             </div>
           )}
 
-          {/* Step 2: Meeting Type */}
-          {step === 'type' && (
-            <div className="space-y-6 animate-fade-in">
-              {/* Summary */}
-              <div className="p-4 rounded-2xl glass flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2 text-sm">
-                  <CalendarIcon className="w-4 h-4 text-primary" />
-                  <span className="font-medium">
-                    {selectedDate && format(selectedDate, 'd MMMM', { locale: ru })}
-                  </span>
-                </div>
-                {selectedTime && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{selectedTime}</span>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Тип встречи</p>
-              <div className="grid grid-cols-4 gap-3">
-                {meetingTypes.map(type => (
-                  <button
-                    key={type.id}
-                    onClick={() => setSelectedType(type.id)}
-                    className={cn(
-                      "p-4 rounded-2xl flex flex-col items-center gap-2 transition-all duration-200",
-                      selectedType === type.id 
-                        ? "bg-primary text-primary-foreground scale-105" 
-                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
-                    )}
-                  >
-                    <span className="text-2xl">{type.emoji}</span>
-                    <span className="text-xs font-medium">{type.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Location (optional) */}
-              <div className="space-y-3 pt-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Место (необязательно)</p>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground shrink-0" />
-                  <Input
-                    placeholder="Где встречаемся?"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="flex-1 h-12 rounded-xl"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Step 3: Friends */}
           {step === 'friends' && (
             <div className="space-y-6 animate-fade-in">
               {/* Summary */}
-              <div className="p-4 rounded-2xl glass space-y-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CalendarIcon className="w-4 h-4 text-primary" />
-                    <span className="font-medium">
-                      {selectedDate && format(selectedDate, 'd MMMM', { locale: ru })}
-                    </span>
-                  </div>
-                  {selectedTime && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <span className="font-medium">{selectedTime}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-lg">{meetingTypes.find(t => t.id === selectedType)?.emoji}</span>
-                  <span className="font-medium">{meetingTypes.find(t => t.id === selectedType)?.label}</span>
-                </div>
+              <div className="p-4 rounded-2xl glass flex items-center gap-3 flex-wrap">
+                <span className="text-xl">{meetingTypes.find(t => t.id === selectedType)?.emoji}</span>
+                <span className="font-medium">{meetingTypes.find(t => t.id === selectedType)?.label}</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-sm">
+                  {selectedDate && (isSameDay(selectedDate, today) ? 'Сегодня' : isSameDay(selectedDate, tomorrow) ? 'Завтра' : format(selectedDate, 'd MMM', { locale: ru }))}
+                </span>
+                {selectedTime && (
+                  <>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm">{selectedTime}</span>
+                  </>
+                )}
               </div>
 
               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
@@ -472,6 +497,50 @@ export const CreateMeetingModal = ({
               )}
             </div>
           )}
+
+          {/* Step 4: Location (optional) */}
+          {step === 'location' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Summary */}
+              <div className="p-4 rounded-2xl glass space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xl">{meetingTypes.find(t => t.id === selectedType)?.emoji}</span>
+                  <span className="font-medium">{meetingTypes.find(t => t.id === selectedType)?.label}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-sm">
+                    {selectedDate && (isSameDay(selectedDate, today) ? 'Сегодня' : isSameDay(selectedDate, tomorrow) ? 'Завтра' : format(selectedDate, 'd MMM', { locale: ru }))}
+                  </span>
+                  {selectedTime && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-sm">{selectedTime}</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span>с {getSelectedFriendsNames()}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Место (необязательно)
+                </p>
+                <Input
+                  placeholder="Где встречаемся?"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="h-14 rounded-2xl text-base"
+                  autoFocus
+                />
+                <p className="text-xs text-muted-foreground text-center">
+                  Можете пропустить и добавить позже
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -481,7 +550,7 @@ export const CreateMeetingModal = ({
             disabled={!canProceed() || isSubmitting}
             className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg"
           >
-            {step === 'friends' ? (
+            {step === 'location' ? (
               isSubmitting ? 'Создание...' : 'Создать встречу'
             ) : (
               'Далее'
