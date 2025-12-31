@@ -38,6 +38,7 @@ export default function Meetings() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateMeetingModal, setShowCreateMeetingModal] = useState(false);
   const [showMeetingDetail, setShowMeetingDetail] = useState<Meeting | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   
   // Form state
   const [newTitle, setNewTitle] = useState('');
@@ -211,82 +212,105 @@ export default function Meetings() {
             </button>
             <h1 className="text-xl font-semibold">Встречи</h1>
           </div>
-          <button
-            onClick={() => setShowCreateMeetingModal(true)}
-            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCalendar(true)}
+              className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-muted/80 transition-colors"
+            >
+              <Calendar className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowCreateMeetingModal(true)}
+              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Calendar Header */}
-      <div className="px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="p-2 rounded-full hover:bg-muted transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <h2 className="text-lg font-semibold capitalize">
-          {format(currentMonth, 'LLLL yyyy', { locale: ru })}
-        </h2>
-        <button
-          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="p-2 rounded-full hover:bg-muted transition-colors rotate-180"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="px-4">
-        {/* Week days header */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {weekDays.map(day => (
-            <div key={day} className="text-center text-xs text-muted-foreground font-medium py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Days grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {/* Padding for first week */}
-          {Array.from({ length: paddingDays }).map((_, i) => (
-            <div key={`pad-${i}`} className="aspect-square" />
-          ))}
-
-          {/* Actual days */}
-          {daysInMonth.map(day => {
-            const dayMeetings = getMeetingsForDay(day);
-            const hasMeetings = dayMeetings.length > 0;
-            
-            return (
+      {/* Fullscreen Calendar Modal */}
+      <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
+        <DialogContent className="max-w-full h-full sm:max-w-full sm:h-auto sm:max-h-[90vh] p-0 gap-0">
+          <div className="flex flex-col h-full min-h-[500px]">
+            {/* Calendar Header */}
+            <div className="px-4 py-4 flex items-center justify-between border-b border-border/50">
               <button
-                key={day.toISOString()}
-                onClick={() => hasMeetings ? setShowMeetingDetail(dayMeetings[0]) : openCreateModal(day)}
-                className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all ${
-                  isToday(day) 
-                    ? 'bg-primary text-primary-foreground font-bold' 
-                    : hasMeetings 
-                      ? 'bg-accent/30 text-foreground' 
-                      : 'hover:bg-muted text-foreground'
-                }`}
+                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                className="p-2 rounded-full hover:bg-muted transition-colors"
               >
-                <span className="text-sm">{format(day, 'd')}</span>
-                {hasMeetings && (
-                  <div className="flex gap-0.5 mt-0.5">
-                    {dayMeetings.slice(0, 3).map((_, i) => (
-                      <div key={i} className={`w-1 h-1 rounded-full ${isToday(day) ? 'bg-primary-foreground' : 'bg-primary'}`} />
-                    ))}
-                  </div>
-                )}
+                <ArrowLeft className="w-5 h-5" />
               </button>
-            );
-          })}
-        </div>
-      </div>
+              <h2 className="text-xl font-semibold capitalize">
+                {format(currentMonth, 'LLLL yyyy', { locale: ru })}
+              </h2>
+              <button
+                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                className="p-2 rounded-full hover:bg-muted transition-colors rotate-180"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="flex-1 p-4">
+              {/* Week days header */}
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {weekDays.map(day => (
+                  <div key={day} className="text-center text-sm text-muted-foreground font-medium py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Days grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {/* Padding for first week */}
+                {Array.from({ length: paddingDays }).map((_, i) => (
+                  <div key={`pad-${i}`} className="aspect-square" />
+                ))}
+
+                {/* Actual days */}
+                {daysInMonth.map(day => {
+                  const dayMeetings = getMeetingsForDay(day);
+                  const hasMeetings = dayMeetings.length > 0;
+                  
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => {
+                        if (hasMeetings) {
+                          setShowCalendar(false);
+                          setShowMeetingDetail(dayMeetings[0]);
+                        } else {
+                          setShowCalendar(false);
+                          openCreateModal(day);
+                        }
+                      }}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all ${
+                        isToday(day) 
+                          ? 'bg-primary text-primary-foreground font-bold' 
+                          : hasMeetings 
+                            ? 'bg-accent/30 text-foreground' 
+                            : 'hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="text-base">{format(day, 'd')}</span>
+                      {hasMeetings && (
+                        <div className="flex gap-0.5 mt-1">
+                          {dayMeetings.slice(0, 3).map((_, i) => (
+                            <div key={i} className={`w-1.5 h-1.5 rounded-full ${isToday(day) ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Upcoming meetings list */}
       <div className="px-4 mt-6">
