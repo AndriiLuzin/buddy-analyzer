@@ -145,6 +145,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         isMatch={selectedFriend ? isMatch(selectedFriend) : false}
+        currentUserId={userId}
       />
 
       {/* Share Modal */}

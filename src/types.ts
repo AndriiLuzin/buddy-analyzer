@@ -16,6 +16,7 @@ export interface Friend {
   lastInteraction?: string;
   quizAnswers?: number[];
   matchScore?: number;
+  friendUserId?: string;
 }
 
 export interface UserProfile {
