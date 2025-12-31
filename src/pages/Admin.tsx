@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Users, UserCheck, Calendar, MessageSquare, TrendingUp, Clock, Cake, Activity } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-// Разрешённые email адреса для доступа в админку
+// Allowed admin email addresses
 const ADMIN_EMAILS = ['andrii@luzin.ca'];
 
 interface AdminStats {
@@ -33,6 +34,7 @@ interface CategoryDistribution {
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +52,7 @@ const Admin = () => {
       
       setUser(session.user);
       
-      // Проверяем является ли пользователь админом
+      // Check if user is admin
       if (ADMIN_EMAILS.includes(session.user.email || '')) {
         setIsAdmin(true);
         await loadStats();
@@ -66,7 +68,6 @@ const Admin = () => {
 
   const loadStats = async () => {
     try {
-      // Получаем общую статистику
       const [
         { count: totalUsers },
         { count: totalFriends },
@@ -85,10 +86,8 @@ const Admin = () => {
         supabase.from('profiles').select('id, first_name, last_name, created_at, category').order('created_at', { ascending: false }).limit(10)
       ]);
 
-      // Подсчёт пользователей с пройденной анкетой
       const usersWithQuiz = profiles?.filter(p => p.category)?.length || 0;
 
-      // Подсчёт за сегодня
       const today = new Date().toISOString().split('T')[0];
       const { count: usersToday } = await supabase
         .from('profiles')
@@ -100,7 +99,6 @@ const Admin = () => {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today);
 
-      // Распределение по категориям
       const categoryCount: Record<string, number> = {};
       profiles?.forEach(p => {
         if (p.category) {
@@ -134,11 +132,11 @@ const Admin = () => {
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-      soul_mate: '💫 Душа в душу',
-      close_friend: '❤️ Близкий друг',
-      good_buddy: '🤝 Хороший приятель',
-      situational: '👋 Ситуативный',
-      distant: '🌙 Дальний'
+      soul_mate: `💫 ${t('category.soul_mate')}`,
+      close_friend: `❤️ ${t('category.close_friend')}`,
+      good_buddy: `🤝 ${t('category.good_buddy')}`,
+      situational: `👋 ${t('category.situational')}`,
+      distant: `🌙 ${t('category.distant')}`
     };
     return labels[category] || category;
   };
@@ -166,15 +164,15 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <div className="text-6xl mb-4">🔒</div>
-        <h1 className="text-xl font-bold text-foreground mb-2">Доступ запрещён</h1>
+        <h1 className="text-xl font-bold text-foreground mb-2">{t('admin.access_denied')}</h1>
         <p className="text-muted-foreground text-center mb-6">
-          У вас нет прав для просмотра этой страницы
+          {t('admin.no_access')}
         </p>
         <button
           onClick={() => navigate('/')}
           className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
         >
-          Вернуться на главную
+          {t('admin.back_home')}
         </button>
       </div>
     );
@@ -192,8 +190,8 @@ const Admin = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">Админ панель</h1>
-            <p className="text-sm text-muted-foreground">Статистика приложения</p>
+            <h1 className="text-xl font-bold text-foreground">{t('admin.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('admin.stats')}</p>
           </div>
           <button
             onClick={loadStats}
@@ -210,37 +208,37 @@ const Admin = () => {
         <div className="grid grid-cols-3 gap-2">
           <StatCard
             icon={<Users className="w-4 h-4" />}
-            label="Пользователей"
+            label={t('admin.users')}
             value={stats?.totalUsers || 0}
             color="bg-primary/10 text-primary"
           />
           <StatCard
             icon={<UserCheck className="w-4 h-4" />}
-            label="Друзей"
+            label={t('admin.friends')}
             value={stats?.totalFriends || 0}
             color="bg-teal-500/10 text-teal-500"
           />
           <StatCard
             icon={<Users className="w-4 h-4" />}
-            label="Групп"
+            label={t('admin.groups')}
             value={stats?.totalGroups || 0}
             color="bg-blue-500/10 text-blue-500"
           />
           <StatCard
             icon={<Calendar className="w-4 h-4" />}
-            label="Встреч"
+            label={t('admin.meetings')}
             value={stats?.totalMeetings || 0}
             color="bg-amber-500/10 text-amber-500"
           />
           <StatCard
             icon={<MessageSquare className="w-4 h-4" />}
-            label="Сообщений"
+            label={t('admin.messages')}
             value={stats?.totalMessages || 0}
             color="bg-pink-500/10 text-pink-500"
           />
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
-            label="С анкетой"
+            label={t('admin.with_quiz')}
             value={stats?.usersWithQuiz || 0}
             color="bg-purple-500/10 text-purple-500"
           />
@@ -250,16 +248,16 @@ const Admin = () => {
         <div className="glass rounded-xl p-3">
           <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-primary" />
-            Сегодня
+            {t('admin.today')}
           </h3>
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-secondary/50 rounded-lg p-2 text-center">
               <p className="text-lg font-bold text-foreground">{stats?.usersToday || 0}</p>
-              <p className="text-[10px] text-muted-foreground">новых пользователей</p>
+              <p className="text-[10px] text-muted-foreground">{t('admin.new_users')}</p>
             </div>
             <div className="bg-secondary/50 rounded-lg p-2 text-center">
               <p className="text-lg font-bold text-foreground">{stats?.friendsToday || 0}</p>
-              <p className="text-[10px] text-muted-foreground">новых друзей</p>
+              <p className="text-[10px] text-muted-foreground">{t('admin.new_friends')}</p>
             </div>
           </div>
         </div>
@@ -268,7 +266,7 @@ const Admin = () => {
         <div className="glass rounded-xl p-3">
           <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
             <Cake className="w-3.5 h-3.5 text-primary" />
-            Распределение по категориям
+            {t('admin.category_distribution')}
           </h3>
           <div className="space-y-1.5">
             {categoryDistribution.map(({ category, count }) => {
@@ -292,7 +290,7 @@ const Admin = () => {
             })}
             {categoryDistribution.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-2">
-                Нет данных о категориях
+                {t('admin.no_category_data')}
               </p>
             )}
           </div>
@@ -302,7 +300,7 @@ const Admin = () => {
         <div className="glass rounded-xl p-3">
           <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-primary" />
-            Последние регистрации
+            {t('admin.recent_registrations')}
           </h3>
           <div className="space-y-1.5">
             {recentUsers.map((user) => (
@@ -320,7 +318,7 @@ const Admin = () => {
                     {user.first_name} {user.last_name}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {new Date(user.created_at).toLocaleDateString('ru-RU', {
+                    {new Date(user.created_at).toLocaleDateString(language === 'en' ? 'en-US' : language === 'ru' ? 'ru-RU' : language, {
                       day: 'numeric',
                       month: 'short',
                       hour: '2-digit',
@@ -337,7 +335,7 @@ const Admin = () => {
             ))}
             {recentUsers.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-2">
-                Нет зарегистрированных пользователей
+                {t('admin.no_registrations')}
               </p>
             )}
           </div>
