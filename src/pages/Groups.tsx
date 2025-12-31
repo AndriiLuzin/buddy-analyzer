@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Trash2, UserPlus, Settings, X } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trash2, Settings, Send, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,6 +12,13 @@ interface GroupMember {
   friend_id: string;
   friend_name: string;
   friend_last_name: string;
+}
+
+interface GroupMessage {
+  id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
 }
 
 interface Group {
@@ -37,15 +44,54 @@ export default function Groups() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showGroupDetail, setShowGroupDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groupMembers, setGroupMembers] = useState<string[]>([]);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [messages, setMessages] = useState<GroupMessage[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchGroups();
     fetchFriends();
+    getCurrentUser();
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (!selectedGroup) return;
+
+    const channel = supabase
+      .channel(`group-messages-${selectedGroup.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages',
+          filter: `group_id=eq.${selectedGroup.id}`
+        },
+        (payload) => {
+          setMessages(prev => [...prev, payload.new as GroupMessage]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedGroup?.id]);
+
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) setCurrentUserId(user.id);
+  };
 
   const fetchGroups = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -119,6 +165,18 @@ export default function Groups() {
     }
   };
 
+  const fetchMessages = async (groupId: string) => {
+    const { data, error } = await supabase
+      .from('group_messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (!error && data) {
+      setMessages(data);
+    }
+  };
+
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
 
@@ -160,7 +218,25 @@ export default function Groups() {
   const handleOpenGroup = async (group: Group) => {
     setSelectedGroup(group);
     await fetchGroupMembers(group.id);
+    await fetchMessages(group.id);
     setShowGroupDetail(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedGroup || !currentUserId) return;
+
+    const { error } = await supabase.from('group_messages').insert({
+      group_id: selectedGroup.id,
+      sender_id: currentUserId,
+      content: newMessage.trim(),
+    });
+
+    if (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось отправить сообщение', variant: 'destructive' });
+      return;
+    }
+
+    setNewMessage('');
   };
 
   const toggleMember = async (friendId: string) => {
@@ -193,6 +269,11 @@ export default function Groups() {
     setShowGroupDetail(false);
     setSelectedGroup(null);
     setShowSettings(false);
+    setMessages([]);
+  };
+
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -301,14 +382,14 @@ export default function Groups() {
         </DialogContent>
       </Dialog>
 
-      {/* Fullscreen Group Detail Modal */}
+      {/* Fullscreen Group Chat Modal */}
       <Dialog open={showGroupDetail} onOpenChange={handleCloseGroupDetail}>
         <DialogContent 
           className="w-full max-w-full h-[100dvh] sm:max-w-md sm:h-auto sm:max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border rounded-none sm:rounded-2xl flex flex-col"
           hideClose
         >
           {/* Header */}
-          <div className="shrink-0 bg-background border-b border-border px-4 py-4">
+          <div className="shrink-0 bg-background border-b border-border px-4 py-3">
             <div className="flex items-center gap-3">
               <button 
                 onClick={handleCloseGroupDetail}
@@ -316,12 +397,31 @@ export default function Groups() {
               >
                 <ArrowLeft className="w-5 h-5 text-foreground" />
               </button>
-              <div className="flex-1">
+              
+              {/* Clickable header to show members */}
+              <button 
+                onClick={() => setShowMembers(true)}
+                className="flex-1 text-left"
+              >
                 <h2 className="text-lg font-bold text-foreground">{selectedGroup?.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {selectedGroup?.members.length} {getPlural(selectedGroup?.members.length || 0)}
-                </p>
-              </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {selectedGroup?.members.slice(0, 3).map((member, idx) => (
+                      <div
+                        key={member.friend_id}
+                        className="w-5 h-5 rounded-full bg-primary/30 flex items-center justify-center text-[8px] text-primary font-bold ring-1 ring-background"
+                        style={{ zIndex: 5 - idx }}
+                      >
+                        {member.friend_name[0]}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedGroup?.members.length} {getPlural(selectedGroup?.members.length || 0)}
+                  </p>
+                </div>
+              </button>
+
               <button 
                 onClick={() => setShowSettings(true)}
                 className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
@@ -331,64 +431,112 @@ export default function Groups() {
             </div>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-            {/* Members section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-foreground">Участники</h3>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 bg-muted/30">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Users className="w-12 h-12 text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">Нет сообщений</p>
+                <p className="text-sm text-muted-foreground/70">Напишите первое сообщение!</p>
               </div>
-
-              {selectedGroup?.members.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6">Нет участников</p>
-              ) : (
-                <div className="flex items-center gap-3">
-                  {/* Stacked avatars */}
-                  <div className="flex -space-x-3">
-                    {selectedGroup?.members.slice(0, 5).map((member, idx) => (
-                      <div
-                        key={member.friend_id}
-                        className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/30 flex items-center justify-center text-primary font-semibold text-sm ring-2 ring-background"
-                        style={{ zIndex: 10 - idx }}
-                      >
-                        {member.friend_name[0]}{member.friend_last_name[0]}
-                      </div>
-                    ))}
+            ) : (
+              messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                      msg.sender_id === currentUserId
+                        ? 'bg-primary text-primary-foreground rounded-br-md'
+                        : 'bg-card border border-border rounded-bl-md'
+                    }`}
+                  >
+                    <p className="text-sm">{msg.content}</p>
+                    <p className={`text-[10px] mt-1 ${
+                      msg.sender_id === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    }`}>
+                      {formatTime(msg.created_at)}
+                    </p>
                   </div>
-                  {/* Count text */}
-                  <p className="text-muted-foreground">
-                    {selectedGroup && selectedGroup.members.length > 5 && (
-                      <span className="text-primary font-semibold">{selectedGroup.members.length}+ </span>
-                    )}
-                    {selectedGroup && selectedGroup.members.length <= 5 && (
-                      <span className="font-semibold">{selectedGroup.members.length} </span>
-                    )}
-                    {getPlural(selectedGroup?.members.length || 0)}
-                  </p>
                 </div>
-              )}
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-              {/* Member list */}
-              {selectedGroup?.members && selectedGroup.members.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  {selectedGroup.members.map((member) => (
+          {/* Message Input */}
+          <div className="shrink-0 bg-background border-t border-border p-3">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Сообщение..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1 rounded-full bg-muted border-0"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Members Modal */}
+      <Dialog open={showMembers} onOpenChange={setShowMembers}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Участники</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            {/* Stacked avatars header */}
+            {selectedGroup && selectedGroup.members.length > 0 && (
+              <div className="flex items-center gap-3 pb-4 border-b border-border">
+                <div className="flex -space-x-3">
+                  {selectedGroup.members.slice(0, 5).map((member, idx) => (
                     <div
                       key={member.friend_id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                      className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/30 flex items-center justify-center text-primary font-semibold text-sm ring-2 ring-background"
+                      style={{ zIndex: 10 - idx }}
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary font-semibold text-sm">
-                        {member.friend_name[0]}{member.friend_last_name[0]}
-                      </div>
-                      <span className="font-medium">{member.friend_name} {member.friend_last_name}</span>
+                      {member.friend_name[0]}{member.friend_last_name[0]}
                     </div>
                   ))}
                 </div>
-              )}
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">{selectedGroup.members.length}</span> {getPlural(selectedGroup.members.length)}
+                </p>
+              </div>
+            )}
 
-              {/* Add friends list */}
+            {/* Member list */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {selectedGroup?.members.map((member) => (
+                <div
+                  key={member.friend_id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary font-semibold text-sm">
+                    {member.friend_name[0]}{member.friend_last_name[0]}
+                  </div>
+                  <span className="font-medium">{member.friend_name} {member.friend_last_name}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Add friends */}
+            {friends.filter(f => !groupMembers.includes(f.id)).length > 0 && (
               <div className="pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground mb-3">Добавить в группу:</p>
-                <div className="space-y-2">
+                <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  Добавить в группу
+                </p>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
                   {friends.filter(f => !groupMembers.includes(f.id)).map((friend) => (
                     <button
                       key={friend.id}
@@ -404,7 +552,7 @@ export default function Groups() {
                   ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
