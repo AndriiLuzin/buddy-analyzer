@@ -22,6 +22,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -105,12 +106,8 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           }
           return;
         }
-
-        toast({
-          title: t('auth.register_success'),
-          description: t('auth.register_welcome'),
-        });
-        setShowWelcome(true);
+        // Show email confirmation screen
+        setEmailConfirmationSent(true);
       }
     } catch (error) {
       toast({
@@ -126,6 +123,42 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const handleBackToLogin = () => {
     setIsForgotPassword(false);
     setResetSent(false);
+    setEmailConfirmationSent(false);
+  };
+
+  const handleResendEmail = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) {
+        toast({
+          title: t('common.error'),
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: t('auth.email_resent'),
+        description: t('auth.email_resent_desc'),
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('auth.error_generic'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleWelcomeClose = () => {
@@ -165,8 +198,43 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
       {/* Auth form card */}
       <div className="w-full max-w-sm glass rounded-2xl p-6 shadow-card animate-scale-in">
-        {/* Forgot Password View */}
-        {isForgotPassword ? (
+        {/* Email Confirmation View */}
+        {emailConfirmationSent ? (
+          <div className="animate-fade-in text-center py-6">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">{t('auth.email_confirmation_title')}</h3>
+            <p className="text-sm text-muted-foreground mb-2">{t('auth.email_confirmation_desc')}</p>
+            <p className="text-xs text-muted-foreground/70 mb-6">{t('auth.email_confirmation_spam')}</p>
+            
+            <div className="space-y-3">
+              <Button
+                onClick={handleResendEmail}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full h-12 rounded-xl"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span>{t('auth.loading')}</span>
+                  </div>
+                ) : (
+                  t('auth.resend_email')
+                )}
+              </Button>
+              <Button
+                onClick={handleBackToLogin}
+                variant="ghost"
+                className="w-full h-12 rounded-xl"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {t('auth.back_to_login')}
+              </Button>
+            </div>
+          </div>
+        ) : isForgotPassword ? (
           <div className="animate-fade-in">
             <button
               onClick={handleBackToLogin}
