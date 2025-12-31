@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { BottomNavBar } from '@/components/BottomNavBar';
+import { FloatingActionMenu } from '@/components/FloatingActionMenu';
 import { CreateMeetingModal } from '@/components/CreateMeetingModal';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -456,7 +456,7 @@ export default function Meetings() {
         }}
       />
 
-      <BottomNavBar />
+      <FloatingActionMenu />
     </div>
   );
 }

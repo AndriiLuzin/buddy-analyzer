@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { BottomNavBar } from '@/components/BottomNavBar';
+import { FloatingActionMenu } from '@/components/FloatingActionMenu';
 import { ChatList } from '@/components/ChatList';
 import { ChatModal } from '@/components/ChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -96,12 +96,8 @@ const Chats = () => {
         />
       </main>
 
-      {/* Bottom Nav */}
-      <BottomNavBar 
-        onFriendsClick={() => navigate('/')}
-        onAnalyzeClick={() => {}}
-        onProfileClick={() => navigate('/')}
-      />
+      {/* Floating Action Menu */}
+      <FloatingActionMenu />
 
       {/* Chat Modal */}
       <ChatModal
