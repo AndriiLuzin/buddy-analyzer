@@ -1,16 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { X, Heart, MessageCircle, Calendar, Sparkles } from 'lucide-react';
+import { X, Heart, MessageCircle, Calendar, Sparkles, Send } from 'lucide-react';
 import { FriendActionsModal } from './FriendActionsModal';
+import { ChatModal } from './ChatModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FriendDetailModalProps {
   friend: Friend | null;
   isOpen: boolean;
   onClose: () => void;
   isMatch?: boolean;
+  currentUserId?: string | null;
 }
 
 const categoryGradients: Record<FriendCategory, string> = {
@@ -21,8 +25,10 @@ const categoryGradients: Record<FriendCategory, string> = {
   distant: 'from-slate-400 to-gray-500'
 };
 
-export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch }: FriendDetailModalProps) => {
+export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUserId }: FriendDetailModalProps) => {
+  const navigate = useNavigate();
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   if (!friend) return null;
 
@@ -38,6 +44,12 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch }: FriendDe
 
   const handleWriteClick = () => {
     setIsActionsOpen(true);
+  };
+
+  const handleChatClick = () => {
+    if (friend.friendUserId) {
+      setIsChatOpen(true);
+    }
   };
 
   return (
@@ -131,14 +143,26 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch }: FriendDe
               )}
             </div>
 
-            {/* Action */}
-            <Button 
-              onClick={handleWriteClick}
-              className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-            >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Написать
-            </Button>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleWriteClick}
+                variant="outline"
+                className="flex-1 h-12 rounded-xl font-medium"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Шаблоны
+              </Button>
+              {friend.friendUserId && (
+                <Button 
+                  onClick={handleChatClick}
+                  className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  Написать
+                </Button>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -148,6 +172,15 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch }: FriendDe
         friend={friend}
         isOpen={isActionsOpen}
         onClose={() => setIsActionsOpen(false)}
+      />
+
+      {/* Chat Modal */}
+      <ChatModal
+        friend={friend}
+        friendUserId={friend.friendUserId || null}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        currentUserId={currentUserId || null}
       />
     </>
   );

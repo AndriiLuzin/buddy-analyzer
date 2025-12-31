@@ -164,6 +164,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': 'Quick access from home screen',
     'install.benefit2': 'Works offline',
     'install.benefit3': 'Full screen experience',
+
+    // Chat
+    'chat.title': 'Chats',
+    'chat.no_messages': 'No messages yet. Start the conversation!',
+    'chat.no_chats': 'No chats yet',
+    'chat.placeholder': 'Type a message...',
   },
 
   fr: {
@@ -305,6 +311,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': "Accès rapide depuis l'écran d'accueil",
     'install.benefit2': 'Fonctionne hors ligne',
     'install.benefit3': 'Expérience plein écran',
+
+    // Chat
+    'chat.title': 'Discussions',
+    'chat.no_messages': 'Pas encore de messages. Commencez la conversation!',
+    'chat.no_chats': 'Pas encore de discussions',
+    'chat.placeholder': 'Tapez un message...',
   },
 
   es: {
@@ -446,6 +458,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': 'Acceso rápido desde la pantalla de inicio',
     'install.benefit2': 'Funciona sin conexión',
     'install.benefit3': 'Experiencia a pantalla completa',
+
+    // Chat
+    'chat.title': 'Chats',
+    'chat.no_messages': 'Aún no hay mensajes. ¡Inicia la conversación!',
+    'chat.no_chats': 'Aún no hay chats',
+    'chat.placeholder': 'Escribe un mensaje...',
   },
 
   ru: {
@@ -600,6 +618,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': 'Быстрый доступ с главного экрана',
     'install.benefit2': 'Работает офлайн',
     'install.benefit3': 'Полноэкранный режим',
+
+    // Chat
+    'chat.title': 'Чаты',
+    'chat.no_messages': 'Сообщений пока нет. Начните переписку!',
+    'chat.no_chats': 'Чатов пока нет',
+    'chat.placeholder': 'Введите сообщение...',
   },
 
   pt: {
@@ -741,6 +765,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': 'Acesso rápido da tela inicial',
     'install.benefit2': 'Funciona offline',
     'install.benefit3': 'Experiência em tela cheia',
+
+    // Chat
+    'chat.title': 'Conversas',
+    'chat.no_messages': 'Sem mensagens ainda. Comece a conversa!',
+    'chat.no_chats': 'Nenhuma conversa ainda',
+    'chat.placeholder': 'Digite uma mensagem...',
   },
 
   uk: {
@@ -882,6 +912,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': 'Швидкий доступ з головного екрану',
     'install.benefit2': 'Працює офлайн',
     'install.benefit3': 'Повноекранний режим',
+
+    // Chat
+    'chat.title': 'Чати',
+    'chat.no_messages': 'Повідомлень ще немає. Почніть розмову!',
+    'chat.no_chats': 'Чатів ще немає',
+    'chat.placeholder': 'Введіть повідомлення...',
   },
 
   ko: {
@@ -1023,6 +1059,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': '홈 화면에서 빠른 접근',
     'install.benefit2': '오프라인에서 작동',
     'install.benefit3': '전체 화면 경험',
+
+    // Chat
+    'chat.title': '채팅',
+    'chat.no_messages': '메시지가 없습니다. 대화를 시작하세요!',
+    'chat.no_chats': '채팅이 없습니다',
+    'chat.placeholder': '메시지 입력...',
   },
 
   zh: {
@@ -1164,5 +1206,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.benefit1': '从主屏幕快速访问',
     'install.benefit2': '离线可用',
     'install.benefit3': '全屏体验',
+
+    // Chat
+    'chat.title': '聊天',
+    'chat.no_messages': '暂无消息。开始对话吧！',
+    'chat.no_chats': '暂无聊天',
+    'chat.placeholder': '输入消息...',
   },
 };

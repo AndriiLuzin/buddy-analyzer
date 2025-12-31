@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import Index from "./pages/Index";
+import Chats from "./pages/Chats";
 import NotificationsPage from "./pages/Notifications";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
@@ -22,6 +23,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/chats" element={<Chats />} />
               <Route path="/notifications" element={<Index initialRoute="notifications" />} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
