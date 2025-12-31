@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles, Users, CalendarPlus, Download } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { enUS, fr, es, ru, pt, uk, ko, zhCN } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -469,8 +469,58 @@ interface MeetingDetailModalProps {
   onDelete: (id: string) => void;
 }
 
+// Helper function to generate calendar links
+function generateCalendarLinks(meeting: Meeting) {
+  const title = encodeURIComponent(meeting.title);
+  const description = encodeURIComponent(meeting.description || '');
+  const location = encodeURIComponent(meeting.location || '');
+  
+  // Format date for calendar URLs
+  const meetingDate = new Date(meeting.meeting_date);
+  const [hours, minutes] = meeting.meeting_time ? meeting.meeting_time.split(':').map(Number) : [12, 0];
+  meetingDate.setHours(hours, minutes, 0, 0);
+  
+  // End time (default 1 hour later)
+  const endDate = new Date(meetingDate);
+  endDate.setHours(endDate.getHours() + 1);
+  
+  // Format for Google Calendar (YYYYMMDDTHHmmssZ)
+  const formatGoogleDate = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+  
+  const googleStart = formatGoogleDate(meetingDate);
+  const googleEnd = formatGoogleDate(endDate);
+  
+  const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${googleStart}/${googleEnd}&details=${description}&location=${location}`;
+  
+  // Generate ICS content
+  const formatICSDate = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+  
+  const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//BuddyBe//Meeting//EN
+BEGIN:VEVENT
+UID:${meeting.id}@buddybe.app
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(meetingDate)}
+DTEND:${formatICSDate(endDate)}
+SUMMARY:${meeting.title}
+DESCRIPTION:${meeting.description || ''}
+LOCATION:${meeting.location || ''}
+END:VEVENT
+END:VCALENDAR`;
+
+  return { googleCalendarUrl, icsContent };
+}
+
 function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: MeetingDetailModalProps) {
   const { t, language } = useLanguage();
+  const { toast } = useToast();
+  const [showCalendarOptions, setShowCalendarOptions] = useState(false);
+  
   const getLocale = (): typeof enUS => {
     const locales = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
     return locales[language as keyof typeof locales] || enUS;
@@ -516,6 +566,37 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
     }
     setIsHolding(false);
     setHoldProgress(0);
+  };
+
+  const handleAddToCalendar = (type: 'google' | 'ics') => {
+    if (!meeting) return;
+    
+    const { googleCalendarUrl, icsContent } = generateCalendarLinks(meeting);
+    
+    if (type === 'google') {
+      window.open(googleCalendarUrl, '_blank');
+      toast({
+        title: "Открыт Google Календарь",
+        description: "Добавьте встречу в свой календарь",
+      });
+    } else {
+      // Download ICS file
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${meeting.title.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_')}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Файл скачан",
+        description: "Откройте .ics файл для добавления в календарь",
+      });
+    }
+    
+    setShowCalendarOptions(false);
   };
 
   if (!meeting) return null;
@@ -583,6 +664,50 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
               </div>
             </div>
           )}
+        </div>
+
+        {/* Add to Calendar Button */}
+        <div className="px-3 pb-2">
+          <div className="relative">
+            <Button
+              variant="outline"
+              onClick={() => setShowCalendarOptions(!showCalendarOptions)}
+              className="w-full h-10 rounded-xl text-sm border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <CalendarPlus className="w-4 h-4 mr-1.5" />
+              Добавить в календарь
+            </Button>
+            
+            {/* Calendar Options Dropdown */}
+            {showCalendarOptions && (
+              <div className="absolute top-12 left-0 right-0 z-10 bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-slide-up">
+                <button
+                  onClick={() => handleAddToCalendar('google')}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#4285F4]/10 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-[#4285F4]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Google Календарь</p>
+                    <p className="text-xs text-muted-foreground">Открыть в браузере</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleAddToCalendar('ics')}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left border-t border-border"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Download className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Скачать .ics</p>
+                    <p className="text-xs text-muted-foreground">Apple, Outlook, другие</p>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Actions */}
