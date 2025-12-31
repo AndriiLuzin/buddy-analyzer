@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Sparkles, User } from 'lucide-react';
+import { MessageCircle, Sparkles, User, Users, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -94,6 +94,14 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
           <span className="text-xs font-medium">Чаты</span>
         </button>
 
+        {/* Groups */}
+        <button
+          className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Users className="w-6 h-6" />
+          <span className="text-xs font-medium">Группы</span>
+        </button>
+
         {/* Analyze - Main action */}
         <button
           onClick={handleAnalyzeClick}
@@ -103,6 +111,14 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
             <Sparkles className="w-7 h-7 text-primary-foreground" />
           </div>
           <span className="text-xs font-medium text-primary mt-1">Анализ</span>
+        </button>
+
+        {/* Meetings */}
+        <button
+          className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Calendar className="w-6 h-6" />
+          <span className="text-xs font-medium">Встречи</span>
         </button>
 
         {/* Profile */}
