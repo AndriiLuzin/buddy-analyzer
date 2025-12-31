@@ -181,29 +181,29 @@ export const CreateMeetingModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="sm:max-w-md max-h-[90vh] p-0 gap-0 bg-background border-0 sm:border sm:rounded-2xl flex flex-col overflow-hidden"
+        className="max-w-full w-full h-[100dvh] sm:h-[90vh] sm:max-w-lg p-0 gap-0 bg-background border-0 sm:border sm:rounded-3xl flex flex-col overflow-hidden"
         hideClose
       >
         {/* Header */}
-        <div className="shrink-0 bg-background border-b border-border px-4 py-4">
-          <div className="flex items-center gap-3">
+        <div className="shrink-0 px-5 py-5">
+          <div className="flex items-center gap-4">
             <button 
               onClick={goBack}
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              className="w-12 h-12 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             <div className="flex-1">
-              <h2 className="text-lg font-bold text-foreground">Новая встреча</h2>
+              <h2 className="text-xl font-bold text-foreground">Новая встреча</h2>
               <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {['date', 'time', 'friends', 'details'].map((s, i) => (
                 <div 
                   key={s}
                   className={cn(
-                    "w-2 h-2 rounded-full transition-colors",
-                    step === s ? "bg-primary" : 
+                    "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                    step === s ? "bg-primary scale-110" : 
                     ['date', 'time', 'friends', 'details'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
                   )}
                 />
@@ -212,22 +212,55 @@ export const CreateMeetingModal = ({
           </div>
         </div>
 
+        {/* Summary Card - Shows selected info */}
+        {(selectedDate || selectedFriends.length > 0) && step === 'details' && (
+          <div className="mx-5 mb-4">
+            <div className="p-4 rounded-2xl glass space-y-2">
+              <div className="flex items-center gap-4 flex-wrap">
+                {selectedDate && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                    <span className="font-medium">
+                      {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
+                    </span>
+                  </div>
+                )}
+                {selectedTime && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{selectedTime}</span>
+                  </div>
+                )}
+              </div>
+              {selectedFriends.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span>
+                    {selectedFriends.length} {selectedFriends.length === 1 ? 'участник' : 
+                      selectedFriends.length < 5 ? 'участника' : 'участников'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-5 pb-4">
           {step === 'date' && (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center animate-fade-in">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 locale={ru}
                 disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                className={cn("p-3 pointer-events-auto rounded-xl border")}
+                className={cn("p-4 pointer-events-auto rounded-2xl glass w-full")}
               />
               {selectedDate && (
-                <div className="mt-4 p-3 rounded-xl bg-primary/10 text-center">
-                  <p className="text-sm text-muted-foreground">Выбранная дата</p>
-                  <p className="font-semibold text-foreground">
+                <div className="mt-4 p-4 rounded-2xl bg-primary/10 text-center w-full animate-scale-in">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Выбранная дата</p>
+                  <p className="font-bold text-lg text-foreground">
                     {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
                   </p>
                 </div>
@@ -236,45 +269,47 @@ export const CreateMeetingModal = ({
           )}
 
           {step === 'time' && (
-            <div className="space-y-4">
+            <div className="space-y-5 animate-fade-in">
               <p className="text-sm text-muted-foreground text-center">
                 Выберите время или пропустите
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {timeSlots.map(time => (
                   <button
                     key={time}
                     onClick={() => setSelectedTime(selectedTime === time ? '' : time)}
                     className={cn(
-                      "p-3 rounded-xl text-center transition-all border",
+                      "p-4 rounded-2xl text-center transition-all duration-200 font-medium",
                       selectedTime === time 
-                        ? "bg-primary text-primary-foreground border-primary" 
-                        : "bg-card border-border hover:bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-lg scale-105" 
+                        : "glass hover:scale-[1.02]"
                     )}
                   >
                     {time}
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-3 pt-4">
-                <Clock className="w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-3 pt-2">
+                <div className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                </div>
                 <Input
                   type="time"
                   placeholder="Другое время"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 h-12 rounded-xl"
                 />
               </div>
             </div>
           )}
 
           {step === 'friends' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
               {preselectedFriendName && (
-                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                  <p className="text-sm text-muted-foreground">Встреча с</p>
-                  <p className="font-semibold text-foreground">{preselectedFriendName}</p>
+                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Встреча с</p>
+                  <p className="font-bold text-foreground">{preselectedFriendName}</p>
                 </div>
               )}
               
@@ -285,9 +320,11 @@ export const CreateMeetingModal = ({
               </p>
               
               {friends.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p>Нет добавленных друзей</p>
+                <div className="text-center py-12 text-muted-foreground">
+                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-8 h-8 opacity-50" />
+                  </div>
+                  <p className="font-medium">Нет добавленных друзей</p>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -301,10 +338,10 @@ export const CreateMeetingModal = ({
                         onClick={() => !isPreselected && toggleFriend(friend.id)}
                         disabled={isPreselected}
                         className={cn(
-                          "px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-2 border",
+                          "px-4 py-3 rounded-2xl text-sm transition-all duration-200 flex items-center gap-2",
                           isSelected || isPreselected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card text-foreground border-border hover:bg-muted"
+                            ? "bg-primary text-primary-foreground shadow-lg"
+                            : "glass hover:scale-[1.02]"
                         )}
                       >
                         {(isSelected || isPreselected) && <Check className="w-4 h-4" />}
@@ -318,44 +355,23 @@ export const CreateMeetingModal = ({
           )}
 
           {step === 'details' && (
-            <div className="space-y-4">
-              {/* Summary */}
-              <div className="p-4 rounded-xl bg-muted/50 space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <CalendarIcon className="w-4 h-4 text-primary" />
-                  <span>
-                    {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: ru }) : 'Не выбрана'}
-                  </span>
-                  {selectedTime && (
-                    <>
-                      <Clock className="w-4 h-4 text-primary ml-2" />
-                      <span>{selectedTime}</span>
-                    </>
-                  )}
-                </div>
-                {selectedFriends.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="w-4 h-4 text-primary" />
-                    <span>
-                      {selectedFriends.length} {selectedFriends.length === 1 ? 'участник' : 'участников'}
-                    </span>
-                  </div>
-                )}
-              </div>
-
+            <div className="space-y-5 animate-fade-in">
               <Input
                 placeholder="Название встречи *"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="h-12"
+                className="h-14 rounded-2xl text-base px-4 glass border-0"
               />
 
               <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                </div>
                 <Input
                   placeholder="Место (необязательно)"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
+                  className="flex-1 h-12 rounded-xl"
                 />
               </div>
             </div>
@@ -363,11 +379,11 @@ export const CreateMeetingModal = ({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-border p-4">
+        <div className="shrink-0 p-5 pt-0">
           <Button 
             onClick={goNext}
             disabled={!canProceed() || isSubmitting}
-            className="w-full h-12 rounded-xl"
+            className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg"
           >
             {step === 'details' ? (
               isSubmitting ? 'Создание...' : 'Создать встречу'
