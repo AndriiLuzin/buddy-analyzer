@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, CalendarClock } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, addDays } from 'date-fns';
+import { ArrowLeft, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, CalendarClock, Sparkles } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, addDays, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -198,6 +198,66 @@ export default function Meetings() {
 
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
+  // AI Insights component
+  const AIInsightsContent = ({ meetings, friends }: { meetings: Meeting[], friends: Friend[] }) => {
+    const insights = useMemo(() => {
+      const today = new Date();
+      const next7Days = meetings.filter(m => {
+        const meetingDate = new Date(m.meeting_date);
+        const diff = differenceInDays(meetingDate, today);
+        return diff >= 0 && diff <= 7;
+      });
+
+      const next30Days = meetings.filter(m => {
+        const meetingDate = new Date(m.meeting_date);
+        const diff = differenceInDays(meetingDate, today);
+        return diff >= 0 && diff <= 30;
+      });
+
+      // Find friends without upcoming meetings
+      const friendsWithMeetings = new Set<string>();
+      meetings.forEach(m => {
+        m.participants.forEach(p => friendsWithMeetings.add(p.friend_id));
+      });
+      
+      const friendsWithoutMeetings = friends.filter(f => !friendsWithMeetings.has(f.id));
+      const suggestedFriend = friendsWithoutMeetings.length > 0 
+        ? friendsWithoutMeetings[Math.floor(Math.random() * friendsWithoutMeetings.length)]
+        : null;
+
+      // Generate workload text
+      let workloadText = '';
+      if (next7Days.length === 0) {
+        workloadText = 'На этой неделе у тебя свободно — отличное время для встреч!';
+      } else if (next7Days.length <= 2) {
+        workloadText = `На этой неделе ${next7Days.length === 1 ? '1 встреча' : `${next7Days.length} встречи`} — график спокойный.`;
+      } else if (next7Days.length <= 4) {
+        workloadText = `На этой неделе ${next7Days.length} встреч — умеренная загруженность.`;
+      } else {
+        workloadText = `На этой неделе ${next7Days.length} встреч — плотный график!`;
+      }
+
+      // Generate suggestion
+      let suggestionText = '';
+      if (suggestedFriend) {
+        suggestionText = `Давно не виделись с ${suggestedFriend.friend_name} — может, назначить встречу?`;
+      } else if (friendsWithoutMeetings.length === 0 && friends.length > 0) {
+        suggestionText = 'Со всеми друзьями запланированы встречи — отлично!';
+      }
+
+      return { workloadText, suggestionText, suggestedFriend };
+    }, [meetings, friends]);
+
+    return (
+      <div className="space-y-2 text-sm text-foreground/80">
+        <p>{insights.workloadText}</p>
+        {insights.suggestionText && (
+          <p className="text-primary">{insights.suggestionText}</p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -253,7 +313,7 @@ export default function Meetings() {
             </div>
 
             {/* Calendar Grid */}
-            <div className="flex-1 p-4">
+            <div className="p-4">
               {/* Week days header */}
               <div className="grid grid-cols-7 gap-2 mb-4">
                 {weekDays.map(day => (
@@ -310,6 +370,19 @@ export default function Meetings() {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* AI Insights Section */}
+            <div className="flex-1 px-4 pb-4 overflow-y-auto">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-medium text-sm">AI-помощник</span>
+                </div>
+                <AIInsightsContent meetings={meetings} friends={friends} />
               </div>
             </div>
           </div>
