@@ -18,7 +18,8 @@ import {
   Loader2,
   Send,
   X,
-  Share2
+  Share2,
+  Users
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
@@ -140,6 +141,7 @@ export const NotificationDetailModal = ({
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isSendingInApp, setIsSendingInApp] = useState(false);
 
   if (!notification) return null;
 
@@ -208,12 +210,76 @@ export const NotificationDetailModal = ({
     setShowShareMenu(true);
   };
 
-  const handleShareVia = async (platform: 'telegram' | 'whatsapp' | 'viber' | 'sms' | 'copy' | 'native') => {
+  const handleShareVia = async (platform: 'telegram' | 'whatsapp' | 'viber' | 'sms' | 'copy' | 'native' | 'inapp') => {
     if (!shareMessage) return;
     
     const encodedMessage = encodeURIComponent(shareMessage);
     
     switch (platform) {
+      case 'inapp':
+        // Send via in-app chat
+        setIsSendingInApp(true);
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            toast({
+              title: "Ошибка",
+              description: "Необходимо войти в аккаунт",
+              variant: "destructive"
+            });
+            setIsSendingInApp(false);
+            return;
+          }
+
+          // Get the friend's user_id from the friends table
+          const { data: friendData, error: friendError } = await supabase
+            .from('friends')
+            .select('friend_user_id')
+            .eq('id', notification.friend.id)
+            .single();
+
+          if (friendError || !friendData) {
+            toast({
+              title: "Ошибка",
+              description: "Не удалось найти друга",
+              variant: "destructive"
+            });
+            setIsSendingInApp(false);
+            return;
+          }
+
+          // Send the message
+          const { error: messageError } = await supabase
+            .from('messages')
+            .insert({
+              sender_id: user.id,
+              receiver_id: friendData.friend_user_id,
+              content: shareMessage
+            });
+
+          if (messageError) {
+            console.error('Error sending message:', messageError);
+            toast({
+              title: "Ошибка",
+              description: "Не удалось отправить сообщение",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Отправлено!",
+              description: `Сообщение отправлено ${notification.friend.name}`,
+            });
+          }
+        } catch (error) {
+          console.error('Error sending in-app message:', error);
+          toast({
+            title: "Ошибка",
+            description: "Произошла ошибка при отправке",
+            variant: "destructive"
+          });
+        }
+        setIsSendingInApp(false);
+        break;
       case 'telegram':
         // tg:// opens mobile app directly
         window.location.href = `tg://msg?text=${encodedMessage}`;
@@ -480,6 +546,22 @@ export const NotificationDetailModal = ({
 
             {/* Share Options */}
             <div className="p-4 grid grid-cols-3 gap-2">
+              {/* In-App Chat - First option */}
+              <button
+                onClick={() => handleShareVia('inapp')}
+                disabled={isSendingInApp}
+                className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-primary/20 to-primary/10 hover:from-primary/30 hover:to-primary/20 rounded-xl transition-colors border border-primary/20"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                  {isSendingInApp ? (
+                    <Loader2 className="w-6 h-6 text-primary-foreground animate-spin" />
+                  ) : (
+                    <Users className="w-6 h-6 text-primary-foreground" />
+                  )}
+                </div>
+                <span className="font-medium text-foreground text-xs">В чат</span>
+              </button>
+
               {/* Telegram */}
               <button
                 onClick={() => handleShareVia('telegram')}
