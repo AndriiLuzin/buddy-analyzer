@@ -237,31 +237,23 @@ export default function Groups() {
               onClick={() => handleOpenGroup(group)}
               className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] animate-slide-up"
             >
-              {/* Avatar stack or icon */}
-              <div className="relative shrink-0">
+              {/* Avatar stack */}
+              <div className="flex items-center shrink-0">
                 {group.members.length > 0 ? (
-                  <div className="flex -space-x-2">
+                  <div className="flex -space-x-3">
                     {group.members.slice(0, 4).map((member, idx) => (
                       <div
                         key={member.friend_id}
-                        className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm border-2 border-background"
-                        style={{ zIndex: 4 - idx }}
+                        className="w-11 h-11 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary font-semibold text-sm border-[3px] border-background shadow-sm"
+                        style={{ zIndex: 10 - idx }}
                       >
                         {member.friend_name[0]}{member.friend_last_name[0]}
                       </div>
                     ))}
-                    {group.members.length > 4 && (
-                      <div
-                        className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs border-2 border-background"
-                        style={{ zIndex: 0 }}
-                      >
-                        +{group.members.length - 4}
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-primary" />
+                  <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center border-[3px] border-background">
+                    <Users className="w-5 h-5 text-primary" />
                   </div>
                 )}
               </div>
@@ -269,8 +261,10 @@ export default function Groups() {
               {/* Content */}
               <div className="flex-1 text-left min-w-0">
                 <h3 className="font-semibold text-foreground truncate">{group.name}</h3>
-                <p className="text-sm text-muted-foreground truncate">
-                  {group.members.length} {getPlural(group.members.length)}
+                <p className="text-sm text-muted-foreground">
+                  {group.members.length > 4 && <span className="text-primary font-medium">{group.members.length}+ </span>}
+                  {group.members.length <= 4 && <span>{group.members.length} </span>}
+                  {getPlural(group.members.length)}
                 </p>
                 {group.description && (
                   <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
