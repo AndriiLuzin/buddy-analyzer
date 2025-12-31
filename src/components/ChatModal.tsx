@@ -258,7 +258,7 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 px-4 chat-pattern-telegram" ref={scrollRef}>
           <div className="py-4 space-y-3">
             {isDemo && (
               <div className="text-center mb-4 p-2 bg-primary/10 rounded-lg">
