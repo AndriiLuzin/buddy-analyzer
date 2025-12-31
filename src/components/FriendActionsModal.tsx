@@ -10,10 +10,12 @@ import {
   Coffee, 
   Copy,
   Check,
-  Loader2
+  Loader2,
+  Calendar
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
+import { CreateMeetingModal } from './CreateMeetingModal';
 
 interface FriendActionsModalProps {
   friend: Friend | null;
@@ -63,6 +65,13 @@ const CONTACT_ACTIONS: ActionOption[] = [
     ]
   },
   {
+    id: 'create_meeting',
+    icon: <Calendar className="w-5 h-5" />,
+    label: 'Создать встречу',
+    description: 'Запланировать встречу',
+    messages: []
+  },
+  {
     id: 'generate',
     icon: <Sparkles className="w-5 h-5" />,
     label: 'Сгенерировать сообщение',
@@ -81,6 +90,7 @@ export const FriendActionsModal = ({
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
+  const [showCreateMeeting, setShowCreateMeeting] = useState(false);
 
   if (!friend) return null;
 
@@ -194,6 +204,10 @@ export const FriendActionsModal = ({
                   <button
                     key={action.id}
                     onClick={() => {
+                      if (action.id === 'create_meeting') {
+                        setShowCreateMeeting(true);
+                        return;
+                      }
                       setSelectedAction(action.id);
                       // Auto-generate for 'generate' action
                       if (action.id === 'generate') {
@@ -308,6 +322,18 @@ export const FriendActionsModal = ({
           )}
         </div>
       </DialogContent>
+
+      {/* Create Meeting Modal */}
+      <CreateMeetingModal
+        isOpen={showCreateMeeting}
+        onClose={() => setShowCreateMeeting(false)}
+        preselectedFriendId={friend.id}
+        preselectedFriendName={friend.name}
+        onSuccess={() => {
+          setShowCreateMeeting(false);
+          handleClose();
+        }}
+      />
     </Dialog>
   );
 };
