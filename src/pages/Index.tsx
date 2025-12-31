@@ -201,13 +201,13 @@ const Index = ({ initialRoute }: IndexProps) => {
     setScreen('userQuiz');
   };
 
-  const addFriendToReferrer = async (answers: number[], profile: UserProfile) => {
+  const addFriendToReferrer = async (answers: number[], profile: UserProfile, newUserId?: string) => {
     if (!friendInfo || !referrerId) return;
 
-    // Get referrer's quiz answers for matching
+    // Get referrer's profile for matching and reverse friend creation
     const { data: referrerProfile } = await supabase
       .from('profiles')
-      .select('quiz_answers, category')
+      .select('quiz_answers, category, description, first_name, last_name, birthday')
       .eq('user_id', referrerId)
       .maybeSingle();
 
@@ -222,15 +222,15 @@ const Index = ({ initialRoute }: IndexProps) => {
       matchScore = Math.round((matches / answers.length) * 100);
     }
 
-    // Generate a temporary user ID for unauthenticated friend
-    const tempUserId = user?.id || crypto.randomUUID();
+    // Use provided userId or generate temporary one
+    const friendUserId = newUserId || user?.id || crypto.randomUUID();
 
-    // Add as friend to referrer
+    // Add as friend to referrer (referrer sees the new user)
     await supabase
       .from('friends')
       .insert({
         owner_id: referrerId,
-        friend_user_id: tempUserId,
+        friend_user_id: friendUserId,
         friend_name: friendInfo.firstName,
         friend_last_name: friendInfo.lastName,
         friend_birthday: friendInfo.birthday ? friendInfo.birthday.toISOString().split('T')[0] : null,
@@ -239,6 +239,24 @@ const Index = ({ initialRoute }: IndexProps) => {
         friend_quiz_answers: answers,
         match_score: matchScore
       });
+
+    // Create reverse friendship - add referrer as friend to the new user (new user sees referrer)
+    // Only if the new user has an account
+    if (newUserId && referrerProfile) {
+      await supabase
+        .from('friends')
+        .insert({
+          owner_id: newUserId,
+          friend_user_id: referrerId,
+          friend_name: referrerProfile.first_name,
+          friend_last_name: referrerProfile.last_name || '',
+          friend_birthday: referrerProfile.birthday || null,
+          friend_category: referrerProfile.category || 'good_buddy',
+          friend_description: referrerProfile.description || null,
+          friend_quiz_answers: referrerProfile.quiz_answers || null,
+          match_score: matchScore
+        });
+    }
 
     toast({
       title: t('friend_reg.added'),
@@ -264,9 +282,9 @@ const Index = ({ initialRoute }: IndexProps) => {
           })
           .eq('user_id', user.id);
 
-        // If this is a referred friend, add to referrer's friend list
+        // If this is a referred friend, add to referrer's friend list (with reverse friendship)
         if (referrerId && friendInfo) {
-          await addFriendToReferrer(answers, profile);
+          await addFriendToReferrer(answers, profile, user.id);
         }
 
         setScreen('userProfileResult');
