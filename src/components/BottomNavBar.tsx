@@ -90,7 +90,10 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
 
         {/* Groups */}
         <button
-          className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
+          onClick={() => navigate('/groups')}
+          className={`p-3 rounded-full transition-all ${
+            isActive('/groups') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+          }`}
         >
           <Users className="w-5 h-5" strokeWidth={1.5} />
         </button>
