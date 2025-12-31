@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles, Users } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, differenceInDays } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, fr, es, ru, pt, uk, ko, zhCN } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { BottomNavBar } from '@/components/BottomNavBar';
 import { CreateMeetingModal } from '@/components/CreateMeetingModal';
 import { Progress } from '@/components/ui/progress';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Friend {
   id: string;
@@ -29,7 +30,13 @@ interface Meeting {
 
 export default function Meetings() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
+
+  const getLocale = () => {
+    const locales: Record<string, Locale> = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
+    return locales[language] || enUS;
+  };
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,10 +116,10 @@ export default function Meetings() {
   const handleDeleteMeeting = async (meetingId: string) => {
     const { error } = await supabase.from('meetings').delete().eq('id', meetingId);
     if (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось удалить встречу', variant: 'destructive' });
+      toast({ title: t('meetings.error'), description: t('meetings.delete_error'), variant: 'destructive' });
       return;
     }
-    toast({ title: 'Готово', description: 'Встреча удалена' });
+    toast({ title: t('meetings.deleted'), description: t('meetings.deleted_desc') });
     setShowMeetingDetail(null);
     fetchMeetings();
   };
@@ -134,7 +141,7 @@ export default function Meetings() {
     return meetings.filter(m => isSameDay(new Date(m.meeting_date), date));
   };
 
-  const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const weekDays = [t('meetings.weekdays.mon'), t('meetings.weekdays.tue'), t('meetings.weekdays.wed'), t('meetings.weekdays.thu'), t('meetings.weekdays.fri'), t('meetings.weekdays.sat'), t('meetings.weekdays.sun')];
 
   // AI Insights component
   const AIInsightsContent = ({ meetings, friends }: { meetings: Meeting[], friends: Friend[] }) => {
@@ -163,28 +170,26 @@ export default function Meetings() {
         ? friendsWithoutMeetings[Math.floor(Math.random() * friendsWithoutMeetings.length)]
         : null;
 
-      // Generate workload text
       let workloadText = '';
       if (next7Days.length === 0) {
-        workloadText = 'На этой неделе у тебя свободно — отличное время для встреч!';
+        workloadText = t('meetings.week_free');
       } else if (next7Days.length <= 2) {
-        workloadText = `На этой неделе ${next7Days.length === 1 ? '1 встреча' : `${next7Days.length} встречи`} — график спокойный.`;
+        workloadText = t('meetings.week_light').replace('{count}', String(next7Days.length));
       } else if (next7Days.length <= 4) {
-        workloadText = `На этой неделе ${next7Days.length} встреч — умеренная загруженность.`;
+        workloadText = t('meetings.week_moderate').replace('{count}', String(next7Days.length));
       } else {
-        workloadText = `На этой неделе ${next7Days.length} встреч — плотный график!`;
+        workloadText = t('meetings.week_busy').replace('{count}', String(next7Days.length));
       }
 
-      // Generate suggestion
       let suggestionText = '';
       if (suggestedFriend) {
-        suggestionText = `Давно не виделись с ${suggestedFriend.friend_name} — может, назначить встречу?`;
+        suggestionText = t('meetings.suggest_friend').replace('{name}', suggestedFriend.friend_name);
       } else if (friendsWithoutMeetings.length === 0 && friends.length > 0) {
-        suggestionText = 'Со всеми друзьями запланированы встречи — отлично!';
+        suggestionText = t('meetings.all_scheduled');
       }
 
       return { workloadText, suggestionText, suggestedFriend };
-    }, [meetings, friends]);
+    }, [meetings, friends, t]);
 
     return (
       <div className="space-y-2 text-sm text-foreground/80">
@@ -208,7 +213,7 @@ export default function Meetings() {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-semibold">Встречи</h1>
+            <h1 className="text-xl font-semibold">{t('meetings.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -247,7 +252,7 @@ export default function Meetings() {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <h2 className="text-xl font-semibold capitalize">
-                {format(currentMonth, 'LLLL yyyy', { locale: ru })}
+                {format(currentMonth, 'LLLL yyyy', { locale: getLocale() })}
               </h2>
               <button
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
@@ -325,7 +330,7 @@ export default function Meetings() {
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-primary" />
                   </div>
-                  <span className="font-medium text-sm">AI-помощник</span>
+                  <span className="font-medium text-sm">{t('meetings.ai_assistant')}</span>
                 </div>
                 <AIInsightsContent meetings={meetings} friends={friends} />
               </div>
@@ -343,8 +348,8 @@ export default function Meetings() {
         ) : meetings.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm">Нет запланированных встреч</p>
-            <p className="text-xs text-muted-foreground mt-1">Нажмите +, чтобы создать</p>
+            <p className="text-muted-foreground text-sm">{t('meetings.no_meetings')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('meetings.tap_to_create')}</p>
           </div>
         ) : (
           (() => {
@@ -355,14 +360,14 @@ export default function Meetings() {
               const date = new Date(dateStr);
               date.setHours(0, 0, 0, 0);
               
-              if (isToday(date)) return 'Сегодня';
-              if (isTomorrow(date)) return 'Завтра';
+              if (isToday(date)) return t('meetings.today');
+              if (isTomorrow(date)) return t('meetings.tomorrow');
               
               const daysDiff = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-              if (daysDiff === 2) return 'Послезавтра';
-              if (daysDiff > 2 && daysDiff <= 7) return format(date, 'EEEE', { locale: ru });
+              if (daysDiff === 2) return t('meetings.day_after');
+              if (daysDiff > 2 && daysDiff <= 7) return format(date, 'EEEE', { locale: getLocale() });
               
-              return format(date, 'd MMMM', { locale: ru });
+              return format(date, 'd MMMM', { locale: getLocale() });
             };
             
             // Group meetings by date label
@@ -536,7 +541,7 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
               <Calendar className="w-4 h-4 text-primary" />
             </div>
             <p className="text-sm font-medium text-foreground">
-              {format(new Date(meeting.meeting_date), 'd MMMM yyyy', { locale: ru })}
+              {format(new Date(meeting.meeting_date), 'd MMMM yyyy', { locale: getLocale() })}
               {meeting.meeting_time && ` · ${meeting.meeting_time.slice(0, 5)}`}
             </p>
           </div>
@@ -582,10 +587,9 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
             className="flex-1 h-10 rounded-xl text-sm"
           >
             <CalendarClock className="w-4 h-4 mr-1.5" />
-            Перенести
+            {t('meetings.reschedule')}
           </Button>
 
-          {/* Hold to Cancel Button */}
           <div className="relative flex-1">
             <Button
               variant="outline"
@@ -597,7 +601,7 @@ function MeetingDetailModal({ meeting, onClose, onReschedule, onDelete }: Meetin
               onTouchEnd={handleHoldEnd}
             >
               <X className="w-4 h-4 mr-1.5" />
-              {isHolding ? `${Math.ceil((100 - holdProgress) / 33)}с` : 'Отменить'}
+              {isHolding ? `${Math.ceil((100 - holdProgress) / 33)}s` : t('meetings.cancel')}
             </Button>
             
             {isHolding && (
