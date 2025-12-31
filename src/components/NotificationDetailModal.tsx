@@ -215,16 +215,18 @@ export const NotificationDetailModal = ({
     
     switch (platform) {
       case 'telegram':
-        window.open(`https://t.me/share/url?text=${encodedMessage}`, '_blank');
+        // tg:// opens mobile app directly
+        window.location.href = `tg://msg?text=${encodedMessage}`;
         break;
       case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        // whatsapp:// opens mobile app directly
+        window.location.href = `whatsapp://send?text=${encodedMessage}`;
         break;
       case 'viber':
-        window.open(`viber://forward?text=${encodedMessage}`, '_blank');
+        window.location.href = `viber://forward?text=${encodedMessage}`;
         break;
       case 'sms':
-        window.open(`sms:?body=${encodedMessage}`, '_blank');
+        window.location.href = `sms:?body=${encodedMessage}`;
         break;
       case 'copy':
         await navigator.clipboard.writeText(shareMessage);
