@@ -204,45 +204,43 @@ const Admin = () => {
 
       {/* Content */}
       <main className="px-3 py-3 space-y-2 pb-6">
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-3 gap-2">
-          <StatCard
-            icon={<Users className="w-4 h-4" />}
-            label={t('admin.users')}
-            value={stats?.totalUsers || 0}
-            color="bg-primary/10 text-primary"
-          />
-          <StatCard
-            icon={<UserCheck className="w-4 h-4" />}
-            label={t('admin.friends')}
-            value={stats?.totalFriends || 0}
-            color="bg-teal-500/10 text-teal-500"
-          />
-          <StatCard
-            icon={<Users className="w-4 h-4" />}
-            label={t('admin.groups')}
-            value={stats?.totalGroups || 0}
-            color="bg-blue-500/10 text-blue-500"
-          />
-          <StatCard
-            icon={<Calendar className="w-4 h-4" />}
-            label={t('admin.meetings')}
-            value={stats?.totalMeetings || 0}
-            color="bg-amber-500/10 text-amber-500"
-          />
-          <StatCard
-            icon={<MessageSquare className="w-4 h-4" />}
-            label={t('admin.messages')}
-            value={stats?.totalMessages || 0}
-            color="bg-pink-500/10 text-pink-500"
-          />
-          <StatCard
-            icon={<TrendingUp className="w-4 h-4" />}
-            label={t('admin.with_quiz')}
-            value={stats?.usersWithQuiz || 0}
-            color="bg-purple-500/10 text-purple-500"
-          />
-        </div>
+        {/* Main Stats - Each on its own row */}
+        <StatCard
+          icon={<Users className="w-4 h-4" />}
+          label={t('admin.users')}
+          value={stats?.totalUsers || 0}
+          color="bg-primary/10 text-primary"
+        />
+        <StatCard
+          icon={<UserCheck className="w-4 h-4" />}
+          label={t('admin.friends')}
+          value={stats?.totalFriends || 0}
+          color="bg-teal-500/10 text-teal-500"
+        />
+        <StatCard
+          icon={<Users className="w-4 h-4" />}
+          label={t('admin.groups')}
+          value={stats?.totalGroups || 0}
+          color="bg-blue-500/10 text-blue-500"
+        />
+        <StatCard
+          icon={<Calendar className="w-4 h-4" />}
+          label={t('admin.meetings')}
+          value={stats?.totalMeetings || 0}
+          color="bg-amber-500/10 text-amber-500"
+        />
+        <StatCard
+          icon={<MessageSquare className="w-4 h-4" />}
+          label={t('admin.messages')}
+          value={stats?.totalMessages || 0}
+          color="bg-pink-500/10 text-pink-500"
+        />
+        <StatCard
+          icon={<TrendingUp className="w-4 h-4" />}
+          label={t('admin.with_quiz')}
+          value={stats?.usersWithQuiz || 0}
+          color="bg-purple-500/10 text-purple-500"
+        />
 
         {/* Today Stats */}
         <div className="bg-card rounded-2xl p-4 shadow-sm">
@@ -350,12 +348,14 @@ interface StatCardProps {
 }
 
 const StatCard = ({ icon, label, value, color }: StatCardProps) => (
-  <div className="glass rounded-xl p-2.5">
-    <div className={`w-7 h-7 rounded-lg ${color} flex items-center justify-center mb-1`}>
+  <div className="bg-card rounded-2xl p-4 shadow-sm flex items-center gap-4">
+    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center`}>
       {icon}
     </div>
-    <p className="text-lg font-bold text-foreground">{value}</p>
-    <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+    <div>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
+    </div>
   </div>
 );
 
