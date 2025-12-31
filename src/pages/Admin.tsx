@@ -348,14 +348,14 @@ interface StatCardProps {
 }
 
 const StatCard = ({ icon, label, value, color }: StatCardProps) => (
-  <div className="bg-card rounded-2xl p-4 shadow-sm flex items-center gap-4">
-    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
+  <div className="bg-card rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center`}>
+        {icon}
+      </div>
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>
+    <p className="text-2xl font-bold text-foreground">{value}</p>
   </div>
 );
 
