@@ -73,6 +73,10 @@ export const CreateMeetingModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
+  const handleTimeChange = useCallback((val: { hours: number; minutes: number }) => {
+    setSelectedTime(`${val.hours.toString().padStart(2, '0')}:${val.minutes.toString().padStart(2, '0')}`);
+  }, []);
+
   // Calendar logic
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -422,9 +426,7 @@ export const CreateMeetingModal = ({
                     hours: parseInt(selectedTime.split(':')[0]), 
                     minutes: parseInt(selectedTime.split(':')[1]) 
                   } : undefined}
-                  onChange={useCallback((val: { hours: number; minutes: number }) => {
-                    setSelectedTime(`${val.hours.toString().padStart(2, '0')}:${val.minutes.toString().padStart(2, '0')}`);
-                  }, [])}
+                  onChange={handleTimeChange}
                 />
               </div>
             </div>
