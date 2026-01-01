@@ -1,14 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Users, Heart, Sparkles, User, Calendar, ArrowRight } from 'lucide-react';
+import { Users, Heart, Sparkles, User, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { DateWheelPicker } from './DateWheelPicker';
 
 interface FriendInfo {
   firstName: string;
@@ -24,8 +21,20 @@ interface FriendRegistrationScreenProps {
 export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendRegistrationScreenProps) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [birthday, setBirthday] = useState<Date | undefined>();
+  const [dateValue, setDateValue] = useState<{ month: number; day: number; year?: number }>({
+    month: new Date().getMonth(),
+    day: new Date().getDate(),
+    year: undefined
+  });
   const { t } = useLanguage();
+
+  const handleDateChange = useCallback((value: { month: number; day: number; year?: number }) => {
+    setDateValue(value);
+  }, []);
+
+  const birthday = dateValue.year 
+    ? new Date(dateValue.year, dateValue.month, dateValue.day)
+    : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,36 +123,12 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
             <Label className="text-foreground font-medium">
               {t('friend_reg.birthday') || 'Birthday'} <span className="text-destructive">*</span>
             </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full h-12 rounded-xl bg-card/50 border-border justify-start text-left font-normal pl-12 relative",
-                    !birthday && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  {birthday ? format(birthday, "yyyy-MM-dd") : (t('friend_reg.birthday_placeholder') || 'Select your birthday')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={birthday}
-                  onSelect={setBirthday}
-                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                  captionLayout="dropdown-buttons"
-                  fromYear={1920}
-                  toYear={new Date().getFullYear()}
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">
-              {t('friend_reg.birthday_format') || 'Format: Year-Month-Day'}
-            </p>
+            <DateWheelPicker
+              value={dateValue}
+              onChange={handleDateChange}
+              showYear
+              yearPlaceholder={t('friend_reg.year_placeholder') || 'When were you born?'}
+            />
           </div>
 
           <Button
