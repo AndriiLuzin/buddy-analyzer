@@ -134,7 +134,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto min-h-0 px-4 pt-4">
+      <main className="flex-1 overflow-y-auto min-h-0 px-4 pt-4 pb-24">
         {/* Birthday Reminder - only show on 'all' tab */}
         {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 
