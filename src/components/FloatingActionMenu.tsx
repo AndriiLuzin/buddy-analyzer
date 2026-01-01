@@ -141,51 +141,48 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
         )}
       </button>
 
-      {/* Menu Portal */}
+      {/* Bottom Sheet Menu */}
       {isOpen && createPortal(
         <div className="fixed inset-0 z-40">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30"
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Menu Panel */}
+          {/* Bottom Sheet */}
           <div 
-            className="absolute bottom-24 right-6 w-[calc(100%-3rem)] max-w-sm bg-card rounded-3xl shadow-2xl overflow-hidden animate-scale-in border border-border"
-            style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
+            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-3xl shadow-2xl animate-slide-up"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+            </div>
+            
             {/* Grid of actions */}
-            <div className="p-4 grid grid-cols-3 gap-3">
+            <div className="px-4 pb-6 pt-2 grid grid-cols-3 gap-3">
               {menuItems.map((item, index) => (
                 <button
                   key={index}
                   onClick={() => handleItemClick(item)}
-                  className={`aspect-square flex flex-col items-center justify-center gap-2 rounded-2xl transition-all opacity-0 animate-fade-in ${
+                  className={`aspect-square flex flex-col items-center justify-center gap-2 rounded-2xl border transition-all ${
                     item.active 
-                      ? 'bg-primary/10 text-primary' 
-                      : item.primary
-                        ? 'bg-primary/5 text-primary hover:bg-primary/10'
-                        : 'text-foreground hover:bg-secondary/50'
+                      ? 'bg-primary/10 border-primary/20 text-primary' 
+                      : 'bg-secondary/50 border-border hover:bg-secondary'
                   }`}
-                  style={{ 
-                    animationDelay: `${index * 50}ms`,
-                    animationFillMode: 'forwards'
-                  }}
                 >
                   <div className={`relative flex items-center justify-center ${
                     item.active 
                       ? 'text-primary' 
-                      : item.primary
-                        ? 'text-primary'
-                        : 'text-muted-foreground'
+                      : 'text-foreground'
                   }`}>
-                    <item.icon className="w-7 h-7" strokeWidth={1.5} />
+                    <item.icon className="w-6 h-6" strokeWidth={1.5} />
                     {item.badge && (
                       <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                     )}
                   </div>
-                  <span className="text-xs font-medium">{item.label}</span>
+                  <span className="text-xs font-medium text-foreground">{item.label}</span>
                 </button>
               ))}
             </div>
