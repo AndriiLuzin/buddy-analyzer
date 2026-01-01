@@ -150,7 +150,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
               return (
                 <div key={group.category} className="space-y-3">
                   {/* Category Header */}
-                  <h3 className="text-xl font-medium text-muted-foreground">
+                  <h3 className="text-sm font-medium text-muted-foreground">
                     {categoryInfo.label}
                   </h3>
                   
