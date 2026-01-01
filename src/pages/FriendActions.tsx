@@ -336,7 +336,7 @@ export default function FriendActions() {
                     onClick={() => handleCopyMessage(message, index)}
                     className="w-full p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left group"
                   >
-                    <p className="text-foreground text-sm">{message}</p>
+                    <p className="text-foreground text-base leading-relaxed">{message}</p>
                     <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
                       {copiedIndex === index ? (
                         <>
