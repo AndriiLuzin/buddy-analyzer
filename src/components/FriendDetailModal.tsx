@@ -126,19 +126,19 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
               {friend.birthday && (
                 <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">День рождения</span>
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+                    <span className="text-xs sm:text-sm text-muted-foreground">День рождения</span>
                   </div>
-                  <p className="font-medium text-foreground text-xs sm:text-sm">{formatDate(friend.birthday)}</p>
+                  <p className="font-medium text-foreground text-sm sm:text-base">{formatDate(friend.birthday)}</p>
                 </div>
               )}
               {friend.lastInteraction && (
                 <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                    <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">Последнее общение</span>
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                    <span className="text-xs sm:text-sm text-muted-foreground">Последнее общение</span>
                   </div>
-                  <p className="font-medium text-foreground text-xs sm:text-sm">{formatDate(friend.lastInteraction)}</p>
+                  <p className="font-medium text-foreground text-sm sm:text-base">{formatDate(friend.lastInteraction)}</p>
                 </div>
               )}
             </div>
