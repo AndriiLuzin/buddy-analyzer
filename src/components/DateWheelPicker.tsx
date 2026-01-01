@@ -193,9 +193,6 @@ export const DateWheelPicker = ({
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Date picker label */}
-      <p className="text-sm font-medium text-foreground">Выберите дату</p>
-      
       {/* Wheel picker */}
       <div className="bg-secondary rounded-2xl p-2">
         <div className="flex">
