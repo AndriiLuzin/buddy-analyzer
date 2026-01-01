@@ -117,7 +117,7 @@ export default function FriendProfile() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-white text-lg font-semibold">Профиль друга</h1>
+          <h1 className="text-white text-lg font-semibold">{friend.name}</h1>
           <div className="w-10" />
         </div>
       </div>
