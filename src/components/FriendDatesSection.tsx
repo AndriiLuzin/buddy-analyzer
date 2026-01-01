@@ -148,61 +148,61 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
 
   return (
     <>
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
-            <span className="text-xs sm:text-sm text-muted-foreground">Важные даты</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsModalOpen(true)}
-            className="h-7 px-2 text-xs"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Добавить
-          </Button>
+      {/* Header with add button */}
+      <div className="flex items-center justify-between bg-secondary/30 rounded-xl p-4">
+        <div className="flex items-center gap-2">
+          <Gift className="w-5 h-5 text-pink-500" />
+          <span className="text-sm text-muted-foreground">Важные даты</span>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsModalOpen(true)}
+          className="h-8 px-3 text-sm"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Добавить
+        </Button>
+      </div>
 
-        {/* Dates list */}
-        {dates.length > 0 ? (
-          <div className="space-y-2">
-            {dates.map(date => {
-              const typeInfo = getDateTypeInfo(date.date_type);
-              const IconComponent = typeInfo.icon;
-              
-              return (
-                <div
-                  key={date.id}
-                  className="flex items-center justify-between bg-background/50 rounded-lg p-2.5 sm:p-3"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-secondary")}>
-                      <IconComponent className={cn("w-4 h-4", typeInfo.color)} />
+      {/* Dates list - each date as separate card */}
+      {dates.length > 0 && (
+        <div className="space-y-3 mt-3">
+          {dates.map(date => {
+            const typeInfo = getDateTypeInfo(date.date_type);
+            const IconComponent = typeInfo.icon;
+            const bgColor = date.date_type === 'holiday' 
+              ? 'bg-pink-50 dark:bg-pink-950/30' 
+              : date.date_type === 'anniversary'
+                ? 'bg-amber-50 dark:bg-amber-950/30'
+                : 'bg-blue-50 dark:bg-blue-950/30';
+            
+            return (
+              <div
+                key={date.id}
+                className={cn("rounded-xl p-4", bgColor)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <IconComponent className={cn("w-5 h-5", typeInfo.color)} />
+                      <span className="text-sm text-muted-foreground">{typeInfo.label}</span>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{date.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDisplayDate(date.date)}</p>
-                    </div>
+                    <p className="font-medium text-foreground text-base">{date.title}</p>
+                    <p className="text-sm text-muted-foreground">{formatDisplayDate(date.date)}</p>
                   </div>
                   <button
                     onClick={() => handleDeleteDate(date.id)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                    className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground text-center py-2">
-            Нет важных дат
-          </p>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add Date Modal */}
       <Dialog open={isModalOpen} onOpenChange={(open) => {
