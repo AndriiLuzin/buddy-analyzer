@@ -29,7 +29,7 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (firstName && lastName) {
+    if (firstName && lastName && birthday) {
       onComplete({ firstName, lastName, birthday });
     }
   };
@@ -112,7 +112,7 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
 
           <div className="space-y-2">
             <Label className="text-foreground font-medium">
-              {t('friend_reg.birthday') || 'Birthday'}
+              {t('friend_reg.birthday') || 'Birthday'} <span className="text-destructive">*</span>
             </Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -124,7 +124,7 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
                   )}
                 >
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  {birthday ? format(birthday, "PPP") : (t('friend_reg.birthday_placeholder') || 'Select your birthday')}
+                  {birthday ? format(birthday, "yyyy-MM-dd") : (t('friend_reg.birthday_placeholder') || 'Select your birthday')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -135,14 +135,20 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
                   disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
+                  captionLayout="dropdown-buttons"
+                  fromYear={1920}
+                  toYear={new Date().getFullYear()}
                 />
               </PopoverContent>
             </Popover>
+            <p className="text-xs text-muted-foreground">
+              {t('friend_reg.birthday_format') || 'Format: Year-Month-Day'}
+            </p>
           </div>
 
           <Button
             type="submit"
-            disabled={!firstName || !lastName}
+            disabled={!firstName || !lastName || !birthday}
             className="w-full h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
           >
             <span>{t('friend_reg.continue') || 'Continue to Quiz'}</span>
