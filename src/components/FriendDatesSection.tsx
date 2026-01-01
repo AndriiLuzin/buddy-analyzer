@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Plus, Gift, Calendar, Star, Trash2, X } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Gift, Calendar, Star, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Calendar as CalendarComponent } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { DateWheelPicker } from './DateWheelPicker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -37,7 +37,10 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
   
   // Form state
   const [title, setTitle] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<{ month: number; day: number }>({
+    month: new Date().getMonth(),
+    day: new Date().getDate()
+  });
   const [dateType, setDateType] = useState('holiday');
 
   useEffect(() => {
@@ -61,25 +64,35 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
 
   const resetForm = () => {
     setTitle('');
-    setSelectedDate(undefined);
+    setSelectedDate({
+      month: new Date().getMonth(),
+      day: new Date().getDate()
+    });
     setDateType('holiday');
   };
 
+  const handleDateChange = useCallback((value: { month: number; day: number }) => {
+    setSelectedDate(value);
+  }, []);
+
   const handleAddDate = async () => {
-    if (!title.trim() || !selectedDate) {
+    if (!title.trim()) {
       toast({
-        title: 'Заполните поля',
-        description: 'Введите название и выберите дату',
+        title: 'Заполните название',
+        description: 'Введите название даты',
         variant: 'destructive',
       });
       return;
     }
 
+    const year = new Date().getFullYear();
+    const dateStr = `${year}-${String(selectedDate.month + 1).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`;
+
     const { error } = await supabase.from('friend_dates').insert({
       friend_id: friendId,
       owner_id: ownerId,
       title: title.trim(),
-      date: format(selectedDate, 'yyyy-MM-dd'),
+      date: dateStr,
       date_type: dateType,
     });
 
@@ -91,9 +104,10 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
         variant: 'destructive',
       });
     } else {
+      const displayDate = new Date(year, selectedDate.month, selectedDate.day);
       toast({
         title: 'Дата добавлена',
-        description: `${title} - ${format(selectedDate, 'd MMMM', { locale: ru })}`,
+        description: `${title} - ${format(displayDate, 'd MMMM', { locale: ru })}`,
       });
       resetForm();
       setIsModalOpen(false);
@@ -215,14 +229,12 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
               className="h-11"
             />
             
-            {/* Calendar */}
-            <div className="flex justify-center">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className={cn("rounded-xl border pointer-events-auto")}
-                locale={ru}
+            {/* Date wheel picker */}
+            <div>
+              <p className="text-sm font-medium text-foreground mb-2">Выберите дату</p>
+              <DateWheelPicker
+                value={selectedDate}
+                onChange={handleDateChange}
               />
             </div>
 
@@ -258,7 +270,7 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
               <Button 
                 onClick={handleAddDate} 
                 className="flex-1 h-11"
-                disabled={!title.trim() || !selectedDate}
+                disabled={!title.trim()}
               >
                 Добавить
               </Button>
