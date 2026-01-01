@@ -26,11 +26,13 @@ import { supabase } from '../integrations/supabase/client';
 
 interface Notification {
   id: string;
-  type: 'contact' | 'birthday';
-  friend: Friend;
+  type: 'contact' | 'birthday' | 'new_friend';
+  friend?: Friend;
   message: string;
   urgency: 'low' | 'medium' | 'high';
   daysInfo: string;
+  title?: string;
+  data?: Record<string, unknown>;
 }
 
 interface NotificationDetailModalProps {

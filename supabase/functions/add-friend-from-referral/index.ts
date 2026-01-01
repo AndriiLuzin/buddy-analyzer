@@ -84,6 +84,29 @@ Deno.serve(async (req) => {
 
     console.log('Friend added successfully to referrer');
 
+    // Create notification for the referrer
+    const friendFullName = `${friendInfo.firstName} ${friendInfo.lastName}`.trim();
+    const { error: notificationError } = await supabaseAdmin
+      .from('notifications')
+      .insert({
+        user_id: referrerId,
+        type: 'new_friend',
+        title: 'Новый друг добавлен!',
+        message: `${friendFullName} заполнил анкету по вашей ссылке`,
+        data: {
+          friend_name: friendFullName,
+          friend_category: profile.category,
+          match_score: matchScore,
+          friend_user_id: friendUserId
+        }
+      });
+
+    if (notificationError) {
+      console.error('Error creating notification:', notificationError);
+    } else {
+      console.log('Notification created for referrer');
+    }
+
     // Create reverse friendship - add referrer as friend to the new user (new user sees referrer)
     // Only if the new user has an actual account
     if (newUserId && referrerProfile) {

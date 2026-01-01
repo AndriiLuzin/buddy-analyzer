@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
-import { ArrowLeft, UserCheck } from 'lucide-react';
+import { ArrowLeft, UserCheck, UserPlus } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { NotificationDetailModal } from '../components/NotificationDetailModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationsPageProps {
   friends: Friend[];
@@ -49,11 +50,23 @@ const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
 
 export interface Notification {
   id: string;
-  type: 'contact' | 'birthday';
-  friend: Friend;
+  type: 'contact' | 'birthday' | 'new_friend';
+  friend?: Friend;
   message: string;
   urgency: 'low' | 'medium' | 'high';
   daysInfo: string;
+  title?: string;
+  data?: Record<string, unknown>;
+}
+
+interface DBNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
 }
 
 const getDaysSinceLastContact = (lastInteraction?: string): number => {
@@ -102,14 +115,74 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
   const { toast } = useToast();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [dbNotifications, setDbNotifications] = useState<DBNotification[]>([]);
+
+  // Load notifications from database
+  useEffect(() => {
+    const loadNotifications = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        setDbNotifications(data as DBNotification[]);
+      }
+    };
+
+    loadNotifications();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications'
+        },
+        (payload) => {
+          setDbNotifications(prev => [payload.new as DBNotification, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const markDbNotificationAsRead = async (notificationId: string) => {
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+    
+    setDbNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
 
   const handleMarkAsContacted = (notification: Notification) => {
+    if (!notification.friend) return;
     const today = new Date().toISOString().split('T')[0];
     onUpdateFriend(notification.friend.id, { lastInteraction: today });
     setDismissedIds(prev => new Set(prev).add(notification.id));
     toast({
       title: "Отмечено!",
       description: `Дата контакта с ${notification.friend.name} обновлена`,
+    });
+  };
+
+  const handleDismissDbNotification = async (notificationId: string) => {
+    await markDbNotificationAsRead(notificationId);
+    toast({
+      title: "Прочитано",
+      description: "Уведомление отмечено как прочитанное",
     });
   };
 
@@ -151,7 +224,20 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       daysInfo: daysUntil === 0 ? 'Сегодня' : `${daysUntil}д`
     }));
 
-  const visibleNotifications = [...birthdayNotifications, ...contactNotifications]
+  // Convert DB notifications to Notification format
+  const newFriendNotifications: Notification[] = dbNotifications
+    .filter(n => n.type === 'new_friend')
+    .map(n => ({
+      id: n.id,
+      type: 'new_friend' as const,
+      message: n.message,
+      urgency: 'low' as const,
+      daysInfo: 'Новый',
+      title: n.title,
+      data: n.data
+    }));
+
+  const visibleNotifications = [...newFriendNotifications, ...birthdayNotifications, ...contactNotifications]
     .filter(n => !dismissedIds.has(n.id));
 
   return (
@@ -183,7 +269,8 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
               <NotificationCard 
                 key={notification.id} 
                 notification={notification}
-                onClick={() => setSelectedNotification(notification)}
+                onClick={() => notification.type !== 'new_friend' && setSelectedNotification(notification)}
+                onDismiss={notification.type === 'new_friend' ? () => handleDismissDbNotification(notification.id) : undefined}
               />
             ))}
           </>
@@ -229,6 +316,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
 interface NotificationCardProps {
   notification: Notification;
   onClick: () => void;
+  onDismiss?: () => void;
 }
 
 const categoryBgStyles: Record<FriendCategory, string> = {
@@ -239,8 +327,53 @@ const categoryBgStyles: Record<FriendCategory, string> = {
   distant: 'bg-slate-400'
 };
 
-const NotificationCard = ({ notification, onClick }: NotificationCardProps) => {
+const NotificationCard = ({ notification, onClick, onDismiss }: NotificationCardProps) => {
   const { friend } = notification;
+  
+  // For new_friend notifications, use data from the notification
+  if (notification.type === 'new_friend') {
+    const friendName = (notification.data?.friend_name as string) || 'Новый друг';
+    const matchScore = notification.data?.match_score as number;
+    const initials = friendName.split(' ').map(n => n[0]).join('').toUpperCase();
+    
+    return (
+      <button
+        onClick={onDismiss || onClick}
+        className="w-full glass rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 hover:shadow-card hover:scale-[1.02] active:scale-[0.98] animate-slide-up"
+      >
+        {/* Avatar */}
+        <div className="relative">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center bg-primary text-primary-foreground font-bold text-lg">
+            {initials}
+          </div>
+          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+            <UserPlus className="w-3 h-3 text-white" />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 text-left min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-foreground truncate">{notification.title}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
+          {matchScore !== undefined && (
+            <p className="text-xs text-primary mt-1">Совместимость: {matchScore}%</p>
+          )}
+        </div>
+
+        {/* Badge */}
+        <div className="shrink-0">
+          <div className="px-3 py-1.5 rounded-full text-xs font-medium border border-green-500/30 bg-green-500/10 text-green-500">
+            {notification.daysInfo}
+          </div>
+        </div>
+      </button>
+    );
+  }
+
+  if (!friend) return null;
+  
   const initials = friend.name.split(' ').map(n => n[0]).join('').toUpperCase();
 
   return (
