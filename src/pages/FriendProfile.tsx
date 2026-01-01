@@ -131,9 +131,8 @@ export default function FriendProfile() {
 
       {/* Content */}
       <div className="px-4 sm:px-6 pt-4 pb-24">
-        {/* Name and category */}
+        {/* Category badges */}
         <div className="text-center mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">{friend.name}</h2>
           <div className="flex flex-wrap justify-center gap-2">
             {categoryInfo && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary">
