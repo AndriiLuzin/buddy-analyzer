@@ -172,7 +172,7 @@ export default function FriendProfile() {
           </div>
         )}
 
-        {/* Info cards - vertical layout */}
+        {/* All dates - vertical layout */}
         <div className="space-y-3 mb-6">
           {friend.lastInteraction && (
             <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4">
@@ -192,14 +192,12 @@ export default function FriendProfile() {
               <p className="font-medium text-foreground text-base">{formatDate(friend.birthday)}</p>
             </div>
           )}
-        </div>
-
-        {/* Important dates section */}
-        {currentUserId && (
-          <div className="bg-secondary/30 rounded-2xl p-4 mb-6">
+          
+          {/* Important dates section */}
+          {currentUserId && (
             <FriendDatesSection friendId={friend.id} ownerId={currentUserId} />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Actions - Fixed at bottom */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border safe-area-bottom">
