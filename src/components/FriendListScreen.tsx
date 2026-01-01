@@ -5,7 +5,6 @@ import { FriendCard } from './FriendCard';
 import { BirthdayReminder } from './BirthdayReminder';
 
 import { CategoryFilter } from './CategoryFilter';
-import { FriendDetailModal } from './FriendDetailModal';
 import { FloatingActionMenu } from './FloatingActionMenu';
 import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
@@ -27,8 +26,6 @@ const ADMIN_EMAILS = ['andrii@luzin.ca'];
 export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<FriendCategory | 'all'>('all');
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -63,8 +60,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   }, [] as { category: FriendCategory; friends: Friend[] }[]);
 
   const handleFriendClick = (friend: Friend) => {
-    setSelectedFriend(friend);
-    setIsDetailOpen(true);
+    navigate(`/friend/${friend.id}`);
   };
 
   const isMatch = (friend: Friend) => {
@@ -189,14 +185,6 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
         onProfileClick={onViewProfile}
       />
 
-      {/* Friend Detail Modal */}
-      <FriendDetailModal
-        friend={selectedFriend}
-        isOpen={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        isMatch={selectedFriend ? isMatch(selectedFriend) : false}
-        currentUserId={userId}
-      />
 
       {/* Share Modal */}
       <ShareModal
