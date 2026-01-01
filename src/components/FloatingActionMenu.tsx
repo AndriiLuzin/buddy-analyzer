@@ -8,7 +8,7 @@ import {
   Users, 
   Calendar, 
   Bell,
-  Plus,
+  Menu,
   X,
   Home
 } from 'lucide-react';
@@ -124,20 +124,20 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       {/* FAB Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 ${
+        className={`fixed right-6 w-[70px] h-[70px] rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 ${
           isOpen 
-            ? 'bg-muted rotate-45' 
+            ? 'bg-muted rotate-180' 
             : 'bg-primary hover:bg-primary/90'
         }`}
         style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-foreground" />
+          <X className="w-7 h-7 text-foreground" />
         ) : (
-          <Plus className="w-6 h-6 text-primary-foreground" />
+          <Menu className="w-7 h-7 text-primary-foreground" />
         )}
         {!isOpen && unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-3 h-3 bg-destructive rounded-full border-2 border-background" />
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-background" />
         )}
       </button>
 
