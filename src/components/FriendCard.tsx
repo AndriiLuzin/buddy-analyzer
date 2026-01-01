@@ -39,11 +39,6 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
             initials
           )}
         </div>
-        {isMatch && (
-          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center animate-pulse-glow">
-            <span className="text-xs">✨</span>
-          </div>
-        )}
       </div>
 
       {/* Content */}
