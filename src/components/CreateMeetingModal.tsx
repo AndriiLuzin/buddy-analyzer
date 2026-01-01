@@ -277,14 +277,14 @@ export const CreateMeetingModal = ({
                     key={type.id}
                     onClick={() => setSelectedType(type.id)}
                     className={cn(
-                      "p-4 rounded-2xl flex flex-col items-center gap-2 transition-all duration-200",
+                      "aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
                       selectedType === type.id 
                         ? "bg-primary text-primary-foreground scale-105" 
                         : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                     )}
                   >
-                    <span className="text-2xl">{type.emoji}</span>
-                    <span className="text-xs font-medium">{type.label}</span>
+                    <span className="text-3xl">{type.emoji}</span>
+                    <span className="text-sm font-medium">{type.label}</span>
                   </button>
                 ))}
               </div>
