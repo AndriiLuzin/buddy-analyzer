@@ -70,7 +70,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const userCategoryInfo = userProfile ? CATEGORY_INFO[userProfile.category] : null;
 
   return (
-    <div className="h-[100dvh] pb-28 animate-fade-in flex flex-col overflow-hidden">
+    <div className="h-[100dvh] animate-fade-in flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-20 glass-strong px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
