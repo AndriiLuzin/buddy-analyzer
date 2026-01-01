@@ -124,12 +124,12 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       {/* FAB Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 ${
+        className={`fixed right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 ${
           isOpen 
             ? 'bg-muted rotate-45' 
             : 'bg-primary hover:bg-primary/90'
         }`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
       >
         {isOpen ? (
           <X className="w-6 h-6 text-foreground" />
