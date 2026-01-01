@@ -173,14 +173,14 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
                     animationFillMode: 'forwards'
                   }}
                 >
-                  <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center ${
+                  <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center ${
                     item.active 
                       ? 'bg-primary text-primary-foreground' 
                       : item.primary
                         ? 'bg-primary/20 text-primary'
                         : 'bg-muted text-muted-foreground'
                   }`}>
-                    <item.icon className="w-5 h-5" strokeWidth={1.5} />
+                    <item.icon className="w-6 h-6" strokeWidth={1.5} />
                     {item.badge && (
                       <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                     )}
