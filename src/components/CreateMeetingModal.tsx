@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isTomorrow, addMonths, subMonths, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { TimeWheelPicker } from './TimeWheelPicker';
 
 interface Friend {
   id: string;
@@ -51,11 +52,6 @@ const meetingTypes = [
   { id: 'other', label: 'Другое', emoji: '📌' },
 ];
 
-const quickTimes = [
-  { label: 'Утро', times: ['09:00', '10:00', '11:00'] },
-  { label: 'День', times: ['12:00', '13:00', '14:00', '15:00'] },
-  { label: 'Вечер', times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
-];
 
 export const CreateMeetingModal = ({ 
   isOpen, 
@@ -421,27 +417,15 @@ export const CreateMeetingModal = ({
                   <Clock className="w-4 h-4" />
                   Время
                 </p>
-                {quickTimes.map(group => (
-                  <div key={group.label} className="space-y-2">
-                    <p className="text-xs text-muted-foreground">{group.label}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {group.times.map(time => (
-                        <button
-                          key={time}
-                          onClick={() => setSelectedTime(selectedTime === time ? '' : time)}
-                          className={cn(
-                            "px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200",
-                            selectedTime === time 
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
-                          )}
-                        >
-                          {time}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                <TimeWheelPicker
+                  value={selectedTime ? { 
+                    hours: parseInt(selectedTime.split(':')[0]), 
+                    minutes: parseInt(selectedTime.split(':')[1]) 
+                  } : undefined}
+                  onChange={useCallback((val: { hours: number; minutes: number }) => {
+                    setSelectedTime(`${val.hours.toString().padStart(2, '0')}:${val.minutes.toString().padStart(2, '0')}`);
+                  }, [])}
+                />
               </div>
             </div>
           )}
