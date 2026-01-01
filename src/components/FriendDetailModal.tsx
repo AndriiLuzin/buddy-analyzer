@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { X, Heart, MessageCircle, Calendar, Sparkles, Send } from 'lucide-react';
 import { FriendActionsModal } from './FriendActionsModal';
 import { ChatModal } from './ChatModal';
+import { FriendDatesSection } from './FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FriendDetailModalProps {
@@ -142,6 +143,13 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
                 </div>
               )}
             </div>
+
+            {/* Important dates section */}
+            {currentUserId && (
+              <div className="bg-secondary/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
+                <FriendDatesSection friendId={friend.id} ownerId={currentUserId} />
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-2 sm:gap-3">

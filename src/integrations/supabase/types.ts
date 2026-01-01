@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      friend_dates: {
+        Row: {
+          created_at: string
+          date: string
+          date_type: string
+          friend_id: string
+          id: string
+          notes: string | null
+          owner_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          date_type?: string
+          friend_id: string
+          id?: string
+          notes?: string | null
+          owner_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          date_type?: string
+          friend_id?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_dates_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friends: {
         Row: {
           created_at: string
