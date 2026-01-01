@@ -51,6 +51,17 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
     return matchesCategory && matchesSearch;
   });
 
+  // Group friends by category for display
+  const categoryOrder: FriendCategory[] = ['soul_mate', 'close_friend', 'good_buddy', 'situational', 'distant'];
+  
+  const groupedFriends = categoryOrder.reduce((acc, category) => {
+    const friendsInCategory = filteredFriends.filter(f => f.category === category);
+    if (friendsInCategory.length > 0) {
+      acc.push({ category, friends: friendsInCategory });
+    }
+    return acc;
+  }, [] as { category: FriendCategory; friends: Friend[] }[]);
+
   const handleFriendClick = (friend: Friend) => {
     setSelectedFriend(friend);
     setIsDetailOpen(true);
@@ -131,18 +142,39 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
         {/* Birthday Reminder - only show on 'all' tab */}
         {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 
-        {/* Friends List */}
-        <div className="space-y-3">
-          {filteredFriends.length > 0 ? (
-            filteredFriends.map((friend, index) => (
-              <div key={friend.id} style={{ animationDelay: `${index * 0.05}s` }}>
-                <FriendCard
-                  friend={friend}
-                  onClick={() => handleFriendClick(friend)}
-                  isMatch={isMatch(friend)}
-                />
-              </div>
-            ))
+        {/* Friends List - Grouped by Category */}
+        <div className="space-y-6">
+          {groupedFriends.length > 0 ? (
+            groupedFriends.map((group) => {
+              const categoryInfo = CATEGORY_INFO[group.category];
+              return (
+                <div key={group.category} className="space-y-3">
+                  {/* Category Header */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{categoryInfo.emoji}</span>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {categoryInfo.label}
+                    </h3>
+                    <span className="text-sm text-muted-foreground">
+                      ({group.friends.length})
+                    </span>
+                  </div>
+                  
+                  {/* Friends in this category */}
+                  <div className="space-y-3">
+                    {group.friends.map((friend, index) => (
+                      <div key={friend.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                        <FriendCard
+                          friend={friend}
+                          onClick={() => handleFriendClick(friend)}
+                          isMatch={isMatch(friend)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
           ) : (
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
