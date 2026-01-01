@@ -4,7 +4,6 @@ import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, MessageCircle, Calendar, Sparkles, Send, Gift } from 'lucide-react';
-import { FriendActionsModal } from '@/components/FriendActionsModal';
 import { ChatModal } from '@/components/ChatModal';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +21,6 @@ export default function FriendProfile() {
   const navigate = useNavigate();
   const [friend, setFriend] = useState<Friend | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
@@ -96,8 +94,8 @@ export default function FriendProfile() {
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
   };
 
-  const handleWriteClick = () => {
-    setIsActionsOpen(true);
+  const handleActionsClick = () => {
+    navigate(`/friend/${friendId}/actions`);
   };
 
   const handleChatClick = () => {
@@ -202,7 +200,7 @@ export default function FriendProfile() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border safe-area-bottom">
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button 
-              onClick={handleWriteClick}
+              onClick={handleActionsClick}
               variant="outline"
               className="flex-1 h-12 rounded-xl font-medium"
             >
@@ -221,13 +219,6 @@ export default function FriendProfile() {
           </div>
         </div>
       </div>
-
-      {/* Actions Modal */}
-      <FriendActionsModal
-        friend={friend}
-        isOpen={isActionsOpen}
-        onClose={() => setIsActionsOpen(false)}
-      />
 
       {/* Chat Modal */}
       <ChatModal
