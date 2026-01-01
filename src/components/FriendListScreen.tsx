@@ -150,15 +150,9 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
               return (
                 <div key={group.category} className="space-y-3">
                   {/* Category Header */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{categoryInfo.emoji}</span>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {categoryInfo.label}
-                    </h3>
-                    <span className="text-sm text-muted-foreground">
-                      ({group.friends.length})
-                    </span>
-                  </div>
+                  <h3 className="text-xl font-medium text-muted-foreground">
+                    {categoryInfo.label}
+                  </h3>
                   
                   {/* Friends in this category */}
                   <div className="space-y-3">
