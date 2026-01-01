@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Gift, Calendar, Star, Trash2, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,14 +32,13 @@ const DATE_TYPES = [
 
 export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProps) => {
   const [dates, setDates] = useState<FriendDate[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Form state
   const [title, setTitle] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [dateType, setDateType] = useState('holiday');
-  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     fetchDates();
@@ -58,6 +57,12 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
       setDates(data || []);
     }
     setLoading(false);
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setSelectedDate(undefined);
+    setDateType('holiday');
   };
 
   const handleAddDate = async () => {
@@ -90,10 +95,8 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
         title: 'Дата добавлена',
         description: `${title} - ${format(selectedDate, 'd MMMM', { locale: ru })}`,
       });
-      setTitle('');
-      setSelectedDate(undefined);
-      setDateType('holiday');
-      setIsAdding(false);
+      resetForm();
+      setIsModalOpen(false);
       fetchDates();
     }
   };
@@ -130,76 +133,105 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
   }
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
-          <span className="text-xs sm:text-sm text-muted-foreground">Важные даты</span>
-        </div>
-        {!isAdding && (
+    <>
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+            <span className="text-xs sm:text-sm text-muted-foreground">Важные даты</span>
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsAdding(true)}
+            onClick={() => setIsModalOpen(true)}
             className="h-7 px-2 text-xs"
           >
             <Plus className="w-4 h-4 mr-1" />
             Добавить
           </Button>
+        </div>
+
+        {/* Dates list */}
+        {dates.length > 0 ? (
+          <div className="space-y-2">
+            {dates.map(date => {
+              const typeInfo = getDateTypeInfo(date.date_type);
+              const IconComponent = typeInfo.icon;
+              
+              return (
+                <div
+                  key={date.id}
+                  className="flex items-center justify-between bg-background/50 rounded-lg p-2.5 sm:p-3"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-secondary")}>
+                      <IconComponent className={cn("w-4 h-4", typeInfo.color)} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{date.title}</p>
+                      <p className="text-xs text-muted-foreground">{formatDisplayDate(date.date)}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteDate(date.id)}
+                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground text-center py-2">
+            Нет важных дат
+          </p>
         )}
       </div>
 
-      {/* Add form */}
-      {isAdding && (
-        <div className="bg-secondary/50 rounded-xl p-3 space-y-3 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Новая дата</span>
-            <button onClick={() => setIsAdding(false)} className="text-muted-foreground hover:text-foreground">
-              <X className="w-4 h-4" />
-            </button>
+      {/* Add Date Modal */}
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        setIsModalOpen(open);
+        if (!open) resetForm();
+      }}>
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm p-0 overflow-hidden bg-card border-0 rounded-2xl">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-pink-400 to-rose-500 p-4 sm:p-5">
+            <DialogHeader>
+              <DialogTitle className="text-white text-base sm:text-lg font-semibold flex items-center gap-2">
+                <Gift className="w-5 h-5" />
+                Новая важная дата
+              </DialogTitle>
+            </DialogHeader>
           </div>
-          
-          <Input
-            placeholder="Название (напр. День свадьбы)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="h-9 text-sm"
-          />
-          
-          <div className="flex gap-2">
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 justify-start text-left font-normal h-9 text-sm",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'd MMMM', { locale: ru }) : 'Выберите дату'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-50" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date);
-                    setCalendarOpen(false);
-                  }}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+
+          {/* Content */}
+          <div className="p-4 sm:p-5 space-y-4">
+            <Input
+              placeholder="Название (напр. День свадьбы)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="h-11"
+            />
             
+            {/* Calendar */}
+            <div className="flex justify-center">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className={cn("rounded-xl border pointer-events-auto")}
+                locale={ru}
+              />
+            </div>
+
+            {/* Date type selector */}
             <Select value={dateType} onValueChange={setDateType}>
-              <SelectTrigger className="w-32 h-9 text-sm">
+              <SelectTrigger className="h-11">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-50">
+              <SelectContent className="z-[100]">
                 {DATE_TYPES.map(type => (
                   <SelectItem key={type.value} value={type.value}>
                     <div className="flex items-center gap-2">
@@ -210,50 +242,30 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          
-          <Button onClick={handleAddDate} size="sm" className="w-full h-9">
-            Добавить дату
-          </Button>
-        </div>
-      )}
-
-      {/* Dates list */}
-      {dates.length > 0 ? (
-        <div className="space-y-2">
-          {dates.map(date => {
-            const typeInfo = getDateTypeInfo(date.date_type);
-            const IconComponent = typeInfo.icon;
             
-            return (
-              <div
-                key={date.id}
-                className="flex items-center justify-between bg-secondary/30 rounded-lg p-2.5 sm:p-3"
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetForm();
+                }}
+                className="flex-1 h-11"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-background/50")}>
-                    <IconComponent className={cn("w-4 h-4", typeInfo.color)} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{date.title}</p>
-                    <p className="text-xs text-muted-foreground">{formatDisplayDate(date.date)}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteDate(date.id)}
-                  className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      ) : !isAdding && (
-        <p className="text-xs text-muted-foreground text-center py-2">
-          Нет важных дат
-        </p>
-      )}
-    </div>
+                Отмена
+              </Button>
+              <Button 
+                onClick={handleAddDate} 
+                className="flex-1 h-11"
+                disabled={!title.trim() || !selectedDate}
+              >
+                Добавить
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
