@@ -8,14 +8,15 @@ import {
   Sparkles, 
   Phone, 
   Coffee, 
-  Copy,
-  Check,
   Loader2,
-  Calendar
+  Calendar,
+  Send
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
 import { CreateMeetingModal } from '@/components/CreateMeetingModal';
+import { MessageShareModal } from '@/components/MessageShareModal';
+import { ChatModal } from '@/components/ChatModal';
 
 interface ActionOption {
   id: string;
@@ -89,11 +90,15 @@ export default function FriendActions() {
   
   const [friend, setFriend] = useState<Friend | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
   const [showCreateMeeting, setShowCreateMeeting] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<string>('');
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [messageToSend, setMessageToSend] = useState<string>('');
 
   useEffect(() => {
     const fetchFriend = async () => {
@@ -102,6 +107,8 @@ export default function FriendActions() {
         navigate('/');
         return;
       }
+
+      setCurrentUserId(session.user.id);
 
       const { data, error } = await supabase
         .from('friends')
@@ -180,23 +187,21 @@ export default function FriendActions() {
     }
   };
 
-  const handleCopyMessage = async (message: string, index: number) => {
-    await navigator.clipboard.writeText(message);
-    setCopiedIndex(index);
-    toast({
-      title: "Скопировано!",
-      description: "Сообщение скопировано в буфер обмена",
-    });
-    setTimeout(() => setCopiedIndex(null), 2000);
+  const handleSelectMessage = (message: string) => {
+    setSelectedMessage(message);
+    setShareModalOpen(true);
   };
 
-  const handleCopyGenerated = async () => {
+  const handleSendInApp = () => {
+    setMessageToSend(selectedMessage);
+    setShareModalOpen(false);
+    setChatModalOpen(true);
+  };
+
+  const handleShareGenerated = () => {
     if (!generatedMessage) return;
-    await navigator.clipboard.writeText(generatedMessage);
-    toast({
-      title: "Скопировано!",
-      description: "Сообщение скопировано в буфер обмена",
-    });
+    setSelectedMessage(generatedMessage);
+    setShareModalOpen(true);
   };
 
   if (isLoading || !friend) {
@@ -300,11 +305,11 @@ export default function FriendActions() {
                     </div>
                     
                     <button
-                      onClick={handleCopyGenerated}
+                      onClick={handleShareGenerated}
                       className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
                     >
-                      <Copy className="w-5 h-5" />
-                      Скопировать сообщение
+                      <Send className="w-5 h-5" />
+                      Отправить сообщение
                     </button>
                     
                     <button
@@ -329,26 +334,17 @@ export default function FriendActions() {
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Выберите готовое сообщение:</p>
+                <p className="text-sm text-muted-foreground">Выберите сообщение:</p>
                 {selectedActionData?.messages?.map((message, index) => (
                   <button
                     key={index}
-                    onClick={() => handleCopyMessage(message, index)}
+                    onClick={() => handleSelectMessage(message)}
                     className="w-full p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left group"
                   >
                     <p className="text-foreground text-base leading-relaxed">{message}</p>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                      {copiedIndex === index ? (
-                        <>
-                          <Check className="w-3 h-3" />
-                          Скопировано
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          Нажмите чтобы скопировать
-                        </>
-                      )}
+                    <div className="flex items-center gap-1 mt-2 text-xs text-primary">
+                      <Send className="w-3 h-3" />
+                      Нажмите чтобы отправить
                     </div>
                   </button>
                 ))}
@@ -368,6 +364,26 @@ export default function FriendActions() {
           setShowCreateMeeting(false);
           navigate(`/friend/${friend.id}`);
         }}
+      />
+
+      {/* Message Share Modal */}
+      <MessageShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        message={selectedMessage}
+        friendName={friend.name}
+        friendUserId={friend.friendUserId}
+        onSendInApp={handleSendInApp}
+      />
+
+      {/* Chat Modal for sending in-app */}
+      <ChatModal
+        friend={friend}
+        friendUserId={friend.friendUserId || null}
+        isOpen={chatModalOpen}
+        onClose={() => setChatModalOpen(false)}
+        currentUserId={currentUserId}
+        initialMessage={messageToSend}
       />
     </div>
   );
