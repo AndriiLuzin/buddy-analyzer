@@ -25,15 +25,17 @@ interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUserId: string | null;
+  initialMessage?: string;
 }
 
-export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId }: ChatModalProps) => {
+export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId, initialMessage }: ChatModalProps) => {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [initialMessageSet, setInitialMessageSet] = useState(false);
 
   // Check if this is demo mode
   const isDemo = friendUserId?.startsWith('demo-');
@@ -162,12 +164,19 @@ export const ChatModal = ({ friend, friendUserId, isOpen, onClose, currentUserId
     }
   }, [displayMessages]);
 
-  // Focus input when modal opens
+  // Focus input and set initial message when modal opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen]);
+    if (isOpen && initialMessage && !initialMessageSet) {
+      setNewMessage(initialMessage);
+      setInitialMessageSet(true);
+    }
+    if (!isOpen) {
+      setInitialMessageSet(false);
+    }
+  }, [isOpen, initialMessage, initialMessageSet]);
 
   const handleSend = async () => {
     if (isDemo) {
