@@ -60,9 +60,11 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)] animate-fade-in overflow-y-auto">
-      {/* Header with user info */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div className="h-[100dvh] flex flex-col bg-background">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 animate-fade-in">
+        {/* Header with user info */}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         {user?.email && (
           <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full bg-secondary text-xs sm:text-sm min-w-0">
             <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
@@ -79,89 +81,92 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
             <span>{t('profile.logout')}</span>
           </button>
         </div>
-      </div>
-
-      {/* Title */}
-      <div className="text-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary mb-3 sm:mb-4">
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span className="text-xs sm:text-sm font-medium">{t('profile.analysis_complete')}</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('profile.ready')}</h1>
-      </div>
 
-      {/* Friendship Score Gauge - At Top */}
-      {friends.length > 0 && (
-        <div className="mb-6">
-          <FriendshipScoreGauge friends={friends} />
-        </div>
-      )}
-
-      {/* Result Card */}
-      <div className="flex-1 space-y-3 sm:space-y-4">
-        <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
-          {/* Gradient Header */}
-          <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
-            <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">{categoryInfo.emoji}</div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{getCategoryLabel(profile.category)}</h2>
-            <p className="text-white/80 text-xs sm:text-sm">{t('profile.your_type')}</p>
+        {/* Title */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary mb-3 sm:mb-4">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">{t('profile.analysis_complete')}</span>
           </div>
-
-          {/* Content */}
-          <div className="p-4 sm:p-6">
-            <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6">
-              <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">{t('profile.about_type')}</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm">
-                {profile.description}
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💫</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.depth')}</div>
-              </div>
-              <div className="bg-teal-50 dark:bg-teal-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">🤝</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.loyalty')}</div>
-              </div>
-              <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">❤️</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.openness')}</div>
-              </div>
-            </div>
-
-            {/* Share hint */}
-            <button 
-              onClick={() => setShowShareModal(true)}
-              className="w-full flex items-center gap-2.5 sm:gap-3 h-14 sm:h-16 px-3 sm:px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors"
-            >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-foreground truncate">{t('profile.share')}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t('profile.share_desc')}</p>
-              </div>
-            </button>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('profile.ready')}</h1>
         </div>
 
-        {/* Friendship Score History */}
+        {/* Friendship Score Gauge - At Top */}
         {friends.length > 0 && (
-          <FriendshipScoreHistory friends={friends} />
+          <div className="mb-6">
+            <FriendshipScoreGauge friends={friends} />
+          </div>
         )}
+
+        {/* Result Card */}
+        <div className="flex-1 space-y-3 sm:space-y-4">
+          <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
+            {/* Gradient Header */}
+            <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
+              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">{categoryInfo.emoji}</div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{getCategoryLabel(profile.category)}</h2>
+              <p className="text-white/80 text-xs sm:text-sm">{t('profile.your_type')}</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 sm:p-6">
+              <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6">
+                <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">{t('profile.about_type')}</h3>
+                <p className="text-muted-foreground leading-relaxed text-sm">
+                  {profile.description}
+                </p>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
+                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💫</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.depth')}</div>
+                </div>
+                <div className="bg-teal-50 dark:bg-teal-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
+                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">🤝</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.loyalty')}</div>
+                </div>
+                <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
+                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">❤️</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.openness')}</div>
+                </div>
+              </div>
+
+              {/* Share hint */}
+              <button 
+                onClick={() => setShowShareModal(true)}
+                className="w-full flex items-center gap-2.5 sm:gap-3 h-14 sm:h-16 px-3 sm:px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors"
+              >
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-foreground truncate">{t('profile.share')}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t('profile.share_desc')}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Friendship Score History */}
+          {friends.length > 0 && (
+            <FriendshipScoreHistory friends={friends} />
+          )}
+        </div>
       </div>
 
-      {/* Continue Button */}
-      <button
-        onClick={onContinue}
-        className="w-full flex items-center justify-center gap-2 h-14 mt-4 sm:mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-base font-semibold transition-colors shadow-lg"
-      >
-        {t('profile.continue')}
-        <ArrowRight className="w-5 h-5" />
-      </button>
+      {/* Fixed Continue Button */}
+      <div className="shrink-0 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <button
+          onClick={onContinue}
+          className="w-full flex items-center justify-center gap-2 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-base font-semibold transition-colors shadow-lg"
+        >
+          {t('profile.continue')}
+          <ArrowRight className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Share Modal */}
       <ShareModal 
