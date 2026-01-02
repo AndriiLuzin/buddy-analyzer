@@ -157,10 +157,10 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
       {/* Continue Button */}
       <button
         onClick={onContinue}
-        className="w-full flex items-center justify-center gap-2 h-14 sm:h-16 mt-4 sm:mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-sm sm:text-base font-medium transition-colors"
+        className="w-full flex items-center justify-center gap-2 h-12 mt-4 sm:mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-sm font-medium transition-colors"
       >
         {t('profile.continue')}
-        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+        <ArrowRight className="w-4 h-4" />
       </button>
 
       {/* Share Modal */}
