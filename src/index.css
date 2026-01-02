@@ -198,7 +198,7 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  /* Explicit borders for business theme blocks */
+  /* No borders on card blocks in business themes */
   .business .card,
   .business [class*="card"],
   .business .glass,
@@ -207,7 +207,7 @@
   .business-dark [class*="card"],
   .business-dark .glass,
   .business-dark .glass-strong {
-    border: 1px solid hsl(var(--border));
+    border: none;
     border-radius: 0;
     box-shadow: none;
   }
