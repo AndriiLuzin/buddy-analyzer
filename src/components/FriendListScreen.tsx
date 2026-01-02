@@ -136,19 +136,19 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
         {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 
         {/* Friends List - Grouped by Category */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {groupedFriends.length > 0 ? (
             groupedFriends.map((group) => {
               const categoryInfo = CATEGORY_INFO[group.category];
               return (
-                <div key={group.category} className="space-y-3">
+                <div key={group.category} className="space-y-2">
                   {/* Category Header */}
                   <h3 className="text-sm font-medium text-muted-foreground">
                     {categoryInfo.label}
                   </h3>
                   
                   {/* Friends in this category */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {group.friends.map((friend, index) => (
                       <div key={friend.id} style={{ animationDelay: `${index * 0.05}s` }}>
                         <FriendCard
