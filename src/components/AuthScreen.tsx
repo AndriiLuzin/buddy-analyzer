@@ -196,8 +196,8 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         {t('auth.subtitle')}
       </p>
 
-      {/* Auth form card */}
-      <div className="w-full max-w-sm glass rounded-2xl p-4 sm:p-6 shadow-card animate-scale-in">
+      {/* Auth form */}
+      <div className="w-full max-w-sm p-4 sm:p-6 animate-scale-in">
         {/* Email Confirmation View */}
         {emailConfirmationSent ? (
           <div className="animate-fade-in text-center py-6">
