@@ -74,6 +74,15 @@ const App = () => {
                 <Route path="/games/mafia" element={<MafiaCreate />} />
                 <Route path="/games/mafia/:code" element={<MafiaGame />} />
                 <Route path="/games/mafia-play/:code" element={<MafiaPlayer />} />
+                <Route path="/games/crocodile" element={<CrocodileCreate />} />
+                <Route path="/games/crocodile/:code" element={<CrocodileGame />} />
+                <Route path="/games/crocodile-play/:code" element={<CrocodilePlayer />} />
+                <Route path="/games/whoami" element={<WhoAmICreate />} />
+                <Route path="/games/whoami/:code" element={<WhoAmIGame />} />
+                <Route path="/games/whoami-play/:code" element={<WhoAmIPlayer />} />
+                <Route path="/games/casino" element={<CasinoCreate />} />
+                <Route path="/games/casino/:code" element={<CasinoGame />} />
+                <Route path="/games/casino-play/:code" element={<CasinoPlayer />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />
