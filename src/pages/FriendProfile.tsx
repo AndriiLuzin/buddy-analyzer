@@ -21,7 +21,6 @@ export default function FriendProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
-  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchFriend = async () => {
@@ -136,7 +135,7 @@ export default function FriendProfile() {
           </button>
           <h1 className="text-white text-lg font-semibold">{friend.name}</h1>
           <button
-            onClick={() => setIsDateModalOpen(true)}
+            onClick={() => navigate(`/friend/${friendId}/date/create`)}
             className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
           >
             <Plus className="w-5 h-5" />
@@ -221,8 +220,6 @@ export default function FriendProfile() {
             <FriendDatesSection 
               friendId={friend.id} 
               ownerId={currentUserId}
-              isModalOpen={isDateModalOpen}
-              onModalOpenChange={setIsDateModalOpen}
             />
           )}
         </div>
