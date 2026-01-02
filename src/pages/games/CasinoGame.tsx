@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, RotateCcw, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -29,6 +30,7 @@ const SYMBOLS = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎", "7️⃣", "🎰
 const CasinoGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,7 @@ const CasinoGame = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
@@ -106,7 +108,7 @@ const CasinoGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id]);
+  }, [code, navigate, game?.id, t]);
 
   const nextGuesser = async () => {
     if (!game) return;
@@ -143,7 +145,6 @@ const CasinoGame = () => {
         playerSymbols[Math.floor(Math.random() * game.player_count)],
       ];
 
-      // Update players with new symbols
       for (let i = 0; i < players.length; i++) {
         await supabase
           .from("casino_players")
@@ -162,16 +163,16 @@ const CasinoGame = () => {
         .eq("id", game.id);
 
       setShowCombination(false);
-      toast.success("Новая игра начата!");
+      toast.success(t('games.impostor.round_started'));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t('games.error'));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -192,18 +193,18 @@ const CasinoGame = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-            КАЗИНО
+            {t('games.casino.title')}
           </h1>
-          <p className="text-muted-foreground text-sm">Код: {code}</p>
-          <p className="text-muted-foreground text-sm">Раунд: {game.current_round}</p>
+          <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
+          <p className="text-muted-foreground text-sm">{t('games.round')}: {game.current_round}</p>
         </div>
 
         <div className="bg-secondary p-6 rounded-lg mb-6 text-center">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Сейчас угадывает
+            {t('games.casino.now_guessing')}
           </p>
           <p className="text-3xl font-bold text-foreground">
-            Игрок #{game.guesser_index + 1}
+            {t('games.player')} #{game.guesser_index + 1}
           </p>
         </div>
 
@@ -213,13 +214,13 @@ const CasinoGame = () => {
           className="w-full h-12 mb-4"
         >
           {showCombination ? <EyeOff className="w-5 h-5 mr-2" /> : <Eye className="w-5 h-5 mr-2" />}
-          {showCombination ? "Скрыть комбинацию" : "Показать комбинацию"}
+          {showCombination ? t('games.casino.hide_combination') : t('games.casino.show_combination')}
         </Button>
 
         {showCombination && (
           <div className="text-center mb-6 animate-scale-in">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-              Секретная комбинация
+              {t('games.casino.secret_combination')}
             </p>
             <div className="flex justify-center gap-4 text-5xl">
               {game.current_combination.map((symbol, i) => (
@@ -234,7 +235,7 @@ const CasinoGame = () => {
           variant="outline"
           className="w-full h-12 mb-4"
         >
-          {showAllSymbols ? "Скрыть символы" : "Показать все символы"}
+          {showAllSymbols ? t('games.casino.hide_symbols') : t('games.casino.show_symbols')}
         </Button>
 
         {showAllSymbols && (
@@ -266,7 +267,7 @@ const CasinoGame = () => {
         <div className="text-center mb-6">
           <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Игроков: {players.length} / {game.player_count}
+            {t('games.players')}: {players.length} / {game.player_count}
           </p>
         </div>
 
@@ -275,7 +276,7 @@ const CasinoGame = () => {
             onClick={nextGuesser}
             className="flex-1 h-12 font-bold"
           >
-            Следующий
+            {t('games.casino.next')}
           </Button>
         </div>
 
@@ -285,7 +286,7 @@ const CasinoGame = () => {
           className="w-full h-12 font-bold uppercase tracking-wider"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
-          Новая игра
+          {t('games.new_game')}
         </Button>
       </div>
     </div>

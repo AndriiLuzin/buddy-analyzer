@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const SYMBOLS = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎", "7️⃣", "🎰"];
 
@@ -12,6 +13,7 @@ const CasinoCreate = () => {
   const [playerCount, setPlayerCount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -34,7 +36,7 @@ const CasinoCreate = () => {
   const createGame = async () => {
     const count = parseInt(playerCount);
     if (isNaN(count) || count < 3 || count > 20) {
-      toast.error("Укажите от 3 до 20 игроков");
+      toast.error(t('games.error'));
       return;
     }
 
@@ -43,13 +45,11 @@ const CasinoCreate = () => {
     try {
       const code = generateCode();
       
-      // Shuffle symbols and assign to players
       const shuffledSymbols = shuffleArray(SYMBOLS);
       const playerSymbols = Array.from({ length: count }, (_, i) => 
         shuffledSymbols[i % shuffledSymbols.length]
       );
 
-      // Create secret combination (3 symbols from assigned player symbols)
       const combination = [
         playerSymbols[Math.floor(Math.random() * count)],
         playerSymbols[Math.floor(Math.random() * count)],
@@ -72,7 +72,6 @@ const CasinoCreate = () => {
 
       if (gameError) throw gameError;
 
-      // Create players with symbols
       const players = playerSymbols.map((symbol, index) => ({
         game_id: game.id,
         player_index: index,
@@ -88,7 +87,7 @@ const CasinoCreate = () => {
       navigate(`/games/casino/${code}`);
     } catch (error) {
       console.error(error);
-      toast.error("Ошибка создания игры");
+      toast.error(t('games.create_error'));
     } finally {
       setIsCreating(false);
     }
@@ -105,16 +104,16 @@ const CasinoCreate = () => {
 
       <div className="w-full max-w-sm animate-fade-in">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 text-center">
-          КАЗИНО
+          {t('games.casino.title')}
         </h1>
         <p className="text-muted-foreground text-sm text-center mb-12">
-          Угадай комбинацию символов
+          {t('games.casino.description')}
         </p>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wider text-muted-foreground">
-              Количество игроков
+              {t('games.player_count')}
             </label>
             <Input
               type="number"
@@ -122,7 +121,7 @@ const CasinoCreate = () => {
               max={20}
               value={playerCount}
               onChange={(e) => setPlayerCount(e.target.value)}
-              placeholder="3-20"
+              placeholder={t('games.casino.players_range')}
               className="text-center text-2xl h-16 font-bold"
             />
           </div>
@@ -132,15 +131,13 @@ const CasinoCreate = () => {
             disabled={isCreating || !playerCount}
             className="w-full h-14 text-lg font-bold uppercase tracking-wider"
           >
-            {isCreating ? "Создание..." : "Создать игру"}
+            {isCreating ? t('games.creating') : t('games.create_game')}
           </Button>
         </div>
 
         <div className="mt-16 text-center">
           <p className="text-xs text-muted-foreground">
-            Каждый знает свой символ.
-            <br />
-            Угадайте секретную комбинацию вместе!
+            {t('games.casino.instruction')}
           </p>
         </div>
       </div>

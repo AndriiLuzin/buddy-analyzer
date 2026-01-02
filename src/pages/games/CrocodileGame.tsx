@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Check, RotateCcw } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -22,6 +23,7 @@ interface Game {
 const CrocodileGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [word, setWord] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +43,7 @@ const CrocodileGame = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
@@ -57,7 +59,6 @@ const CrocodileGame = () => {
         setWord(wordData?.word || null);
       }
 
-      // Count joined players
       const { count } = await supabase
         .from("crocodile_players")
         .select("*", { count: "exact", head: true })
@@ -116,13 +117,12 @@ const CrocodileGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id]);
+  }, [code, navigate, game?.id, t]);
 
   const handleCorrectGuess = async () => {
     if (!game) return;
 
     try {
-      // Get new word
       const { data: words } = await supabase
         .from("crocodile_words")
         .select("id");
@@ -143,9 +143,9 @@ const CrocodileGame = () => {
 
       setShowWord(false);
       playNotificationSound();
-      toast.success("Слово угадано! Следующий игрок показывает.");
+      toast.success(t('games.crocodile.word_guessed'));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t('games.error'));
     }
   };
 
@@ -169,9 +169,9 @@ const CrocodileGame = () => {
         .eq("id", game.id);
 
       setShowWord(false);
-      toast.info("Новое слово");
+      toast.info(t('games.crocodile.new_word'));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t('games.error'));
     }
   };
 
@@ -198,16 +198,16 @@ const CrocodileGame = () => {
         .eq("id", game.id);
 
       setShowWord(false);
-      toast.success("Новая игра начата!");
+      toast.success(t('games.crocodile.new_game_started'));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t('games.error'));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -228,25 +228,25 @@ const CrocodileGame = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-            КРОКОДИЛ
+            {t('games.crocodile.title')}
           </h1>
-          <p className="text-muted-foreground text-sm">Код: {code}</p>
-          <p className="text-muted-foreground text-sm">Раунд: {game.round}</p>
+          <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
+          <p className="text-muted-foreground text-sm">{t('games.round')}: {game.round}</p>
         </div>
 
         <div className="bg-secondary p-6 rounded-lg mb-6 text-center">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Сейчас показывает
+            {t('games.crocodile.now_showing')}
           </p>
           <p className="text-3xl font-bold text-foreground">
-            Игрок #{game.showing_player + 1}
+            {t('games.player')} #{game.showing_player + 1}
           </p>
         </div>
 
         {showWord ? (
           <div className="text-center animate-scale-in mb-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-              Слово для показа
+              {t('games.crocodile.word_to_show')}
             </p>
             <h2 className="text-4xl font-bold text-foreground">{word}</h2>
             <Button
@@ -254,7 +254,7 @@ const CrocodileGame = () => {
               variant="outline"
               className="mt-6"
             >
-              Скрыть
+              {t('games.hide')}
             </Button>
           </div>
         ) : (
@@ -262,7 +262,7 @@ const CrocodileGame = () => {
             onClick={() => setShowWord(true)}
             className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
           >
-            Показать слово
+            {t('games.crocodile.show_word')}
           </Button>
         )}
 
@@ -273,7 +273,7 @@ const CrocodileGame = () => {
             variant="default"
           >
             <Check className="w-5 h-5 mr-2" />
-            Угадали
+            {t('games.crocodile.guessed')}
           </Button>
           <Button
             onClick={handleSkipWord}
@@ -281,7 +281,7 @@ const CrocodileGame = () => {
             variant="outline"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
-            Пропустить
+            {t('games.crocodile.skip')}
           </Button>
         </div>
 
@@ -298,7 +298,7 @@ const CrocodileGame = () => {
         <div className="text-center mb-6">
           <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Игроков: {playersJoined} / {game.player_count}
+            {t('games.players')}: {playersJoined} / {game.player_count}
           </p>
         </div>
 
@@ -307,7 +307,7 @@ const CrocodileGame = () => {
           variant="outline"
           className="w-full h-12 font-bold uppercase tracking-wider"
         >
-          Начать заново
+          {t('games.crocodile.start_over')}
         </Button>
       </div>
     </div>

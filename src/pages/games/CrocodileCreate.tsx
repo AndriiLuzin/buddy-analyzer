@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const CrocodileCreate = () => {
   const [playerCount, setPlayerCount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -23,7 +25,7 @@ const CrocodileCreate = () => {
   const createGame = async () => {
     const count = parseInt(playerCount);
     if (isNaN(count) || count < 2 || count > 20) {
-      toast.error("Укажите от 2 до 20 игроков");
+      toast.error(t('games.error'));
       return;
     }
 
@@ -35,7 +37,7 @@ const CrocodileCreate = () => {
         .select("id");
 
       if (wordsError || !words?.length) {
-        throw new Error("Не удалось загрузить слова");
+        throw new Error("Failed to load words");
       }
 
       const randomWord = words[Math.floor(Math.random() * words.length)];
@@ -58,7 +60,6 @@ const CrocodileCreate = () => {
 
       if (gameError) throw gameError;
 
-      // Create players
       const players = Array.from({ length: count }, (_, i) => ({
         game_id: game.id,
         player_index: i,
@@ -73,7 +74,7 @@ const CrocodileCreate = () => {
       navigate(`/games/crocodile/${code}`);
     } catch (error) {
       console.error(error);
-      toast.error("Ошибка создания игры");
+      toast.error(t('games.create_error'));
     } finally {
       setIsCreating(false);
     }
@@ -90,16 +91,16 @@ const CrocodileCreate = () => {
 
       <div className="w-full max-w-sm animate-fade-in">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 text-center">
-          КРОКОДИЛ
+          {t('games.crocodile.title')}
         </h1>
         <p className="text-muted-foreground text-sm text-center mb-12">
-          Покажи слово без слов
+          {t('games.crocodile.description')}
         </p>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wider text-muted-foreground">
-              Количество игроков
+              {t('games.player_count')}
             </label>
             <Input
               type="number"
@@ -107,7 +108,7 @@ const CrocodileCreate = () => {
               max={20}
               value={playerCount}
               onChange={(e) => setPlayerCount(e.target.value)}
-              placeholder="2-20"
+              placeholder={t('games.crocodile.players_range')}
               className="text-center text-2xl h-16 font-bold"
             />
           </div>
@@ -117,15 +118,13 @@ const CrocodileCreate = () => {
             disabled={isCreating || !playerCount}
             className="w-full h-14 text-lg font-bold uppercase tracking-wider"
           >
-            {isCreating ? "Создание..." : "Создать игру"}
+            {isCreating ? t('games.creating') : t('games.create_game')}
           </Button>
         </div>
 
         <div className="mt-16 text-center">
           <p className="text-xs text-muted-foreground">
-            Один показывает слово жестами,
-            <br />
-            остальные угадывают.
+            {t('games.crocodile.instruction')}
           </p>
         </div>
       </div>

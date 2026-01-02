@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Check, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -30,6 +31,7 @@ interface Character {
 const WhoAmIGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [characters, setCharacters] = useState<Record<string, string>>({});
@@ -50,14 +52,13 @@ const WhoAmIGame = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
 
       setGame(gameData);
 
-      // Fetch players
       const { data: playersData } = await supabase
         .from("whoami_players")
         .select("*")
@@ -66,7 +67,6 @@ const WhoAmIGame = () => {
 
       setPlayers(playersData || []);
 
-      // Fetch characters
       const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
       if (charIds.length > 0) {
         const { data: charsData } = await supabase
@@ -81,7 +81,6 @@ const WhoAmIGame = () => {
         setCharacters(charMap);
       }
 
-      // Fetch views
       const { data: viewsData } = await supabase
         .from("whoami_views")
         .select("player_index")
@@ -148,7 +147,7 @@ const WhoAmIGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id]);
+  }, [code, navigate, game?.id, t]);
 
   const markGuessed = async (playerIndex: number) => {
     if (!game) return;
@@ -161,7 +160,7 @@ const WhoAmIGame = () => {
       .update({ guessed: !player.guessed })
       .eq("id", player.id);
 
-    toast.success(player.guessed ? "Отменено" : "Игрок угадал!");
+    toast.success(player.guessed ? t('games.whoami.canceled') : t('games.whoami.player_guessed'));
   };
 
   const startNewGame = async () => {
@@ -177,10 +176,8 @@ const WhoAmIGame = () => {
       const shuffled = [...characters].sort(() => Math.random() - 0.5);
       const newGuesser = Math.floor(Math.random() * game.player_count);
 
-      // Delete old views
       await supabase.from("whoami_views").delete().eq("game_id", game.id);
 
-      // Update players with new characters
       for (let i = 0; i < players.length; i++) {
         await supabase
           .from("whoami_players")
@@ -197,16 +194,16 @@ const WhoAmIGame = () => {
         .eq("id", game.id);
 
       setViews([]);
-      toast.success("Новая игра начата!");
+      toast.success(t('games.impostor.round_started'));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t('games.error'));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -229,11 +226,11 @@ const WhoAmIGame = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-            КТО Я?
+            {t('games.whoami.title')}
           </h1>
-          <p className="text-muted-foreground text-sm">Код: {code}</p>
+          <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
           <p className="text-muted-foreground text-sm">
-            {views.length} / {game.player_count} посмотрели
+            {views.length} / {game.player_count} {t('games.whoami.viewed')}
           </p>
         </div>
 
@@ -243,7 +240,7 @@ const WhoAmIGame = () => {
           className="w-full h-12 mb-6"
         >
           {showAll ? <EyeOff className="w-5 h-5 mr-2" /> : <Eye className="w-5 h-5 mr-2" />}
-          {showAll ? "Скрыть персонажей" : "Показать всех"}
+          {showAll ? t('games.whoami.hide_characters') : t('games.whoami.show_all')}
         </Button>
 
         {showAll && (
@@ -257,7 +254,7 @@ const WhoAmIGame = () => {
               >
                 <div>
                   <p className="font-bold text-foreground">
-                    Игрок #{player.player_index + 1}
+                    {t('games.player')} #{player.player_index + 1}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {characters[player.character_id] || "—"}
@@ -316,7 +313,7 @@ const WhoAmIGame = () => {
           variant="outline"
           className="w-full h-12 font-bold uppercase tracking-wider"
         >
-          Новая игра
+          {t('games.new_game')}
         </Button>
       </div>
     </div>
