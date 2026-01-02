@@ -22,6 +22,8 @@ interface FriendDate {
 interface FriendDatesSectionProps {
   friendId: string;
   ownerId: string;
+  isModalOpen?: boolean;
+  onModalOpenChange?: (open: boolean) => void;
 }
 
 const DATE_TYPES = [
@@ -38,9 +40,18 @@ const DATE_TYPES = [
   { value: 'other', label: 'Другое', icon: Calendar, color: 'text-muted-foreground' },
 ];
 
-export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProps) => {
+export const FriendDatesSection = ({ friendId, ownerId, isModalOpen: externalModalOpen, onModalOpenChange }: FriendDatesSectionProps) => {
   const [dates, setDates] = useState<FriendDate[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [internalModalOpen, setInternalModalOpen] = useState(false);
+  
+  const isModalOpen = externalModalOpen !== undefined ? externalModalOpen : internalModalOpen;
+  const setIsModalOpen = (open: boolean) => {
+    if (onModalOpenChange) {
+      onModalOpenChange(open);
+    } else {
+      setInternalModalOpen(open);
+    }
+  };
   const [loading, setLoading] = useState(true);
   
   // Form state
@@ -205,22 +216,6 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
 
   return (
     <>
-      {/* Header with add button */}
-      <div className="flex items-center justify-between bg-secondary/30 rounded-xl p-4">
-        <div className="flex items-center gap-2">
-          <Gift className="w-5 h-5 text-pink-500" />
-          <span className="text-sm text-muted-foreground">Важные даты</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsModalOpen(true)}
-          className="h-8 px-3 text-sm"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Добавить
-        </Button>
-      </div>
 
       {/* Dates list - each date as separate card */}
       {dates.length > 0 && (
