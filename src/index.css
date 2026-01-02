@@ -90,59 +90,80 @@
     --shadow-card: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
   }
 
-  /* Classic Business Theme - Light */
+  /* Classic Business Theme - Strict Professional Style */
   .business {
-    --background: 220 15% 97%;
-    --foreground: 220 25% 15%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 220 70% 35%;
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 10% 92%;
-    --secondary-foreground: 220 25% 20%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 220 10% 90%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 220 70% 35%;
+    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 65% 50%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 85%;
-    --input: 220 10% 92%;
-    --ring: 220 70% 35%;
+    --border: 0 0% 75%;
+    --input: 0 0% 94%;
+    --ring: 0 0% 20%;
 
-    --radius: 0.5rem;
+    /* No rounded corners */
+    --radius: 0rem;
 
-    /* Category colors - more muted for business */
-    --category-soul-mate: 38 70% 50%;
-    --category-close-friend: 15 65% 55%;
-    --category-good-buddy: 175 45% 40%;
-    --category-situational: 210 50% 50%;
-    --category-distant: 220 10% 55%;
+    /* Category colors - monochrome business style */
+    --category-soul-mate: 0 0% 25%;
+    --category-close-friend: 0 0% 35%;
+    --category-good-buddy: 0 0% 45%;
+    --category-situational: 0 0% 55%;
+    --category-distant: 0 0% 65%;
 
-    /* Gradients - subtle and professional */
-    --gradient-main: linear-gradient(180deg, hsl(220 15% 97%) 0%, hsl(220 12% 95%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 10% 98%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(220 70% 35%) 0%, hsl(220 70% 30%) 100%);
+    /* No gradients - solid colors */
+    --gradient-main: hsl(0 0% 98%);
+    --gradient-card: hsl(0 0% 100%);
+    --gradient-primary: hsl(0 0% 15%);
 
-    /* Shadows - refined */
-    --shadow-soft: 0 1px 3px -1px hsl(220 20% 20% / 0.08);
-    --shadow-card: 0 2px 8px -2px hsl(220 20% 20% / 0.1);
-    --shadow-glow: 0 0 20px hsl(220 70% 35% / 0.1);
+    /* Minimal shadows */
+    --shadow-soft: none;
+    --shadow-card: none;
+    --shadow-glow: none;
   }
 
-  /* Business theme uses Inter font */
+  /* Business theme uses Inter font and adds borders */
   .business body {
     font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Explicit borders for business theme blocks */
+  .business .card,
+  .business [class*="card"],
+  .business .glass,
+  .business .glass-strong {
+    border: 1px solid hsl(0 0% 75%);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .business button {
+    border-radius: 0;
+  }
+
+  .business input,
+  .business textarea,
+  .business select {
+    border-radius: 0;
   }
 }
 
