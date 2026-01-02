@@ -148,7 +148,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
                   </h3>
                   
                   {/* Friends in this category - single card container */}
-                  <div className="glass rounded-2xl overflow-hidden divide-y divide-border/50">
+                  <div className="glass rounded-2xl overflow-hidden">
                     {group.friends.map((friend, index) => (
                       <FriendCardItem
                         key={friend.id}
