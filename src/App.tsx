@@ -18,6 +18,7 @@ import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
 import FriendDateCreate from "./pages/FriendDateCreate";
+import FriendDateEdit from "./pages/FriendDateEdit";
 import FriendActions from "./pages/FriendActions";
 import Share from "./pages/Share";
 import Chat from "./pages/Chat";
@@ -42,6 +43,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/friend/:friendId" element={<FriendProfile />} />
                 <Route path="/friend/:friendId/date/create" element={<FriendDateCreate />} />
+                <Route path="/friend/:friendId/date/:dateId/edit" element={<FriendDateEdit />} />
                 <Route path="/friend/:friendId/actions" element={<FriendActions />} />
                 <Route path="/chats" element={<Chats />} />
                 <Route path="/chat" element={<Chat />} />
