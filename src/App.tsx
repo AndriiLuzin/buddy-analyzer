@@ -15,6 +15,7 @@ import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
 import FriendActions from "./pages/FriendActions";
+import Share from "./pages/Share";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => {
                 <Route path="/chats" element={<Chats />} />
                 <Route path="/groups" element={<Groups />} />
                 <Route path="/meetings" element={<Meetings />} />
+                <Route path="/share" element={<Share />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />

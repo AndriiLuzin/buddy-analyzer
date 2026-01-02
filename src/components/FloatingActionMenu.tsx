@@ -7,10 +7,10 @@ import {
   User, 
   Users, 
   Calendar, 
-  Bell,
   Menu,
   X,
-  Home
+  Home,
+  Share2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -90,13 +90,13 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       active: isActive('/meetings')
     },
     {
-      icon: Sparkles,
+      icon: Share2,
       label: 'Анализ',
       onClick: () => {
-        if (onAnalyzeClick) onAnalyzeClick();
+        navigate('/share');
         setIsOpen(false);
       },
-      primary: true
+      active: isActive('/share')
     },
     {
       icon: User,
