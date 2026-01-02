@@ -60,9 +60,9 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-background">
+    <div className="min-h-[100dvh] bg-background overflow-y-auto">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 animate-fade-in">
+      <div className="px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
         {/* Header with user info */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         {user?.email && (
@@ -100,7 +100,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         )}
 
         {/* Result Card */}
-        <div className="flex-1 space-y-3 sm:space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
             {/* Gradient Header */}
             <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
@@ -154,18 +154,16 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
           {friends.length > 0 && (
             <FriendshipScoreHistory friends={friends} />
           )}
-        </div>
-      </div>
 
-      {/* Fixed Continue Button */}
-      <div className="shrink-0 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-        <button
-          onClick={onContinue}
-          className="w-full flex items-center justify-center gap-2 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-base font-semibold transition-colors shadow-lg"
-        >
-          {t('profile.continue')}
-          <ArrowRight className="w-5 h-5" />
-        </button>
+          {/* Continue Button - Scrolls with content */}
+          <button
+            onClick={onContinue}
+            className="w-full flex items-center justify-center gap-2 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-base font-semibold transition-colors shadow-lg mt-4"
+          >
+            {t('profile.continue')}
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Share Modal */}
