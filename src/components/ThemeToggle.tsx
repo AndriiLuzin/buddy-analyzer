@@ -1,18 +1,71 @@
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Briefcase } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Button } from './ui/button';
+import { useState, useRef, useEffect } from 'react';
+
+type ThemeOption = 'light' | 'dark' | 'business';
+
+const themes: { value: ThemeOption; icon: typeof Sun; label: string }[] = [
+  { value: 'light', icon: Sun, label: 'Светлая' },
+  { value: 'dark', icon: Moon, label: 'Тёмная' },
+  { value: 'business', icon: Briefcase, label: 'Бизнес' },
+];
 
 export const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const currentTheme = themes.find(t => t.value === theme) || themes[0];
+  const CurrentIcon = currentTheme.icon;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleThemeChange = (newTheme: ThemeOption) => {
+    setTheme(newTheme);
+    setIsOpen(false);
+  };
 
   return (
-    <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-2 hover:opacity-70 transition-opacity relative"
-    >
-      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 top-2 left-2" />
-      <span className="sr-only">Переключить тему</span>
-    </button>
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 hover:opacity-70 transition-opacity relative"
+      >
+        <CurrentIcon className="h-5 w-5 text-muted-foreground" />
+        <span className="sr-only">Переключить тему</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 py-2 w-40 bg-card rounded-xl border border-border shadow-card z-50 animate-fade-in">
+          {themes.map((themeOption) => {
+            const Icon = themeOption.icon;
+            const isActive = theme === themeOption.value;
+            return (
+              <button
+                key={themeOption.value}
+                onClick={() => handleThemeChange(themeOption.value)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                  isActive 
+                    ? 'bg-primary/10 text-primary' 
+                    : 'text-foreground hover:bg-secondary'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{themeOption.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
