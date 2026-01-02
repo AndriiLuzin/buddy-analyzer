@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { UserProfile, FriendCategory, Friend } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from './ui/button';
-import { Sparkles, ArrowRight, Share2, LogOut, Mail } from 'lucide-react';
+import { Sparkles, ArrowRight, Share2, LogOut, Mail, Settings } from 'lucide-react';
 import { FriendshipScoreGauge } from './FriendshipScoreGauge';
 import { FriendshipScoreHistory } from './FriendshipScoreHistory';
 import { ShareModal } from './ShareModal';
@@ -73,6 +73,12 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         )}
         <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
           <LanguageSelector />
+          <button
+            onClick={() => {}}
+            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors text-xs sm:text-sm"
