@@ -74,26 +74,35 @@ export const BirthdayReminder = ({ friends }: BirthdayReminderProps) => {
         isExpanded ? "max-h-96 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"
       )}>
         <div className="space-y-2">
-          {upcomingBirthdays.slice(0, 3).map(friend => (
-            <div 
-              key={friend.id} 
-              className="flex items-center gap-3 p-3 glass rounded-xl"
-            >
-              <Gift className="w-5 h-5 text-pink-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground truncate">{friend.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {friend.daysUntil === 0 
-                    ? 'Сегодня! 🎉' 
-                    : friend.daysUntil === 1 
-                      ? 'Завтра'
-                      : `Через ${friend.daysUntil} дней`
-                  }
-                </p>
+          {upcomingBirthdays.slice(0, 3).map(friend => {
+            const formattedDate = friend.birthdayDate.toLocaleDateString('en-US', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            });
+            
+            return (
+              <div 
+                key={friend.id} 
+                className="flex items-center gap-3 p-3 glass rounded-xl"
+              >
+                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <span className="text-2xl">🎂</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">{friend.name}</p>
+                  <p className="text-sm text-muted-foreground">{formattedDate}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xl font-bold text-foreground">{friend.daysUntil}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {friend.daysUntil === 0 ? 'today' : friend.daysUntil === 1 ? 'day left' : 'days left'}
+                  </p>
+                </div>
               </div>
-              <span className="text-2xl">🎂</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
