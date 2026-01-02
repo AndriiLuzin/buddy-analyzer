@@ -14,7 +14,7 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
   const getCategoryLabel = (category: FriendCategory) => t(`category.${category}`);
 
   return (
-    <div className="flex gap-4 overflow-x-auto -mx-4 px-4">
+    <div className="flex gap-6 overflow-x-auto -mx-4 px-4">
       <button
         onClick={() => onSelectCategory('all')}
         className={`shrink-0 text-sm font-medium transition-colors ${
