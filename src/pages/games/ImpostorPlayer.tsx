@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -17,6 +18,7 @@ const ImpostorPlayer = () => {
   const { code } = useParams<{ code: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [word, setWord] = useState<string | null>(null);
   const [isImpostor, setIsImpostor] = useState(false);
@@ -34,7 +36,7 @@ const ImpostorPlayer = () => {
     const usedIndices = existingViews?.map((v) => v.player_index) || [];
 
     if (usedIndices.length >= gameData.player_count) {
-      setError("Все места заняты");
+      setError(t("games.all_slots_taken"));
       setIsLoading(false);
       return null;
     }
@@ -48,7 +50,7 @@ const ImpostorPlayer = () => {
     }
 
     if (availableIndex === -1) {
-      setError("Все места заняты");
+      setError(t("games.all_slots_taken"));
       setIsLoading(false);
       return null;
     }
@@ -62,14 +64,14 @@ const ImpostorPlayer = () => {
 
     if (insertError) {
       console.error(insertError);
-      setError("Ошибка регистрации");
+      setError(t("games.registration_error"));
       setIsLoading(false);
       return null;
     }
 
     setSearchParams({ p: String(availableIndex) });
     return availableIndex;
-  }, [setSearchParams]);
+  }, [setSearchParams, t]);
 
   const fetchRole = useCallback(async (gameData: Game, idx: number) => {
     setPlayerIndex(idx);
@@ -102,7 +104,7 @@ const ImpostorPlayer = () => {
         .maybeSingle();
 
       if (gameError || !gameData) {
-        setError("Игра не найдена");
+        setError(t("games.not_found"));
         setIsLoading(false);
         return;
       }
@@ -133,7 +135,7 @@ const ImpostorPlayer = () => {
     };
 
     init();
-  }, [code, searchParams, assignRole, fetchRole]);
+  }, [code, searchParams, assignRole, fetchRole, t]);
 
   useEffect(() => {
     if (!game) return;
@@ -187,7 +189,7 @@ const ImpostorPlayer = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground animate-pulse">Загрузка...</div>
+        <div className="text-muted-foreground animate-pulse">{t("games.loading")}</div>
       </div>
     );
   }
@@ -197,7 +199,7 @@ const ImpostorPlayer = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="text-center">
           <p className="text-foreground font-bold mb-2">{error}</p>
-          <p className="text-muted-foreground text-sm">Попросите ссылку у организатора</p>
+          <p className="text-muted-foreground text-sm">{t("games.ask_link")}</p>
         </div>
       </div>
     );
@@ -216,16 +218,16 @@ const ImpostorPlayer = () => {
         </Button>
         <div className="text-center animate-fade-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            Игрок #{playerIndex !== null ? playerIndex + 1 : "?"}
+            {t("games.player")} #{playerIndex !== null ? playerIndex + 1 : "?"}
           </p>
           <Button
             onClick={() => setIsRevealed(true)}
             className="h-20 px-12 text-xl font-bold uppercase tracking-wider"
           >
-            Показать роль
+            {t("games.show_role")}
           </Button>
           <p className="text-xs text-muted-foreground mt-6">
-            Никому не показывайте экран
+            {t("games.dont_show_screen")}
           </p>
         </div>
       </div>
@@ -248,29 +250,29 @@ const ImpostorPlayer = () => {
         {isStartingPlayer && (
           <div className="mb-6 p-4 bg-primary/20 border border-primary/40 rounded-lg animate-pulse">
             <p className="text-2xl font-bold text-primary">
-              🎯 Вы начинаете!
+              🎯 {t("games.you_start")}
             </p>
           </div>
         )}
 
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-          {isImpostor ? "Твоя роль" : "Секретное слово"}
+          {isImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
         </p>
         <h1 className="text-4xl font-bold text-foreground">
-          {isImpostor ? "САМОЗВАНЕЦ" : word}
+          {isImpostor ? t("games.impostor.impostor") : word}
         </h1>
         <p className="text-muted-foreground text-sm mt-6">
           {isImpostor ? (
             <>
-              Ты не знаешь слово.
+              {t("games.impostor.you_dont_know")}
               <br />
-              Притворяйся, что знаешь.
+              {t("games.impostor.pretend")}
             </>
           ) : (
             <>
-              Один из игроков — самозванец.
+              {t("games.impostor.find_impostor")}
               <br />
-              Он не знает это слово.
+              {t("games.impostor.doesnt_know")}
             </>
           )}
         </p>
@@ -280,7 +282,7 @@ const ImpostorPlayer = () => {
           variant="outline"
           className="mt-12"
         >
-          Скрыть
+          {t("games.hide")}
         </Button>
       </div>
     </div>

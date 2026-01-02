@@ -1,61 +1,63 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Users, Skull, Hand, HelpCircle, Dice5, ArrowLeft } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: LucideIcon;
   path: string;
-  players: string;
+  playersKey: string;
 }
 
 const games: Game[] = [
   {
     id: "impostor",
-    title: "Самозванец",
-    description: "Найди того, кто не знает слово",
+    titleKey: "games.impostor.title",
+    descriptionKey: "games.impostor.description",
     icon: Users,
     path: "/games/impostor",
-    players: "3-20",
+    playersKey: "games.impostor.players_range",
   },
   {
     id: "mafia",
-    title: "Мафия",
-    description: "Город засыпает, просыпается мафия",
+    titleKey: "games.mafia.title",
+    descriptionKey: "games.mafia.description",
     icon: Skull,
     path: "/games/mafia",
-    players: "4-20",
+    playersKey: "games.mafia.players_range",
   },
   {
     id: "crocodile",
-    title: "Крокодил",
-    description: "Покажи слово без слов",
+    titleKey: "games.crocodile.title",
+    descriptionKey: "games.crocodile.description",
     icon: Hand,
     path: "/games/crocodile",
-    players: "2-20",
+    playersKey: "games.crocodile.players_range",
   },
   {
     id: "whoami",
-    title: "Кто я?",
-    description: "Угадай своего персонажа",
+    titleKey: "games.whoami.title",
+    descriptionKey: "games.whoami.description",
     icon: HelpCircle,
     path: "/games/whoami",
-    players: "2-20",
+    playersKey: "games.whoami.players_range",
   },
   {
     id: "casino",
-    title: "Казино",
-    description: "Угадай комбинацию символов",
+    titleKey: "games.casino.title",
+    descriptionKey: "games.casino.description",
     icon: Dice5,
     path: "/games/casino",
-    players: "3-20",
+    playersKey: "games.casino.players_range",
   },
 ];
 
 const GamesHome = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
@@ -68,10 +70,10 @@ const GamesHome = () => {
 
       <div className="w-full max-w-md animate-fade-in">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 text-center">
-          ИГРЫ
+          {t("games.title")}
         </h1>
         <p className="text-muted-foreground text-sm text-center mb-12">
-          Выбери игру для компании
+          {t("games.subtitle")}
         </p>
 
         <div className="space-y-4">
@@ -89,14 +91,14 @@ const GamesHome = () => {
                   </div>
                   <div className="flex-1">
                     <h2 className="text-xl font-bold text-foreground">
-                      {game.title}
+                      {t(game.titleKey)}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      {game.description}
+                      {t(game.descriptionKey)}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {game.players} игроков
+                    {t(game.playersKey)} {t("games.players")}
                   </span>
                 </div>
               </Link>
@@ -106,7 +108,7 @@ const GamesHome = () => {
 
         <div className="mt-16 text-center">
           <p className="text-xs text-muted-foreground">
-            Больше игр скоро появится
+            {t("games.more_coming")}
           </p>
         </div>
       </div>

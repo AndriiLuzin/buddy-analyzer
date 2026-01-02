@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -25,6 +26,7 @@ interface PlayerView {
 const ImpostorGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [word, setWord] = useState<string | null>(null);
   const [views, setViews] = useState<PlayerView[]>([]);
@@ -46,20 +48,18 @@ const ImpostorGame = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t("games.not_found"));
         navigate("/games");
         return;
       }
 
       setGame(gameData);
 
-      // Fetch views
       const { data: viewsData } = await supabase
         .from("player_views")
         .select("player_index")
         .eq("game_id", gameData.id);
 
-      // Auto-register admin as the last player (player_count - 1)
       const adminIndex = gameData.player_count - 1;
       const adminViewed = viewsData?.some((v) => v.player_index === adminIndex);
       if (!adminViewed) {
@@ -165,7 +165,7 @@ const ImpostorGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, game?.player_count, game?.word_id, game?.impostor_index]);
+  }, [code, navigate, game?.id, game?.player_count, game?.word_id, game?.impostor_index, t]);
 
   const startNewRound = async () => {
     if (!game) return;
@@ -196,16 +196,16 @@ const ImpostorGame = () => {
       setStartingPlayer(null);
       setGame({ ...game, word_id: randomWord.id, impostor_index: newImpostorIndex });
 
-      toast.success("Новый раунд начат!");
+      toast.success(t("games.impostor.round_started"));
     } catch (error) {
-      toast.error("Ошибка");
+      toast.error(t("games.error"));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t("games.loading")}</div>
       </div>
     );
   }
@@ -229,32 +229,32 @@ const ImpostorGame = () => {
         </Button>
         <div className="text-center animate-scale-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            {isAdminImpostor ? "Твоя роль" : "Секретное слово"}
+            {isAdminImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            {isAdminImpostor ? "САМОЗВАНЕЦ" : word}
+            {isAdminImpostor ? t("games.impostor.impostor") : word}
           </h1>
           <p className="text-muted-foreground text-sm mt-6">
             {isAdminImpostor ? (
               <>
-                Ты не знаешь слово.
+                {t("games.impostor.you_dont_know")}
                 <br />
-                Притворяйся, что знаешь.
+                {t("games.impostor.pretend")}
               </>
             ) : (
               <>
-                Один из игроков — самозванец.
+                {t("games.impostor.find_impostor")}
                 <br />
-                Он не знает это слово.
+                {t("games.impostor.doesnt_know")}
               </>
             )}
           </p>
 
           {startingPlayer !== null && (
             <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-              <p className="text-sm text-muted-foreground">Первым начинает</p>
+              <p className="text-sm text-muted-foreground">{t("games.impostor.starts_first")}</p>
               <p className="text-2xl font-bold text-primary">
-                Игрок #{startingPlayer + 1}
+                {t("games.player")} #{startingPlayer + 1}
               </p>
             </div>
           )}
@@ -264,7 +264,7 @@ const ImpostorGame = () => {
             variant="outline"
             className="mt-12"
           >
-            Скрыть
+            {t("games.hide")}
           </Button>
 
           <Button
@@ -272,7 +272,7 @@ const ImpostorGame = () => {
             variant="outline"
             className="w-full mt-4 h-12 font-bold uppercase tracking-wider"
           >
-            Новый раунд
+            {t("games.new_round")}
           </Button>
         </div>
       </div>
@@ -292,23 +292,23 @@ const ImpostorGame = () => {
         </Button>
         <div className="text-center animate-scale-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            {isAdminImpostor ? "Твоя роль" : "Секретное слово"}
+            {isAdminImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            {isAdminImpostor ? "САМОЗВАНЕЦ" : word}
+            {isAdminImpostor ? t("games.impostor.impostor") : word}
           </h1>
           <p className="text-muted-foreground text-sm mt-6">
             {isAdminImpostor ? (
               <>
-                Ты не знаешь слово.
+                {t("games.impostor.you_dont_know")}
                 <br />
-                Притворяйся, что знаешь.
+                {t("games.impostor.pretend")}
               </>
             ) : (
               <>
-                Один из игроков — самозванец.
+                {t("games.impostor.find_impostor")}
                 <br />
-                Он не знает это слово.
+                {t("games.impostor.doesnt_know")}
               </>
             )}
           </p>
@@ -318,7 +318,7 @@ const ImpostorGame = () => {
             variant="outline"
             className="mt-12"
           >
-            Скрыть
+            {t("games.hide")}
           </Button>
         </div>
       </div>
@@ -338,10 +338,10 @@ const ImpostorGame = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-            ИГРА {code}
+            {t("games.game")} {code}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {views.length} / {game.player_count} игроков посмотрели
+            {views.length} / {game.player_count} {t("games.players_viewed")}
           </p>
         </div>
 
@@ -349,7 +349,7 @@ const ImpostorGame = () => {
           onClick={() => setShowMyRole(true)}
           className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
         >
-          Показать мою роль
+          {t("games.show_my_role")}
         </Button>
 
         <div className="bg-secondary p-6 flex items-center justify-center mb-6">
@@ -369,7 +369,7 @@ const ImpostorGame = () => {
         {!allViewed && (
           <div className="text-center mb-8">
             <p className="text-sm text-muted-foreground">
-              Ожидание игроков...
+              {t("games.waiting_players")}
             </p>
           </div>
         )}
@@ -397,7 +397,7 @@ const ImpostorGame = () => {
           variant="outline"
           className="w-full h-12 font-bold uppercase tracking-wider"
         >
-          Новый раунд
+          {t("games.new_round")}
         </Button>
 
         <Button
@@ -405,7 +405,7 @@ const ImpostorGame = () => {
           variant="ghost"
           className="w-full mt-4 text-muted-foreground"
         >
-          Новая игра
+          {t("games.new_game")}
         </Button>
       </div>
     </div>
