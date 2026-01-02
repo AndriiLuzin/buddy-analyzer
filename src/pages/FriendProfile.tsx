@@ -170,16 +170,16 @@ export default function FriendProfile() {
         {/* All dates - vertical layout */}
         <div className="space-y-3 mb-6">
           {friend.lastInteraction && (
-            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4">
+            <div className="bg-secondary/50 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
-                <MessageCircle className="w-5 h-5 text-blue-500" />
+                <MessageCircle className="w-5 h-5 text-primary" />
                 <span className="text-sm text-muted-foreground">Последнее общение</span>
               </div>
               <p className="font-medium text-foreground text-base">{formatDate(friend.lastInteraction)}</p>
             </div>
           )}
           {friend.birthday && (
-            <div className="bg-pink-50 dark:bg-pink-950/30 rounded-xl p-4">
+            <div className="bg-secondary/50 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Gift className="w-5 h-5 text-pink-500" />
                 <span className="text-sm text-muted-foreground">День рождения</span>
