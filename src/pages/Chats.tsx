@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FloatingActionMenu } from '@/components/FloatingActionMenu';
+
 import { ChatList } from '@/components/ChatList';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,9 +96,6 @@ const Chats = () => {
           onSelectChat={handleSelectChat}
         />
       </main>
-
-      {/* Floating Action Menu */}
-      <FloatingActionMenu />
     </div>
   );
 };
