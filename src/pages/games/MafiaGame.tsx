@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { Home } from "lucide-react";
 import { playNotificationSound } from "@/lib/audio";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface MafiaGame {
   id: string;
@@ -25,6 +26,7 @@ interface MafiaPlayer {
 const MafiaGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<MafiaGame | null>(null);
   const [players, setPlayers] = useState<MafiaPlayer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ const MafiaGame = () => {
         .maybeSingle();
 
       if (gameError || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
@@ -94,7 +96,7 @@ const MafiaGame = () => {
     };
 
     fetchGame();
-  }, [code, navigate]);
+  }, [code, navigate, t]);
 
   useEffect(() => {
     if (!game) return;
@@ -178,17 +180,17 @@ const MafiaGame = () => {
 
       setIsRevealed(false);
       setShowMyRole(false);
-      toast.success("Новый раунд начат!");
+      toast.success(t('games.impostor.round_started'));
     } catch (error) {
       console.error(error);
-      toast.error("Ошибка при создании нового раунда");
+      toast.error(t('games.mafia.round_error'));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Загрузка...</p>
+        <p className="text-muted-foreground">{t('games.loading')}</p>
       </div>
     );
   }
@@ -217,33 +219,33 @@ const MafiaGame = () => {
         </Button>
         <div className="text-center animate-scale-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            Твоя роль
+            {t('games.mafia.your_role')}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            {isAdminMafia ? "МАФИЯ" : "МИРНЫЙ ЖИТЕЛЬ"}
+            {isAdminMafia ? t('games.mafia.mafia') : t('games.mafia.civilian')}
           </h1>
           <p className="text-muted-foreground text-sm mt-6">
             {isAdminMafia ? (
               <>
-                Ты знаешь, кто в твоей команде.
+                {t('games.mafia.you_know_team')}
                 <br />
-                Убей всех мирных жителей.
+                {t('games.mafia.kill_civilians')}
               </>
             ) : (
               <>
-                Найди и разоблачи мафию.
+                {t('games.mafia.find_mafia')}
                 <br />
-                Не дай себя обмануть.
+                {t('games.mafia.dont_be_fooled')}
               </>
             )}
           </p>
 
           <div className="mt-6 p-4 border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-2">
-              {isAdminMafia ? "Твоя команда:" : `Мафия (${mafiaPlayers.length}):`}
+              {isAdminMafia ? t('games.mafia.your_team') + ":" : `${t('games.mafia.mafia_count')} (${mafiaPlayers.length}):`}
             </p>
             <p className="text-sm font-medium">
-              {mafiaPlayers.map((p) => `Игрок #${p.player_index + 1}`).join(", ")}
+              {mafiaPlayers.map((p) => `${t('games.player')} #${p.player_index + 1}`).join(", ")}
             </p>
           </div>
 
@@ -252,11 +254,11 @@ const MafiaGame = () => {
             variant="outline"
             className="mt-8"
           >
-            Скрыть
+            {t('games.hide')}
           </Button>
 
           <Button onClick={startNewGame} className="mt-4 w-full">
-            Новый раунд
+            {t('games.new_round')}
           </Button>
 
           <Button
@@ -264,7 +266,7 @@ const MafiaGame = () => {
             variant="ghost"
             className="w-full mt-4 text-muted-foreground"
           >
-            Новая игра
+            {t('games.new_game')}
           </Button>
         </div>
       </div>
@@ -284,23 +286,23 @@ const MafiaGame = () => {
         </Button>
         <div className="text-center animate-scale-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            Твоя роль
+            {t('games.mafia.your_role')}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            {isAdminMafia ? "МАФИЯ" : "МИРНЫЙ ЖИТЕЛЬ"}
+            {isAdminMafia ? t('games.mafia.mafia') : t('games.mafia.civilian')}
           </h1>
           <p className="text-muted-foreground text-sm mt-6">
             {isAdminMafia ? (
               <>
-                Ты знаешь, кто в твоей команде.
+                {t('games.mafia.you_know_team')}
                 <br />
-                Убей всех мирных жителей.
+                {t('games.mafia.kill_civilians')}
               </>
             ) : (
               <>
-                Найди и разоблачи мафию.
+                {t('games.mafia.find_mafia')}
                 <br />
-                Не дай себя обмануть.
+                {t('games.mafia.dont_be_fooled')}
               </>
             )}
           </p>
@@ -308,10 +310,10 @@ const MafiaGame = () => {
           {isAdminMafia && (
             <div className="mt-6 p-4 border border-border rounded-lg">
               <p className="text-xs text-muted-foreground mb-2">
-                Твоя команда:
+                {t('games.mafia.your_team')}:
               </p>
               <p className="text-sm font-medium">
-                {mafiaPlayers.map((p) => `Игрок #${p.player_index + 1}`).join(", ")}
+                {mafiaPlayers.map((p) => `${t('games.player')} #${p.player_index + 1}`).join(", ")}
               </p>
             </div>
           )}
@@ -321,7 +323,7 @@ const MafiaGame = () => {
             variant="outline"
             className="mt-8"
           >
-            Скрыть
+            {t('games.hide')}
           </Button>
         </div>
       </div>
@@ -341,13 +343,13 @@ const MafiaGame = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-            МАФИЯ {code}
+            {t('games.mafia.title')} {code}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {viewedCount} / {game.player_count} игроков посмотрели
+            {viewedCount} / {game.player_count} {t('games.players_viewed')}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Мафии: {game.mafia_count} | Мирных: {game.player_count - game.mafia_count}
+            {t('games.mafia.mafia_count')}: {game.mafia_count} | {t('games.mafia.civilians_count')}: {game.player_count - game.mafia_count}
           </p>
         </div>
 
@@ -355,7 +357,7 @@ const MafiaGame = () => {
           onClick={() => setShowMyRole(true)}
           className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
         >
-          Показать мою роль
+          {t('games.show_my_role')}
         </Button>
 
         <div className="bg-secondary p-6 flex items-center justify-center mb-6">
@@ -375,7 +377,7 @@ const MafiaGame = () => {
         {!allViewed && (
           <div className="text-center mb-8">
             <p className="text-sm text-muted-foreground">
-              Ожидание игроков...
+              {t('games.waiting_players')}
             </p>
           </div>
         )}
@@ -400,7 +402,7 @@ const MafiaGame = () => {
           variant="outline"
           className="w-full h-12 font-bold uppercase tracking-wider"
         >
-          Новый раунд
+          {t('games.new_round')}
         </Button>
 
         <Button
@@ -408,7 +410,7 @@ const MafiaGame = () => {
           variant="ghost"
           className="w-full mt-4 text-muted-foreground"
         >
-          Новая игра
+          {t('games.new_game')}
         </Button>
       </div>
     </div>

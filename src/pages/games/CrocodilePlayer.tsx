@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -19,6 +20,7 @@ interface Game {
 const CrocodilePlayer = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [word, setWord] = useState<string | null>(null);
   const [playerIndex, setPlayerIndex] = useState<number | null>(null);
@@ -36,14 +38,13 @@ const CrocodilePlayer = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
 
       setGame(gameData);
 
-      // Get next available player index
       const { data: players } = await supabase
         .from("crocodile_players")
         .select("player_index")
@@ -57,16 +58,13 @@ const CrocodilePlayer = () => {
       }
 
       if (nextIndex >= gameData.player_count) {
-        // All slots taken, find a free one
         nextIndex = players?.length || 0;
       }
 
-      // Check if already joined via localStorage
       const storedIndex = localStorage.getItem(`crocodile-${gameData.id}`);
       if (storedIndex) {
         setPlayerIndex(parseInt(storedIndex));
       } else {
-        // Join as new player
         const { error: joinError } = await supabase
           .from("crocodile_players")
           .insert({
@@ -127,12 +125,12 @@ const CrocodilePlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate]);
+  }, [code, navigate, t]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -155,19 +153,19 @@ const CrocodilePlayer = () => {
       <div className="w-full max-w-sm animate-fade-in text-center">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Ты
+            {t('games.you')}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            Игрок #{playerIndex + 1}
+            {t('games.player')} #{playerIndex + 1}
           </h1>
         </div>
 
         <div className="bg-secondary p-6 rounded-lg mb-6">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Раунд {game.round}
+            {t('games.round')} {game.round}
           </p>
           <p className="text-xl font-bold text-foreground">
-            {isShowing ? "Твоя очередь показывать!" : `Показывает: Игрок #${game.showing_player + 1}`}
+            {isShowing ? t('games.crocodile.your_turn') : `${t('games.crocodile.showing')}: ${t('games.player')} #${game.showing_player + 1}`}
           </p>
         </div>
 
@@ -175,11 +173,11 @@ const CrocodilePlayer = () => {
           showWord ? (
             <div className="animate-scale-in">
               <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-                Покажи это слово
+                {t('games.crocodile.show_this')}
               </p>
               <h2 className="text-4xl font-bold text-foreground mb-6">{word}</h2>
               <Button onClick={() => setShowWord(false)} variant="outline">
-                Скрыть
+                {t('games.hide')}
               </Button>
             </div>
           ) : (
@@ -187,20 +185,20 @@ const CrocodilePlayer = () => {
               onClick={() => setShowWord(true)}
               className="w-full h-14 text-lg font-bold uppercase tracking-wider"
             >
-              Показать слово
+              {t('games.crocodile.show_word')}
             </Button>
           )
         ) : (
           <div className="text-center">
             <p className="text-muted-foreground">
-              Смотри на показывающего и угадывай слово!
+              {t('games.crocodile.watch_and_guess')}
             </p>
           </div>
         )}
 
         <div className="mt-12 text-center">
           <p className="text-xs text-muted-foreground">
-            Ожидание следующего раунда...
+            {t('games.crocodile.waiting_next')}
           </p>
         </div>
       </div>

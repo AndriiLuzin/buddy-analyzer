@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -24,6 +25,7 @@ interface Player {
 const WhoAmIPlayer = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [playerIndex, setPlayerIndex] = useState<number | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -43,14 +45,13 @@ const WhoAmIPlayer = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
 
       setGame(gameData);
 
-      // Check if already joined via localStorage
       const storedIndex = localStorage.getItem(`whoami-${gameData.id}`);
       let myIndex: number;
 
@@ -58,7 +59,6 @@ const WhoAmIPlayer = () => {
         myIndex = parseInt(storedIndex);
         setPlayerIndex(myIndex);
       } else {
-        // Get next available index
         const { data: existingPlayers } = await supabase
           .from("whoami_players")
           .select("player_index")
@@ -74,7 +74,6 @@ const WhoAmIPlayer = () => {
         setPlayerIndex(myIndex);
       }
 
-      // Fetch all players
       const { data: playersData } = await supabase
         .from("whoami_players")
         .select("*")
@@ -83,7 +82,6 @@ const WhoAmIPlayer = () => {
 
       setPlayers(playersData || []);
 
-      // Fetch characters
       const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
       if (charIds.length > 0) {
         const { data: charsData } = await supabase
@@ -98,7 +96,6 @@ const WhoAmIPlayer = () => {
         setCharacters(charMap);
       }
 
-      // Check if already viewed
       const { data: viewData } = await supabase
         .from("whoami_views")
         .select("id")
@@ -145,7 +142,6 @@ const WhoAmIPlayer = () => {
             .order("player_index", { ascending: true });
           setPlayers(playersData || []);
 
-          // Refetch characters
           const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
           if (charIds.length > 0) {
             const { data: charsData } = await supabase
@@ -166,7 +162,7 @@ const WhoAmIPlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id]);
+  }, [code, navigate, game?.id, t]);
 
   const handleView = async () => {
     if (!game || playerIndex === null || hasViewed) return;
@@ -183,7 +179,7 @@ const WhoAmIPlayer = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -206,10 +202,10 @@ const WhoAmIPlayer = () => {
       <div className="w-full max-w-sm animate-fade-in text-center">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Ты
+            {t('games.you')}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            Игрок #{playerIndex + 1}
+            {t('games.player')} #{playerIndex + 1}
           </h1>
         </div>
 
@@ -219,7 +215,7 @@ const WhoAmIPlayer = () => {
             className="w-full h-14 text-lg font-bold uppercase tracking-wider"
           >
             <Eye className="w-5 h-5 mr-2" />
-            Посмотреть персонажей
+            {t('games.whoami.view_characters')}
           </Button>
         ) : (
           <>
@@ -233,13 +229,13 @@ const WhoAmIPlayer = () => {
               ) : (
                 <Eye className="w-5 h-5 mr-2" />
               )}
-              {showOthers ? "Скрыть" : "Показать персонажей"}
+              {showOthers ? t('games.hide') : t('games.whoami.view_characters')}
             </Button>
 
             {showOthers && (
               <div className="space-y-2 animate-fade-in">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-                  Персонажи других игроков
+                  {t('games.whoami.others_characters')}
                 </p>
                 {otherPlayers.map((player) => (
                   <div
@@ -249,7 +245,7 @@ const WhoAmIPlayer = () => {
                     }`}
                   >
                     <p className="font-bold text-foreground">
-                      Игрок #{player.player_index + 1}
+                      {t('games.player')} #{player.player_index + 1}
                     </p>
                     <p className="text-lg text-muted-foreground">
                       {characters[player.character_id] || "—"}
@@ -257,10 +253,10 @@ const WhoAmIPlayer = () => {
                   </div>
                 ))}
                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 mt-4">
-                  <p className="font-bold text-foreground">Твой персонаж</p>
+                  <p className="font-bold text-foreground">{t('games.whoami.your_character')}</p>
                   <p className="text-lg text-primary">???</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Задавай вопросы, чтобы угадать!
+                    {t('games.whoami.ask_questions')}
                   </p>
                 </div>
               </div>
@@ -270,9 +266,9 @@ const WhoAmIPlayer = () => {
 
         <div className="mt-12 text-center">
           <p className="text-xs text-muted-foreground">
-            Ты видишь персонажей всех, кроме себя.
+            {t('games.whoami.see_all_except')}
             <br />
-            Задавай вопросы "Да/Нет", чтобы угадать своего.
+            {t('games.whoami.ask_yes_no')}
           </p>
         </div>
       </div>

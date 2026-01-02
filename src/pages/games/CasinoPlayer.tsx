@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
   id: string;
@@ -25,6 +26,7 @@ interface Player {
 const CasinoPlayer = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
   const [playerIndex, setPlayerIndex] = useState<number | null>(null);
   const [mySymbol, setMySymbol] = useState<string | null>(null);
@@ -44,21 +46,19 @@ const CasinoPlayer = () => {
         .maybeSingle();
 
       if (error || !gameData) {
-        toast.error("Игра не найдена");
+        toast.error(t('games.not_found'));
         navigate("/games");
         return;
       }
 
       setGame(gameData);
 
-      // Check if already joined
       const storedIndex = localStorage.getItem(`casino-${gameData.id}`);
       let myIndex: number;
 
       if (storedIndex) {
         myIndex = parseInt(storedIndex);
       } else {
-        // Get next available index from players
         const { data: existingPlayers } = await supabase
           .from("casino_players")
           .select("player_index")
@@ -75,7 +75,6 @@ const CasinoPlayer = () => {
 
       setPlayerIndex(myIndex);
 
-      // Fetch all players
       const { data: playersData } = await supabase
         .from("casino_players")
         .select("*")
@@ -133,12 +132,12 @@ const CasinoPlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, playerIndex]);
+  }, [code, navigate, game?.id, playerIndex, t]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Загрузка...</div>
+        <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
   }
@@ -161,19 +160,19 @@ const CasinoPlayer = () => {
       <div className="w-full max-w-sm animate-fade-in text-center">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Ты
+            {t('games.you')}
           </p>
           <h1 className="text-4xl font-bold text-foreground">
-            Игрок #{playerIndex + 1}
+            {t('games.player')} #{playerIndex + 1}
           </h1>
         </div>
 
         <div className={`p-6 rounded-lg mb-6 ${isMyTurn ? "bg-primary/20 border-2 border-primary" : "bg-secondary"}`}>
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Раунд {game.current_round}
+            {t('games.round')} {game.current_round}
           </p>
           <p className="text-xl font-bold text-foreground">
-            {isMyTurn ? "Твоя очередь угадывать!" : `Угадывает: Игрок #${game.guesser_index + 1}`}
+            {isMyTurn ? t('games.casino.your_turn') : `${t('games.casino.guessing')}: ${t('games.player')} #${game.guesser_index + 1}`}
           </p>
         </div>
 
@@ -182,17 +181,17 @@ const CasinoPlayer = () => {
           className="w-full h-14 text-lg font-bold mb-6"
         >
           {showSymbol ? <EyeOff className="w-5 h-5 mr-2" /> : <Eye className="w-5 h-5 mr-2" />}
-          {showSymbol ? "Скрыть мой символ" : "Показать мой символ"}
+          {showSymbol ? t('games.casino.hide_my_symbol') : t('games.casino.show_my_symbol')}
         </Button>
 
         {showSymbol && (
           <div className="animate-scale-in mb-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-              Твой символ
+              {t('games.casino.your_symbol')}
             </p>
             <span className="text-7xl">{mySymbol}</span>
             <p className="text-sm text-muted-foreground mt-4">
-              Не показывай другим!
+              {t('games.casino.dont_show')}
             </p>
           </div>
         )}
@@ -202,7 +201,7 @@ const CasinoPlayer = () => {
           variant="outline"
           className="w-full h-12 mb-4"
         >
-          {showOthers ? "Скрыть других" : "Показать других игроков"}
+          {showOthers ? t('games.casino.hide_others') : t('games.casino.show_others')}
         </Button>
 
         {showOthers && (
@@ -223,9 +222,9 @@ const CasinoPlayer = () => {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-muted-foreground">
-            Комбинация состоит из символов игроков.
+            {t('games.casino.combination_info')}
             <br />
-            Один символ может повторяться!
+            {t('games.casino.can_repeat')}
           </p>
         </div>
       </div>

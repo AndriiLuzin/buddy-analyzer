@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const MafiaCreate = () => {
   const [playerCount, setPlayerCount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -39,7 +41,7 @@ const MafiaCreate = () => {
   const createGame = async () => {
     const count = parseInt(playerCount);
     if (isNaN(count) || count < 4 || count > 20) {
-      toast.error("Укажите от 4 до 20 игроков");
+      toast.error(t('games.error'));
       return;
     }
 
@@ -87,7 +89,7 @@ const MafiaCreate = () => {
       navigate(`/games/mafia/${code}`);
     } catch (error) {
       console.error(error);
-      toast.error("Ошибка создания игры");
+      toast.error(t('games.create_error'));
     } finally {
       setIsCreating(false);
     }
@@ -101,20 +103,20 @@ const MafiaCreate = () => {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Назад
+          {t('games.back')}
         </Link>
 
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 text-center">
-          МАФИЯ
+          {t('games.mafia.title')}
         </h1>
         <p className="text-muted-foreground text-sm text-center mb-12">
-          Город засыпает, просыпается мафия
+          {t('games.mafia.description')}
         </p>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wider text-muted-foreground">
-              Количество игроков
+              {t('games.player_count')}
             </label>
             <Input
               type="number"
@@ -122,12 +124,12 @@ const MafiaCreate = () => {
               max={20}
               value={playerCount}
               onChange={(e) => setPlayerCount(e.target.value)}
-              placeholder="4-20"
+              placeholder={t('games.mafia.players_range')}
               className="text-center text-2xl h-16 font-bold"
             />
             {playerCount && parseInt(playerCount) >= 4 && (
               <p className="text-xs text-muted-foreground text-center">
-                Мафии: {getMafiaCount(parseInt(playerCount))} | Мирных:{" "}
+                {t('games.mafia.mafia_count')}: {getMafiaCount(parseInt(playerCount))} | {t('games.mafia.civilians_count')}:{" "}
                 {parseInt(playerCount) - getMafiaCount(parseInt(playerCount))}
               </p>
             )}
@@ -138,15 +140,13 @@ const MafiaCreate = () => {
             disabled={isCreating || !playerCount}
             className="w-full h-14 text-lg font-bold uppercase tracking-wider"
           >
-            {isCreating ? "Создание..." : "Создать игру"}
+            {isCreating ? t('games.creating') : t('games.create_game')}
           </Button>
         </div>
 
         <div className="mt-16 text-center">
           <p className="text-xs text-muted-foreground">
-            Мафия убивает мирных жителей.
-            <br />
-            Мирные должны найти и казнить мафию.
+            {t('games.mafia.instruction')}
           </p>
         </div>
       </div>
