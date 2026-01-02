@@ -8,7 +8,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { FloatingActionMenu } from './FloatingActionMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
-import { Search, UserPlus, X, Bell, Shield } from 'lucide-react';
+import { Search, UserPlus, X, Bell, Shield, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FriendListScreenProps {
@@ -102,6 +102,12 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
               <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
             </button>
             <ThemeToggle />
+            <button 
+              onClick={onViewProfile}
+              className="p-2 hover:opacity-70 transition-opacity"
+            >
+              <User className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
