@@ -7,8 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FloatingActionMenu } from '@/components/FloatingActionMenu';
-import { CreateMeetingModal } from '@/components/CreateMeetingModal';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -41,8 +39,6 @@ export default function Meetings() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showCreateMeetingModal, setShowCreateMeetingModal] = useState(false);
   const [showMeetingDetail, setShowMeetingDetail] = useState<Meeting | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -124,9 +120,8 @@ export default function Meetings() {
     fetchMeetings();
   };
 
-  const openCreateModal = (date: Date) => {
-    setSelectedDate(date);
-    setShowCreateMeetingModal(true);
+  const openCreatePage = (date?: Date) => {
+    navigate('/meetings/create', { state: date ? { date: date.toISOString() } : undefined });
   };
 
   // Calendar logic
@@ -223,7 +218,7 @@ export default function Meetings() {
               <Calendar className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setShowCreateMeetingModal(true)}
+              onClick={() => openCreatePage()}
               className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-5 h-5" />
@@ -295,7 +290,7 @@ export default function Meetings() {
                           setShowMeetingDetail(dayMeetings[0]);
                         } else if (!isPast) {
                           setShowCalendar(false);
-                          openCreateModal(day);
+                          openCreatePage(day);
                         }
                       }}
                       disabled={isPast && !hasMeetings}
@@ -436,27 +431,10 @@ export default function Meetings() {
         onClose={() => setShowMeetingDetail(null)}
         onReschedule={() => {
           setShowMeetingDetail(null);
-          setShowCreateMeetingModal(true);
+          openCreatePage();
         }}
         onDelete={handleDeleteMeeting}
       />
-
-      {/* Create Meeting Modal (new step-by-step flow) */}
-      <CreateMeetingModal
-        isOpen={showCreateMeetingModal}
-        onClose={() => {
-          setShowCreateMeetingModal(false);
-          setSelectedDate(null);
-        }}
-        preselectedDate={selectedDate}
-        onSuccess={() => {
-          setShowCreateMeetingModal(false);
-          setSelectedDate(null);
-          fetchMeetings();
-        }}
-      />
-
-      <FloatingActionMenu />
     </div>
   );
 }
