@@ -330,7 +330,7 @@ export default function Chat() {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isDemo ? 'Демо-режим...' : t('chat.placeholder')}
-            className="flex-1"
+            className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={loading || isDemo}
           />
           <Button
