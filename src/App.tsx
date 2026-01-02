@@ -13,6 +13,7 @@ import Groups from "./pages/Groups";
 import GroupCreate from "./pages/GroupCreate";
 import GroupEdit from "./pages/GroupEdit";
 import Meetings from "./pages/Meetings";
+import MeetingCreate from "./pages/MeetingCreate";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
@@ -46,6 +47,7 @@ const App = () => {
                 <Route path="/groups/create" element={<GroupCreate />} />
                 <Route path="/groups/:groupId/edit" element={<GroupEdit />} />
                 <Route path="/meetings" element={<Meetings />} />
+                <Route path="/meetings/create" element={<MeetingCreate />} />
                 <Route path="/share" element={<Share />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
