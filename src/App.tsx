@@ -8,7 +8,6 @@ import { LanguageProvider } from "./i18n/LanguageContext";
 import { Capacitor } from "@capacitor/core";
 import Index from "./pages/Index";
 import Chats from "./pages/Chats";
-import NotificationsPage from "./pages/Notifications";
 import Groups from "./pages/Groups";
 import GroupCreate from "./pages/GroupCreate";
 import GroupEdit from "./pages/GroupEdit";
@@ -22,17 +21,18 @@ import FriendDateEdit from "./pages/FriendDateEdit";
 import FriendActions from "./pages/FriendActions";
 import Share from "./pages/Share";
 import Chat from "./pages/Chat";
-import Games from "./pages/Games";
-import SpyGame from "./pages/games/SpyGame";
-import CrocodileGame from "./pages/games/CrocodileGame";
-import WhoAmIGame from "./pages/games/WhoAmIGame";
+import GamesHome from "./pages/games/GamesHome";
+import ImpostorCreate from "./pages/games/ImpostorCreate";
+import ImpostorGame from "./pages/games/ImpostorGame";
+import ImpostorPlayer from "./pages/games/ImpostorPlayer";
+import MafiaCreate from "./pages/games/MafiaCreate";
+import MafiaGame from "./pages/games/MafiaGame";
+import MafiaPlayer from "./pages/games/MafiaPlayer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Capacitor runs from file://, so BrowserRouter history API routing is unreliable there.
-  // HashRouter keeps deep-links working on iOS/Android out of the box.
   const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
 
   return (
@@ -57,10 +57,14 @@ const App = () => {
                 <Route path="/meetings" element={<Meetings />} />
                 <Route path="/meetings/create" element={<MeetingCreate />} />
                 <Route path="/share" element={<Share />} />
-                <Route path="/games" element={<Games />} />
-                <Route path="/games/spy" element={<SpyGame />} />
-                <Route path="/games/crocodile" element={<CrocodileGame />} />
-                <Route path="/games/whoami" element={<WhoAmIGame />} />
+                {/* Games */}
+                <Route path="/games" element={<GamesHome />} />
+                <Route path="/games/impostor" element={<ImpostorCreate />} />
+                <Route path="/games/impostor/:code" element={<ImpostorGame />} />
+                <Route path="/games/impostor-play/:code" element={<ImpostorPlayer />} />
+                <Route path="/games/mafia" element={<MafiaCreate />} />
+                <Route path="/games/mafia/:code" element={<MafiaGame />} />
+                <Route path="/games/mafia-play/:code" element={<MafiaPlayer />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />
