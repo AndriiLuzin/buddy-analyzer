@@ -84,28 +84,28 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <button 
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              className="p-2 hover:opacity-70 transition-opacity"
             >
               {isSearchOpen ? (
-                <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                <X className="w-5 h-5 text-muted-foreground" />
               ) : (
-                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                <Search className="w-5 h-5 text-muted-foreground" />
               )}
             </button>
             {isAdmin && (
               <button 
                 onClick={() => navigate('/admin')}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                className="p-2 hover:opacity-70 transition-opacity"
               >
-                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                <Shield className="w-5 h-5 text-primary" />
               </button>
             )}
             <button 
               onClick={() => navigate('/notifications')}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors relative"
+              className="p-2 hover:opacity-70 transition-opacity relative"
             >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-destructive rounded-full" />
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
             </button>
             <ThemeToggle />
           </div>
