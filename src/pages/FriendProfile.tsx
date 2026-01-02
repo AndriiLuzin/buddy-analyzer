@@ -92,6 +92,27 @@ export default function FriendProfile() {
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
   };
 
+  const getBirthdayInfo = (birthdayString?: string) => {
+    if (!birthdayString) return null;
+    const today = new Date();
+    const birthday = new Date(birthdayString);
+    const thisYearBirthday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+    
+    if (thisYearBirthday < today) {
+      thisYearBirthday.setFullYear(today.getFullYear() + 1);
+    }
+    
+    const daysUntil = Math.ceil((thisYearBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const formattedDate = thisYearBirthday.toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    
+    return { daysUntil, formattedDate };
+  };
+
   const handleActionsClick = () => {
     navigate(`/friend/${friendId}/actions`);
   };
@@ -175,12 +196,26 @@ export default function FriendProfile() {
               <p className="font-medium text-foreground text-base">{formatDate(friend.lastInteraction)}</p>
             </div>
           )}
-          {friend.birthday && (
-            <div className="bg-secondary/50 rounded-xl p-4">
-              <span className="text-sm text-muted-foreground">День рождения</span>
-              <p className="font-medium text-foreground text-base">{formatDate(friend.birthday)}</p>
-            </div>
-          )}
+          {friend.birthday && (() => {
+            const birthdayInfo = getBirthdayInfo(friend.birthday);
+            return birthdayInfo ? (
+              <div className="bg-secondary/50 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center shrink-0">
+                  <span className="text-2xl">🎂</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">{friend.name}</p>
+                  <p className="text-sm text-muted-foreground">{birthdayInfo.formattedDate}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xl font-bold text-foreground">{birthdayInfo.daysUntil}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {birthdayInfo.daysUntil === 0 ? 'today' : birthdayInfo.daysUntil === 1 ? 'day left' : 'days left'}
+                  </p>
+                </div>
+              </div>
+            ) : null;
+          })()}
           
           {/* Important dates section */}
           {currentUserId && (
