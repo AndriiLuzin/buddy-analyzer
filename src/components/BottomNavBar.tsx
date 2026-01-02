@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Sparkles, User, Users, Calendar } from 'lucide-react';
+import { MessageCircle, Sparkles, Gamepad2, Users, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -64,10 +64,8 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
     }
   };
 
-  const handleProfileClick = () => {
-    if (onProfileClick) {
-      onProfileClick();
-    }
+  const handleGamesClick = () => {
+    navigate('/games');
   };
 
   return (
@@ -118,12 +116,14 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
           <Calendar className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
 
-        {/* Profile */}
+        {/* Games */}
         <button
-          onClick={handleProfileClick}
-          className="p-2 sm:p-3 rounded-full text-muted-foreground hover:text-foreground transition-all"
+          onClick={handleGamesClick}
+          className={`p-2 sm:p-3 rounded-full transition-all ${
+            isActive('/games') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+          }`}
         >
-          <User className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
+          <Gamepad2 className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
       </div>
     </nav>

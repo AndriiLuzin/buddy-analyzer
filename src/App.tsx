@@ -22,6 +22,7 @@ import FriendDateEdit from "./pages/FriendDateEdit";
 import FriendActions from "./pages/FriendActions";
 import Share from "./pages/Share";
 import Chat from "./pages/Chat";
+import Games from "./pages/Games";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => {
                 <Route path="/meetings" element={<Meetings />} />
                 <Route path="/meetings/create" element={<MeetingCreate />} />
                 <Route path="/share" element={<Share />} />
+                <Route path="/games" element={<Games />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />
