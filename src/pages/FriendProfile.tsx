@@ -4,7 +4,6 @@ import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, MessageCircle, Calendar, Sparkles, Send, Gift } from 'lucide-react';
-import { ChatModal } from '@/components/ChatModal';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,7 +20,6 @@ export default function FriendProfile() {
   const navigate = useNavigate();
   const [friend, setFriend] = useState<Friend | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
 
@@ -100,7 +98,7 @@ export default function FriendProfile() {
 
   const handleChatClick = () => {
     if (friend.friendUserId) {
-      setIsChatOpen(true);
+      navigate('/chats', { state: { selectedFriendId: friend.friendUserId } });
     }
   };
 
@@ -220,14 +218,6 @@ export default function FriendProfile() {
         </div>
       </div>
 
-      {/* Chat Modal */}
-      <ChatModal
-        friend={friend}
-        friendUserId={friend.friendUserId || null}
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        currentUserId={currentUserId}
-      />
     </div>
   );
 }

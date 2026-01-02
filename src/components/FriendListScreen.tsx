@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory, UserProfile } from '../types';
 import { FriendCardItem } from './FriendCardItem';
@@ -6,12 +6,10 @@ import { BirthdayReminder } from './BirthdayReminder';
 
 import { CategoryFilter } from './CategoryFilter';
 import { FloatingActionMenu } from './FloatingActionMenu';
-import { ShareModal } from './ShareModal';
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
 import { Search, UserPlus, X, Bell, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useState as useStateHook, useEffect as useEffectHook } from 'react';
 
 interface FriendListScreenProps {
   friends: Friend[];
@@ -26,13 +24,12 @@ const ADMIN_EMAILS = ['andrii@luzin.ca'];
 export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<FriendCategory | 'all'>('all');
-  const [isShareOpen, setIsShareOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Проверяем админ доступ
-  useEffectHook(() => {
+  useEffect(() => {
     const checkAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && ADMIN_EMAILS.includes(session.user.email || '')) {
@@ -178,16 +175,8 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
 
       {/* Floating Action Menu */}
       <FloatingActionMenu
-        onAnalyzeClick={() => setIsShareOpen(true)}
+        onAnalyzeClick={() => navigate('/share')}
         onProfileClick={onViewProfile}
-      />
-
-
-      {/* Share Modal */}
-      <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        userId={userId}
       />
     </div>
   );
