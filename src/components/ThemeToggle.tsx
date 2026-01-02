@@ -1,13 +1,14 @@
-import { Moon, Sun, Briefcase } from 'lucide-react';
+import { Moon, Sun, Briefcase, Building2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useRef, useEffect } from 'react';
 
-type ThemeOption = 'light' | 'dark' | 'business';
+type ThemeOption = 'light' | 'dark' | 'business' | 'business-dark';
 
 const themes: { value: ThemeOption; icon: typeof Sun; label: string }[] = [
   { value: 'light', icon: Sun, label: 'Светлая' },
   { value: 'dark', icon: Moon, label: 'Тёмная' },
   { value: 'business', icon: Briefcase, label: 'Бизнес' },
+  { value: 'business-dark', icon: Building2, label: 'Бизнес тёмная' },
 ];
 
 export const ThemeToggle = () => {
