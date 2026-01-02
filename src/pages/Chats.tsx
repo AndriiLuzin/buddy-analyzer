@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingActionMenu } from '@/components/FloatingActionMenu';
@@ -13,6 +13,7 @@ import { Friend } from '@/types';
 const Chats = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
@@ -47,11 +48,24 @@ const Chats = () => {
           friendUserId: f.friend_user_id
         }));
         setFriends(mappedFriends);
+
+        // Auto-open chat if navigated from friend profile
+        const state = location.state as { selectedFriendId?: string } | null;
+        if (state?.selectedFriendId) {
+          const friendToOpen = mappedFriends.find(f => f.friendUserId === state.selectedFriendId);
+          if (friendToOpen) {
+            setSelectedFriend(friendToOpen);
+            setSelectedFriendUserId(state.selectedFriendId);
+            setChatModalOpen(true);
+          }
+          // Clear the state to prevent re-opening on refresh
+          window.history.replaceState({}, document.title);
+        }
       }
     };
 
     fetchData();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const handleSelectChat = (friend: Friend, friendUserId: string) => {
     setSelectedFriend(friend);
