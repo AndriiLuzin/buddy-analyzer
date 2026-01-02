@@ -141,8 +141,60 @@
     --shadow-glow: none;
   }
 
-  /* Business theme uses Inter font and adds borders */
-  .business body {
+  /* Business Dark Theme - Strict Professional Style */
+  .business-dark {
+    --background: 0 0% 8%;
+    --foreground: 0 0% 92%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 92%;
+
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 8%;
+
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 88%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 0 0% 85%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 30%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 80%;
+
+    /* No rounded corners */
+    --radius: 0rem;
+
+    /* Category colors - monochrome business style */
+    --category-soul-mate: 0 0% 85%;
+    --category-close-friend: 0 0% 75%;
+    --category-good-buddy: 0 0% 65%;
+    --category-situational: 0 0% 55%;
+    --category-distant: 0 0% 45%;
+
+    /* No gradients - solid colors */
+    --gradient-main: hsl(0 0% 8%);
+    --gradient-card: hsl(0 0% 12%);
+    --gradient-primary: hsl(0 0% 90%);
+
+    /* Minimal shadows */
+    --shadow-soft: none;
+    --shadow-card: none;
+    --shadow-glow: none;
+  }
+
+  /* Business themes use Inter font and adds borders */
+  .business body,
+  .business-dark body {
     font-family: 'Inter', system-ui, sans-serif;
   }
 
@@ -150,19 +202,27 @@
   .business .card,
   .business [class*="card"],
   .business .glass,
-  .business .glass-strong {
-    border: 1px solid hsl(0 0% 75%);
+  .business .glass-strong,
+  .business-dark .card,
+  .business-dark [class*="card"],
+  .business-dark .glass,
+  .business-dark .glass-strong {
+    border: 1px solid hsl(var(--border));
     border-radius: 0;
     box-shadow: none;
   }
 
-  .business button {
+  .business button,
+  .business-dark button {
     border-radius: 0;
   }
 
   .business input,
   .business textarea,
-  .business select {
+  .business select,
+  .business-dark input,
+  .business-dark textarea,
+  .business-dark select {
     border-radius: 0;
   }
 }
