@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory, UserProfile } from '../types';
-import { FriendCard } from './FriendCard';
+import { FriendCardItem } from './FriendCardItem';
 import { BirthdayReminder } from './BirthdayReminder';
 
 import { CategoryFilter } from './CategoryFilter';
@@ -147,16 +147,16 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
                     {categoryInfo.label}
                   </h3>
                   
-                  {/* Friends in this category */}
-                  <div className="space-y-2">
+                  {/* Friends in this category - single card container */}
+                  <div className="glass rounded-2xl overflow-hidden divide-y divide-border/50">
                     {group.friends.map((friend, index) => (
-                      <div key={friend.id} style={{ animationDelay: `${index * 0.05}s` }}>
-                        <FriendCard
-                          friend={friend}
-                          onClick={() => handleFriendClick(friend)}
-                          isMatch={isMatch(friend)}
-                        />
-                      </div>
+                      <FriendCardItem
+                        key={friend.id}
+                        friend={friend}
+                        onClick={() => handleFriendClick(friend)}
+                        isMatch={isMatch(friend)}
+                        animationDelay={index * 0.05}
+                      />
                     ))}
                   </div>
                 </div>
