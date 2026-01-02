@@ -14,6 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
+      casino_games: {
+        Row: {
+          code: string
+          created_at: string
+          current_combination: string[] | null
+          current_round: number | null
+          guesser_index: number | null
+          guesses_in_round: number | null
+          id: string
+          player_count: number
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_combination?: string[] | null
+          current_round?: number | null
+          guesser_index?: number | null
+          guesses_in_round?: number | null
+          id?: string
+          player_count: number
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_combination?: string[] | null
+          current_round?: number | null
+          guesser_index?: number | null
+          guesses_in_round?: number | null
+          id?: string
+          player_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      casino_players: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          player_index: number
+          symbol: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          player_index: number
+          symbol: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_index?: number
+          symbol?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casino_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "casino_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crocodile_games: {
+        Row: {
+          code: string
+          created_at: string
+          current_guesser: number | null
+          current_player: number | null
+          current_word_id: string | null
+          id: string
+          player_count: number
+          round: number | null
+          showing_player: number | null
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_guesser?: number | null
+          current_player?: number | null
+          current_word_id?: string | null
+          id?: string
+          player_count: number
+          round?: number | null
+          showing_player?: number | null
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_guesser?: number | null
+          current_player?: number | null
+          current_word_id?: string | null
+          id?: string
+          player_count?: number
+          round?: number | null
+          showing_player?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crocodile_games_current_word_id_fkey"
+            columns: ["current_word_id"]
+            isOneToOne: false
+            referencedRelation: "crocodile_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crocodile_players: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          player_index: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          player_index: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crocodile_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "crocodile_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crocodile_words: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          word: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          word: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          word?: string
+        }
+        Relationships: []
+      }
       friend_dates: {
         Row: {
           created_at: string
@@ -99,6 +264,71 @@ export type Database = {
           owner_id?: string
         }
         Relationships: []
+      }
+      game_words: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          word: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          word: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          word?: string
+        }
+        Relationships: []
+      }
+      games: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          impostor_index: number
+          player_count: number
+          starting_player: number | null
+          status: string
+          views_count: number | null
+          word_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          impostor_index: number
+          player_count: number
+          starting_player?: number | null
+          status?: string
+          views_count?: number | null
+          word_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          impostor_index?: number
+          player_count?: number
+          starting_player?: number | null
+          status?: string
+          views_count?: number | null
+          word_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "game_words"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_members: {
         Row: {
@@ -200,6 +430,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      mafia_games: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          mafia_count: number
+          player_count: number
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          mafia_count: number
+          player_count: number
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          mafia_count?: number
+          player_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      mafia_players: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          player_index: number
+          role: string
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          player_index: number
+          role: string
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_index?: number
+          role?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mafia_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "mafia_games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meeting_participants: {
         Row: {
@@ -333,6 +625,35 @@ export type Database = {
         }
         Relationships: []
       }
+      player_views: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          player_index: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          player_index: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_views_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           birthday: string | null
@@ -398,6 +719,125 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      whoami_characters: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      whoami_games: {
+        Row: {
+          code: string
+          created_at: string
+          guesser_index: number
+          id: string
+          player_count: number
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          guesser_index: number
+          id?: string
+          player_count: number
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          guesser_index?: number
+          id?: string
+          player_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      whoami_players: {
+        Row: {
+          character_id: string | null
+          created_at: string
+          game_id: string
+          guessed: boolean | null
+          id: string
+          player_index: number
+        }
+        Insert: {
+          character_id?: string | null
+          created_at?: string
+          game_id: string
+          guessed?: boolean | null
+          id?: string
+          player_index: number
+        }
+        Update: {
+          character_id?: string | null
+          created_at?: string
+          game_id?: string
+          guessed?: boolean | null
+          id?: string
+          player_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whoami_players_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "whoami_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whoami_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "whoami_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whoami_views: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          player_index: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          player_index: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whoami_views_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "whoami_games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
