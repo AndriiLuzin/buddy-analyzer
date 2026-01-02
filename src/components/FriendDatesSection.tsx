@@ -150,12 +150,53 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
   };
 
   const getDateTypeInfo = (type: string) => {
-    return DATE_TYPES.find(t => t.value === type) || DATE_TYPES[2];
+    return DATE_TYPES.find(t => t.value === type) || DATE_TYPES[DATE_TYPES.length - 1];
+  };
+
+  const getDateEmoji = (type: string) => {
+    const emojiMap: Record<string, string> = {
+      birthday: '🎂',
+      anniversary: '💍',
+      nameday: '📅',
+      graduation: '🎓',
+      new_year: '🎄',
+      valentine: '❤️',
+      mothers_day: '💐',
+      fathers_day: '👔',
+      professional: '💼',
+      memorial: '🕯️',
+      other: '📆',
+    };
+    return emojiMap[type] || '📆';
+  };
+
+  const getDaysUntil = (dateStr: string) => {
+    const today = new Date();
+    const date = new Date(dateStr);
+    const thisYearDate = new Date(today.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (thisYearDate < today) {
+      thisYearDate.setFullYear(today.getFullYear() + 1);
+    }
+    
+    return Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   const formatDisplayDate = (dateStr: string) => {
+    const today = new Date();
     const date = new Date(dateStr);
-    return format(date, 'd MMMM', { locale: ru });
+    const thisYearDate = new Date(today.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (thisYearDate < today) {
+      thisYearDate.setFullYear(today.getFullYear() + 1);
+    }
+    
+    return thisYearDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   if (loading) {
@@ -186,32 +227,33 @@ export const FriendDatesSection = ({ friendId, ownerId }: FriendDatesSectionProp
         <div className="space-y-3 mt-3">
           {dates.map(date => {
             const typeInfo = getDateTypeInfo(date.date_type);
-            const IconComponent = typeInfo.icon;
-            const bgColor = date.date_type === 'holiday' 
-              ? 'bg-pink-50 dark:bg-pink-950/30' 
-              : date.date_type === 'anniversary'
-                ? 'bg-amber-50 dark:bg-amber-950/30'
-                : 'bg-blue-50 dark:bg-blue-950/30';
+            const emoji = getDateEmoji(date.date_type);
+            const daysUntil = getDaysUntil(date.date);
             
             return (
               <div
                 key={date.id}
-                className={cn("rounded-xl p-4", bgColor)}
+                className="bg-secondary/50 rounded-xl p-4 flex items-center gap-3"
               >
-                <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center shrink-0">
+                  <span className="text-2xl">{emoji}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">{date.title}</p>
+                  <p className="text-sm text-muted-foreground">{formatDisplayDate(date.date)}</p>
+                </div>
+                <div className="text-right shrink-0 flex items-center gap-3">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <IconComponent className={cn("w-5 h-5", typeInfo.color)} />
-                      <span className="text-sm text-muted-foreground">{typeInfo.label}</span>
-                    </div>
-                    <p className="font-medium text-foreground text-base">{date.title}</p>
-                    <p className="text-sm text-muted-foreground">{formatDisplayDate(date.date)}</p>
+                    <p className="text-xl font-bold text-foreground">{daysUntil}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {daysUntil === 0 ? 'today' : daysUntil === 1 ? 'day left' : 'days left'}
+                    </p>
                   </div>
                   <button
                     onClick={() => handleDeleteDate(date.id)}
                     className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
