@@ -87,12 +87,12 @@ export const ShareModal = ({ isOpen, onClose, userId }: ShareModalProps) => {
             >
               <QRCodeSVG 
                 value={shareUrl || 'https://example.com'} 
-                size={120}
+                size={156}
                 level="M"
                 includeMargin={false}
                 bgColor="#ffffff"
                 fgColor="#1a1a1a"
-                className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px]"
+                className="w-[130px] h-[130px] sm:w-[182px] sm:h-[182px]"
               />
             </a>
             <p className="text-xs sm:text-sm text-muted-foreground text-center">
