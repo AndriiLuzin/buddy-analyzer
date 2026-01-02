@@ -74,14 +74,8 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <div className="min-w-0 flex items-center gap-2">
-            <img src="/pwa-192x192.png" alt="FriendSync" className="w-8 h-8 rounded-lg" />
-            <div>
-              <h1 className="text-lg font-bold text-foreground">FriendSync</h1>
-              <p className="text-xs text-muted-foreground">
-                {friends.length} {friends.length === 1 ? 'друг' : friends.length < 5 ? 'друга' : 'друзей'}
-              </p>
-            </div>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-foreground">BuddyBe</h1>
           </div>
           
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
