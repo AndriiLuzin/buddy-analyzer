@@ -123,7 +123,7 @@ export default function FriendProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
       {/* Header with gradient */}
       <div className={`bg-gradient-to-br ${gradient} p-4 sm:p-6 pb-16 sm:pb-20 relative`}>
         <div className="flex items-center justify-between pt-[env(safe-area-inset-top)]">
