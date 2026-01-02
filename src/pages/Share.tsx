@@ -101,28 +101,34 @@ export default function Share() {
             </div>
           </div>
 
-          {/* QR Card */}
-          <div className="bg-white rounded-3xl p-6 pt-14 shadow-2xl">
-            <div className="flex justify-center mb-4">
-              <QRCodeSVG 
-                value={shareUrl || 'https://buddybe.app'} 
-                size={200}
-                level="M"
-                includeMargin={false}
-                bgColor="#ffffff"
-                fgColor="#1e40af"
-                imageSettings={{
-                  src: '',
-                  height: 0,
-                  width: 0,
-                  excavate: false,
-                }}
-                className="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px]"
-              />
+          {/* QR Card with animated gradient border */}
+          <div className="relative">
+            {/* Animated gradient border */}
+            <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-75 blur-sm animate-gradient-rotate" />
+            <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-rotate" />
+            
+            <div className="relative bg-white rounded-3xl p-6 pt-14 shadow-2xl">
+              <div className="flex justify-center mb-4">
+                <QRCodeSVG 
+                  value={shareUrl || 'https://buddybe.app'} 
+                  size={200}
+                  level="M"
+                  includeMargin={false}
+                  bgColor="#ffffff"
+                  fgColor="#1e40af"
+                  imageSettings={{
+                    src: '',
+                    height: 0,
+                    width: 0,
+                    excavate: false,
+                  }}
+                  className="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px]"
+                />
+              </div>
+              <p className="text-center text-xl font-bold text-blue-900">
+                @{userName || 'BuddyBe'}
+              </p>
             </div>
-            <p className="text-center text-xl font-bold text-blue-900">
-              @{userName || 'BuddyBe'}
-            </p>
           </div>
         </div>
       </main>
