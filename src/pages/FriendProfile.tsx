@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, MessageCircle, Calendar, Sparkles, Send, Gift } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Sparkles, Send } from 'lucide-react';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
 
