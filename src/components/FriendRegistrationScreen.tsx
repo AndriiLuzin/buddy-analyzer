@@ -134,7 +134,7 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
           <Button
             type="submit"
             disabled={!firstName || !lastName || !birthday}
-            className="w-full h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
+            className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
           >
             <span>{t('friend_reg.continue') || 'Continue to Quiz'}</span>
             <ArrowRight className="w-5 h-5 ml-2" />

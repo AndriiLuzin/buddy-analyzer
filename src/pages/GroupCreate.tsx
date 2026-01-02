@@ -201,7 +201,7 @@ export default function GroupCreate() {
 
         <Button 
           onClick={handleCreateGroup} 
-          className="w-full" 
+          className="w-full h-14 rounded-2xl text-base font-semibold" 
           disabled={!newGroupName.trim() || loading}
         >
           {loading ? 'Создание...' : 'Создать группу'}

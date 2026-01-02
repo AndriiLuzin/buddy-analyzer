@@ -66,7 +66,7 @@ export const CreateAccountPrompt = ({ onCreateAccount, onSkip, referrerName }: C
         <div className="space-y-3">
           <Button
             onClick={onCreateAccount}
-            className="w-full h-14 rounded-xl text-base font-medium bg-primary hover:bg-primary/90"
+            className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90"
           >
             <UserPlus className="w-5 h-5 mr-2" />
             {t('account_prompt.create_account')}

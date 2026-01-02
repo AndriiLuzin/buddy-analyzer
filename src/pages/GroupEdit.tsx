@@ -145,7 +145,7 @@ export default function GroupEdit() {
 
         <Button 
           onClick={handleUpdateGroup} 
-          className="w-full"
+          className="w-full h-14 rounded-2xl text-base font-semibold"
           disabled={!groupName.trim() || saving}
         >
           {saving ? 'Сохранение...' : 'Сохранить'}
@@ -160,7 +160,7 @@ export default function GroupEdit() {
               onMouseLeave={cancelDeleteHold}
               onTouchStart={startDeleteHold}
               onTouchEnd={cancelDeleteHold}
-              className="w-full overflow-hidden"
+              className="w-full h-14 rounded-2xl text-base font-semibold overflow-hidden"
             >
               {isDeleting && (
                 <div 

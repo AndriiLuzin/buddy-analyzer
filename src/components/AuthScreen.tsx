@@ -290,7 +290,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
+                  className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
+                className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
