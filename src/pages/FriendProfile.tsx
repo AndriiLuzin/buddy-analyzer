@@ -189,24 +189,23 @@ export default function FriendProfile() {
         </div>
 
         {/* Actions - Fixed at bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border safe-area-bottom">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background safe-area-bottom">
           <div className="flex gap-3 max-w-lg mx-auto">
-            <Button 
+            <button 
               onClick={handleActionsClick}
-              variant="outline"
-              className="flex-1 h-12 rounded-xl font-medium"
+              className="flex-1 h-14 rounded-2xl border-2 border-primary bg-transparent text-primary font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
+              <MessageCircle className="w-5 h-5" />
               Действия
-            </Button>
+            </button>
             {friend.friendUserId && (
-              <Button 
+              <button 
                 onClick={handleChatClick}
-                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
               >
-                <Send className="w-5 h-5 mr-2" />
+                <Send className="w-5 h-5" />
                 Написать
-              </Button>
+              </button>
             )}
           </div>
         </div>
