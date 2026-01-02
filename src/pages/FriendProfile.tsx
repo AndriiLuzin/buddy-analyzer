@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
-import { ArrowLeft, Heart, MessageCircle, Sparkles, Send } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Send, Plus } from 'lucide-react';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,6 +21,7 @@ export default function FriendProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchFriend = async () => {
@@ -134,7 +135,12 @@ export default function FriendProfile() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-white text-lg font-semibold">{friend.name}</h1>
-          <div className="w-10" />
+          <button
+            onClick={() => setIsDateModalOpen(true)}
+            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -212,7 +218,12 @@ export default function FriendProfile() {
           
           {/* Important dates section */}
           {currentUserId && (
-            <FriendDatesSection friendId={friend.id} ownerId={currentUserId} />
+            <FriendDatesSection 
+              friendId={friend.id} 
+              ownerId={currentUserId}
+              isModalOpen={isDateModalOpen}
+              onModalOpenChange={setIsDateModalOpen}
+            />
           )}
         </div>
 
