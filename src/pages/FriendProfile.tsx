@@ -98,7 +98,7 @@ export default function FriendProfile() {
 
   const handleChatClick = () => {
     if (friend.friendUserId) {
-      navigate('/chats', { state: { selectedFriendId: friend.friendUserId } });
+      navigate('/chat', { state: { friend, friendUserId: friend.friendUserId } });
     }
   };
 

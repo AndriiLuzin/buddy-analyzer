@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
 import FriendActions from "./pages/FriendActions";
 import Share from "./pages/Share";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="/friend/:friendId" element={<FriendProfile />} />
                 <Route path="/friend/:friendId/actions" element={<FriendActions />} />
                 <Route path="/chats" element={<Chats />} />
+                <Route path="/chat" element={<Chat />} />
                 <Route path="/groups" element={<Groups />} />
                 <Route path="/meetings" element={<Meetings />} />
                 <Route path="/share" element={<Share />} />
