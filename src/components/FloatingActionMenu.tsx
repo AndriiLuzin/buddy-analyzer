@@ -84,12 +84,6 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       active: isActive('/groups')
     },
     {
-      icon: Bell,
-      label: 'Уведомления',
-      onClick: () => navigate('/notifications'),
-      active: isActive('/notifications')
-    },
-    {
       icon: Calendar,
       label: 'Встречи',
       onClick: () => navigate('/meetings'),
