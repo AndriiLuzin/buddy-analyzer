@@ -45,9 +45,6 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
       <div className="flex-1 text-left min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="font-semibold text-foreground truncate">{friend.name}</h3>
-          {categoryInfo && (
-            <span className="text-lg">{categoryInfo.emoji}</span>
-          )}
         </div>
         <p className="text-sm text-muted-foreground truncate">
           {friend.description || (friend.category ? getCategoryLabel(friend.category) : t('friends.awaiting_analysis'))}
@@ -59,7 +56,6 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
         {friend.matchScore !== undefined && friend.matchScore > 0 && (
           <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary">
             <span className="text-xs font-bold">{friend.matchScore}%</span>
-            <span className="text-xs">💫</span>
           </div>
         )}
         {friend.category && (
