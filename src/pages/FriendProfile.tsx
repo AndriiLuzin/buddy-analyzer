@@ -120,7 +120,7 @@ export default function FriendProfile() {
 
       {/* Avatar overlay */}
       <div className="flex justify-center -mt-12 sm:-mt-14 relative z-10">
-        <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background flex items-center justify-center text-white font-bold text-2xl sm:text-3xl bg-gradient-to-br ${gradient} shadow-lg ${isMatch ? 'animate-pulse-glow' : ''}`}>
+        <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background flex items-center justify-center text-white font-bold text-2xl sm:text-3xl bg-gradient-to-br ${gradient} shadow-lg`}>
           {initials}
         </div>
       </div>
