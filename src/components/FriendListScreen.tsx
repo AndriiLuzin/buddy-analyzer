@@ -5,7 +5,7 @@ import { FriendCardItem } from './FriendCardItem';
 import { BirthdayReminder } from './BirthdayReminder';
 
 import { CategoryFilter } from './CategoryFilter';
-import { FloatingActionMenu } from './FloatingActionMenu';
+
 import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
 import { Search, UserPlus, X, Bell, Shield } from 'lucide-react';
@@ -172,12 +172,6 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
           )}
         </div>
       </main>
-
-      {/* Floating Action Menu */}
-      <FloatingActionMenu
-        onAnalyzeClick={() => navigate('/share')}
-        onProfileClick={onViewProfile}
-      />
     </div>
   );
 };
