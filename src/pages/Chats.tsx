@@ -4,7 +4,6 @@ import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingActionMenu } from '@/components/FloatingActionMenu';
 import { ChatList } from '@/components/ChatList';
-import { ChatModal } from '@/components/ChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -16,9 +15,6 @@ const Chats = () => {
   const location = useLocation();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-  const [selectedFriendUserId, setSelectedFriendUserId] = useState<string | null>(null);
-  const [chatModalOpen, setChatModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,12 +50,11 @@ const Chats = () => {
         if (state?.selectedFriendId) {
           const friendToOpen = mappedFriends.find(f => f.friendUserId === state.selectedFriendId);
           if (friendToOpen) {
-            setSelectedFriend(friendToOpen);
-            setSelectedFriendUserId(state.selectedFriendId);
-            setChatModalOpen(true);
+            navigate('/chat', { 
+              state: { friend: friendToOpen, friendUserId: state.selectedFriendId },
+              replace: true 
+            });
           }
-          // Clear the state to prevent re-opening on refresh
-          window.history.replaceState({}, document.title);
         }
       }
     };
@@ -68,21 +63,13 @@ const Chats = () => {
   }, [navigate, location.state]);
 
   const handleSelectChat = (friend: Friend, friendUserId: string) => {
-    setSelectedFriend(friend);
-    setSelectedFriendUserId(friendUserId);
-    setChatModalOpen(true);
-  };
-
-  const handleCloseChat = () => {
-    setChatModalOpen(false);
-    setSelectedFriend(null);
-    setSelectedFriendUserId(null);
+    navigate('/chat', { state: { friend, friendUserId } });
   };
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      <header className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -112,15 +99,6 @@ const Chats = () => {
 
       {/* Floating Action Menu */}
       <FloatingActionMenu />
-
-      {/* Chat Modal */}
-      <ChatModal
-        friend={selectedFriend}
-        friendUserId={selectedFriendUserId}
-        isOpen={chatModalOpen}
-        onClose={handleCloseChat}
-        currentUserId={currentUserId}
-      />
     </div>
   );
 };
