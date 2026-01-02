@@ -151,7 +151,7 @@ export default function FriendProfile() {
       </div>
 
       {/* Content */}
-      <div className="px-4 sm:px-6 pt-4 pb-24">
+      <div className="px-4 sm:px-6 pt-4 pb-8">
         {/* Category badges */}
         <div className="text-center mb-6">
           <div className="flex flex-wrap justify-center gap-2">
@@ -224,26 +224,24 @@ export default function FriendProfile() {
           )}
         </div>
 
-        {/* Actions - Fixed at bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background safe-area-bottom">
-          <div className="flex gap-3 max-w-lg mx-auto">
+        {/* Actions - Scrollable with content */}
+        <div className="flex gap-3 max-w-lg mx-auto pb-[env(safe-area-inset-bottom)]">
+          <button 
+            onClick={handleActionsClick}
+            className="flex-1 h-14 rounded-2xl border-2 border-primary bg-transparent text-primary font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Действия
+          </button>
+          {friend.friendUserId && (
             <button 
-              onClick={handleActionsClick}
-              className="flex-1 h-14 rounded-2xl border-2 border-primary bg-transparent text-primary font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+              onClick={handleChatClick}
+              className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
             >
-              <MessageCircle className="w-5 h-5" />
-              Действия
+              <Send className="w-5 h-5" />
+              Написать
             </button>
-            {friend.friendUserId && (
-              <button 
-                onClick={handleChatClick}
-                className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
-              >
-                <Send className="w-5 h-5" />
-                Написать
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
