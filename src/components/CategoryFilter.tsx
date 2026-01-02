@@ -14,10 +14,10 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
   const getCategoryLabel = (category: FriendCategory) => t(`category.${category}`);
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+    <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4">
       <button
         onClick={() => onSelectCategory('all')}
-        className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+        className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
           selectedCategory === 'all'
             ? 'bg-primary text-primary-foreground border-primary'
             : 'bg-card text-foreground border-border hover:bg-muted'
@@ -30,7 +30,7 @@ export const CategoryFilter = ({ selectedCategory, onSelectCategory }: CategoryF
         <button
           key={key}
           onClick={() => onSelectCategory(key)}
-          className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+          className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
             selectedCategory === key
               ? 'bg-primary text-primary-foreground border-primary'
               : 'bg-card text-foreground border-border hover:bg-muted'
