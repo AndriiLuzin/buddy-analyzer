@@ -72,15 +72,7 @@ export const MessageShareModal = ({
       <DialogContent className="sm:max-w-md p-0 gap-0 bg-background border rounded-2xl">
         {/* Header */}
         <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">Отправить сообщение</h3>
-            <button 
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
+          <h3 className="text-lg font-semibold text-foreground">Отправить сообщение</h3>
         </div>
 
         {/* Message preview */}
