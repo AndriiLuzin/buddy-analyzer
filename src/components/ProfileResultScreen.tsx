@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Sparkles, ArrowRight, Share2, LogOut, Mail, Settings } from 'lucide-react';
 import { FriendshipScoreGauge } from './FriendshipScoreGauge';
 import { FriendshipScoreHistory } from './FriendshipScoreHistory';
+import { ThemeToggle } from './ThemeToggle';
 import { ShareModal } from './ShareModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -73,6 +74,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
         )}
         <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
           <LanguageSelector />
+          <ThemeToggle />
           <button
             onClick={() => {}}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
