@@ -60,9 +60,9 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background overflow-y-auto">
+    <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
       {/* Scrollable content */}
-      <div className="px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
+      <div className="px-4 py-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+2rem)] animate-fade-in">
         {/* Header with user info */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         {user?.email && (
