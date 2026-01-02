@@ -3,8 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { 
   MessageCircle, 
-  Sparkles, 
-  User, 
+  Gamepad2, 
   Users, 
   Calendar, 
   Menu,
@@ -99,12 +98,13 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       active: isActive('/share')
     },
     {
-      icon: User,
-      label: 'Профиль',
+      icon: Gamepad2,
+      label: 'Игры',
       onClick: () => {
-        if (onProfileClick) onProfileClick();
+        navigate('/games');
         setIsOpen(false);
-      }
+      },
+      active: isActive('/games')
     }
   ];
 
