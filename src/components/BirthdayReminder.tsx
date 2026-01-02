@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Friend } from '../types';
-import { Cake, Gift, ChevronDown } from 'lucide-react';
+import { Cake, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BirthdayReminderProps {
