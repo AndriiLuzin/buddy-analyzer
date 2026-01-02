@@ -28,6 +28,15 @@ import ImpostorPlayer from "./pages/games/ImpostorPlayer";
 import MafiaCreate from "./pages/games/MafiaCreate";
 import MafiaGame from "./pages/games/MafiaGame";
 import MafiaPlayer from "./pages/games/MafiaPlayer";
+import CrocodileCreate from "./pages/games/CrocodileCreate";
+import CrocodileGame from "./pages/games/CrocodileGame";
+import CrocodilePlayer from "./pages/games/CrocodilePlayer";
+import WhoAmICreate from "./pages/games/WhoAmICreate";
+import WhoAmIGame from "./pages/games/WhoAmIGame";
+import WhoAmIPlayer from "./pages/games/WhoAmIPlayer";
+import CasinoCreate from "./pages/games/CasinoCreate";
+import CasinoGame from "./pages/games/CasinoGame";
+import CasinoPlayer from "./pages/games/CasinoPlayer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
