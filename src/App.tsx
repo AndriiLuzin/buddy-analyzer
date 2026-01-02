@@ -23,6 +23,9 @@ import FriendActions from "./pages/FriendActions";
 import Share from "./pages/Share";
 import Chat from "./pages/Chat";
 import Games from "./pages/Games";
+import SpyGame from "./pages/games/SpyGame";
+import CrocodileGame from "./pages/games/CrocodileGame";
+import WhoAmIGame from "./pages/games/WhoAmIGame";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +58,9 @@ const App = () => {
                 <Route path="/meetings/create" element={<MeetingCreate />} />
                 <Route path="/share" element={<Share />} />
                 <Route path="/games" element={<Games />} />
+                <Route path="/games/spy" element={<SpyGame />} />
+                <Route path="/games/crocodile" element={<CrocodileGame />} />
+                <Route path="/games/whoami" element={<WhoAmIGame />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />
