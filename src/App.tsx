@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Chats from "./pages/Chats";
 import NotificationsPage from "./pages/Notifications";
 import Groups from "./pages/Groups";
+import GroupCreate from "./pages/GroupCreate";
+import GroupEdit from "./pages/GroupEdit";
 import Meetings from "./pages/Meetings";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
@@ -41,6 +43,8 @@ const App = () => {
                 <Route path="/chats" element={<Chats />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/groups" element={<Groups />} />
+                <Route path="/groups/create" element={<GroupCreate />} />
+                <Route path="/groups/:groupId/edit" element={<GroupEdit />} />
                 <Route path="/meetings" element={<Meetings />} />
                 <Route path="/share" element={<Share />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
