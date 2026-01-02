@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const ImpostorCreate = () => {
   const [playerCount, setPlayerCount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -23,20 +25,19 @@ const ImpostorCreate = () => {
   const createGame = async () => {
     const count = parseInt(playerCount);
     if (isNaN(count) || count < 3 || count > 20) {
-      toast.error("Укажите от 3 до 20 игроков");
+      toast.error(t("games.impostor.players_range"));
       return;
     }
 
     setIsCreating(true);
 
     try {
-      // Get random word
       const { data: words, error: wordsError } = await supabase
         .from("game_words")
         .select("id");
 
       if (wordsError || !words?.length) {
-        throw new Error("Не удалось загрузить слова");
+        throw new Error(t("games.error"));
       }
 
       const randomWord = words[Math.floor(Math.random() * words.length)];
@@ -58,7 +59,7 @@ const ImpostorCreate = () => {
       navigate(`/games/impostor/${code}`);
     } catch (error) {
       console.error(error);
-      toast.error("Ошибка создания игры");
+      toast.error(t("games.create_error"));
     } finally {
       setIsCreating(false);
     }
@@ -75,16 +76,16 @@ const ImpostorCreate = () => {
 
       <div className="w-full max-w-sm animate-fade-in">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 text-center">
-          САМОЗВАНЕЦ
+          {t("games.impostor.title")}
         </h1>
         <p className="text-muted-foreground text-sm text-center mb-12">
-          Найди того, кто не знает слово
+          {t("games.impostor.description")}
         </p>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wider text-muted-foreground">
-              Количество игроков
+              {t("games.player_count")}
             </label>
             <Input
               type="number"
@@ -102,15 +103,13 @@ const ImpostorCreate = () => {
             disabled={isCreating || !playerCount}
             className="w-full h-14 text-lg font-bold uppercase tracking-wider"
           >
-            {isCreating ? "Создание..." : "Создать игру"}
+            {isCreating ? t("games.creating") : t("games.create_game")}
           </Button>
         </div>
 
         <div className="mt-16 text-center">
           <p className="text-xs text-muted-foreground">
-            Один из игроков — самозванец.
-            <br />
-            Он не знает секретное слово.
+            {t("games.impostor.instruction")}
           </p>
         </div>
       </div>
