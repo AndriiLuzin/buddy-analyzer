@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Link, Share2, Check, MessageCircle, Send } from 'lucide-react';
+import { X, Share2, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Share() {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
+  const [userInitials, setUserInitials] = useState<string>('');
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -19,6 +22,21 @@ export default function Share() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUserId(session.user.id);
+        
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (profile) {
+          const fullName = `${profile.first_name} ${profile.last_name}`.trim();
+          setUserName(fullName);
+          setUserInitials(
+            `${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase()
+          );
+        }
       }
     };
     fetchUser();
@@ -29,24 +47,6 @@ export default function Share() {
   const shareUrl = userId ? `${baseUrl}?ref=${userId}` : baseUrl;
 
   const shareMessage = t('share.message');
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      toast({
-        title: t('share.copied'),
-        description: t('share.link_copied'),
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast({
-        title: t('common.error'),
-        description: t('share.link_copied'),
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleNativeShare = async () => {
     if (navigator.share) {
@@ -66,107 +66,108 @@ export default function Share() {
     }
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast({
+        title: t('share.copied'),
+        description: t('share.link_copied'),
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: t('common.error'),
+        description: t('share.link_copied'),
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="h-[100dvh] flex flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-background px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">{t('share.title')}</h1>
-            <p className="text-sm text-muted-foreground">{t('share.subtitle')}</p>
+    <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+      {/* Pattern Background */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 chat-pattern-telegram" />
+      </div>
+
+      {/* Main Content - QR Card */}
+      <main className="flex-1 flex items-center justify-center px-6 pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 relative z-10">
+        <div className="relative w-full max-w-xs">
+          {/* Avatar on top */}
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-2xl border-4 border-background shadow-lg">
+              {userInitials || 'BB'}
+            </div>
           </div>
-        </div>
-      </header>
 
-      {/* Content */}
-      <main className="flex-1 overflow-y-auto px-4 py-6">
-        {/* QR Code */}
-        <div className="bg-secondary rounded-2xl p-6 mb-6 flex flex-col items-center">
-          <a 
-            href={shareUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="bg-white rounded-xl p-3 mb-4 shadow-soft hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <QRCodeSVG 
-              value={shareUrl || 'https://example.com'} 
-              size={156}
-              level="M"
-              includeMargin={false}
-              bgColor="#ffffff"
-              fgColor="#1a1a1a"
-              className="w-[130px] h-[130px] sm:w-[182px] sm:h-[182px]"
-            />
-          </a>
-          <p className="text-sm text-muted-foreground text-center">
-            {t('share.qr')}
-          </p>
-        </div>
-
-        {/* Share options */}
-        <div className="space-y-3 mb-6">
-          <div className="grid grid-cols-2 gap-3">
-            <a
-              href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareMessage)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 rounded-xl transition-colors"
-            >
-              <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0">
-                <Send className="w-5 h-5 text-white flex-shrink-0" />
-              </div>
-              <span className="font-medium text-foreground truncate">{t('share.telegram')}</span>
-            </a>
-
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(shareMessage + ' ' + shareUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 rounded-xl transition-colors"
-            >
-              <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-5 h-5 text-white flex-shrink-0" />
-              </div>
-              <span className="font-medium text-foreground truncate">{t('share.whatsapp')}</span>
-            </a>
+          {/* QR Card */}
+          <div className="bg-white rounded-3xl p-6 pt-14 shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <QRCodeSVG 
+                value={shareUrl || 'https://buddybe.app'} 
+                size={200}
+                level="M"
+                includeMargin={false}
+                bgColor="#ffffff"
+                fgColor="#1e40af"
+                imageSettings={{
+                  src: '',
+                  height: 0,
+                  width: 0,
+                  excavate: false,
+                }}
+                className="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px]"
+              />
+            </div>
+            <p className="text-center text-xl font-bold text-blue-900">
+              @{userName || 'BuddyBe'}
+            </p>
           </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={handleNativeShare}
-            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-          >
-            <Share2 className="w-5 h-5 mr-2" />
-            {t('nav.share')}
-          </Button>
-
-          <Button
-            onClick={handleCopyLink}
-            variant="outline"
-            className="w-full h-12 rounded-xl font-medium"
-          >
-            {copied ? (
-              <>
-                <Check className="w-5 h-5 mr-2 text-green-500" />
-                {t('share.copied')}
-              </>
-            ) : (
-              <>
-                <Link className="w-5 h-5 mr-2" />
-                {t('share.copy')}
-              </>
-            )}
-          </Button>
         </div>
       </main>
+
+      {/* Bottom Sheet */}
+      <div className="relative z-10 bg-card rounded-t-3xl border-t border-border/50 shadow-2xl">
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+          >
+            <X className="w-6 h-6 text-foreground" />
+          </button>
+          <h2 className="text-lg font-semibold text-foreground">QR Code</h2>
+          <ThemeToggle />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="px-4 pb-4 space-y-3">
+          <Button
+            onClick={handleNativeShare}
+            className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('nav.share')} QR Code
+          </Button>
+
+          <button
+            onClick={handleCopyLink}
+            className="w-full flex items-center justify-center gap-2 py-4 text-primary font-medium"
+          >
+            <QrCode className="w-5 h-5" />
+            {copied ? t('share.copied') : t('share.copy')}
+          </button>
+        </div>
+
+        {/* Safe area padding */}
+        <div className="pb-[env(safe-area-inset-bottom)]" />
+      </div>
     </div>
   );
 }
