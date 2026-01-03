@@ -26,7 +26,7 @@ export const FriendCardItem = ({ friend, onClick, isMatch, animationDelay = 0 }:
 
   const getLastContactText = () => {
     if (!friend.lastInteraction) {
-      return t('friends.no_contact_yet') || 'Ещё не общались';
+      return t('friends.no_contact_yet') || 'Нет данных';
     }
     try {
       const date = new Date(friend.lastInteraction);
@@ -35,7 +35,27 @@ export const FriendCardItem = ({ friend, onClick, isMatch, animationDelay = 0 }:
         locale: language === 'ru' ? ru : undefined 
       });
     } catch {
-      return t('friends.no_contact_yet') || 'Ещё не общались';
+      return t('friends.no_contact_yet') || 'Нет данных';
+    }
+  };
+
+  const getShortDate = () => {
+    if (!friend.lastInteraction) {
+      return '—';
+    }
+    try {
+      const date = new Date(friend.lastInteraction);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return language === 'ru' ? 'Сегодня' : 'Today';
+      if (diffDays === 1) return language === 'ru' ? 'Вчера' : 'Yesterday';
+      if (diffDays < 7) return `${diffDays} ${language === 'ru' ? 'дн.' : 'd'}`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} ${language === 'ru' ? 'нед.' : 'w'}`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} ${language === 'ru' ? 'мес.' : 'mo'}`;
+      return `${Math.floor(diffDays / 365)} ${language === 'ru' ? 'г.' : 'y'}`;
+    } catch {
+      return '—';
     }
   };
 
@@ -68,13 +88,11 @@ export const FriendCardItem = ({ friend, onClick, isMatch, animationDelay = 0 }:
         </p>
       </div>
 
-      {/* Category Badge */}
+      {/* Last Contact Date */}
       <div className="shrink-0 flex flex-col items-end gap-1">
-        {friend.category && (
-          <div className={`px-3 py-1.5 rounded-full text-xs font-medium border category-${friend.category.replace('_', '-')}`}>
-            {getCategoryLabel(friend.category).split(' ')[0]}
-          </div>
-        )}
+        <div className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/50 text-muted-foreground">
+          {getShortDate()}
+        </div>
       </div>
     </button>
   );
