@@ -55,7 +55,7 @@ const BattleshipPlayer = () => {
   const [playerIndex, setPlayerIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
+  
   const [showTurnNotification, setShowTurnNotification] = useState(false);
   const [showNameInput, setShowNameInput] = useState(false);
   const [playerName, setPlayerName] = useState("");
@@ -79,9 +79,10 @@ const BattleshipPlayer = () => {
     }
   }, [isMyTurn, gameStarted, gameEnded, isEliminated]);
 
-  const generateShips = (gridSize: number): Ship[] => {
+  // Generate ships avoiding cells already occupied by other players
+  const generateShips = (gridSize: number, occupiedCells: Set<string>): Ship[] => {
     const ships: Ship[] = [];
-    const occupied = new Set<string>();
+    const myOccupied = new Set<string>(occupiedCells);
     const sizes = [1, 2, 3];
 
     for (const size of sizes) {
@@ -104,7 +105,7 @@ const BattleshipPlayer = () => {
           const cy = horizontal ? y : y + i;
           const key = `${cx},${cy}`;
 
-          if (occupied.has(key)) {
+          if (myOccupied.has(key)) {
             valid = false;
             break;
           }
@@ -112,7 +113,7 @@ const BattleshipPlayer = () => {
         }
 
         if (valid) {
-          cells.forEach(c => occupied.add(`${c.x},${c.y}`));
+          cells.forEach(c => myOccupied.add(`${c.x},${c.y}`));
           ships.push({ x, y, size, cells });
           placed = true;
         }
@@ -199,7 +200,24 @@ const BattleshipPlayer = () => {
     
     setIsJoining(true);
     
-    const ships = generateShips(game.grid_size);
+    // Get latest players to collect all occupied cells
+    const { data: latestPlayers } = await supabase
+      .from("battleship_players")
+      .select("*")
+      .eq("game_id", game.id);
+    
+    // Collect all cells occupied by other players' ships
+    const occupiedCells = new Set<string>();
+    (latestPlayers || []).forEach(p => {
+      const ships = (p.ships as unknown as Ship[]) || [];
+      ships.forEach(ship => {
+        ship.cells.forEach(cell => {
+          occupiedCells.add(`${cell.x},${cell.y}`);
+        });
+      });
+    });
+    
+    const ships = generateShips(game.grid_size, occupiedCells);
 
     const { data: newPlayer, error: insertError } = await supabase
       .from("battleship_players")
@@ -481,43 +499,69 @@ const BattleshipPlayer = () => {
     myPlayer.hits_received.map(h => `${h.x},${h.y}`)
   );
 
-  const targetPlayer = selectedTarget !== null
-    ? players.find(p => p.player_index === selectedTarget)
-    : null;
+  // All ships from all players on the same board
+  const allShipCells = new Map<string, number>(); // key -> player_index
+  players.forEach(p => {
+    p.ships.forEach(ship => {
+      ship.cells.forEach(cell => {
+        allShipCells.set(`${cell.x},${cell.y}`, p.player_index);
+      });
+    });
+  });
 
-  const getShotsAtTarget = (targetIndex: number) => {
-    return shots.filter(s => s.shooter_index === playerIndex && s.target_index === targetIndex);
-  };
+  // All shots made by current player
+  const myAllShots = shots.filter(s => s.shooter_index === playerIndex);
+  const myShotsMap = new Map(myAllShots.map(s => [`${s.target_index}:${s.x},${s.y}`, s.is_hit]));
 
-  // Unified grid: shows my ships (gray) and my shots at target (red for hits)
+  // Shots received by each player (all hits on the board)
+  const allHitsReceived = new Map<string, boolean>();
+  players.forEach(p => {
+    p.hits_received.forEach(h => {
+      allHitsReceived.set(`${p.player_index}:${h.x},${h.y}`, true);
+    });
+  });
+
+  // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
   const renderUnifiedGrid = () => {
-    if (!targetPlayer || selectedTarget === null) return null;
-
-    const myShots = getShotsAtTarget(selectedTarget);
-    const shotMap = new Map(myShots.map(s => [`${s.x},${s.y}`, s.is_hit]));
-
     const cells = [];
     for (let y = 0; y < game.grid_size; y++) {
       for (let x = 0; x < game.grid_size; x++) {
         const key = `${x},${y}`;
         const isMyShip = myShipCells.has(key);
         const isMyShipHit = myHits.has(key);
-        const hasShot = shotMap.has(key);
-        const isHitOnTarget = shotMap.get(key);
+        const shipOwner = allShipCells.get(key);
+        const hasEnemyShip = shipOwner !== undefined && shipOwner !== playerIndex;
+        
+        // Check if this enemy ship cell was hit
+        const enemyShipHit = hasEnemyShip && allHitsReceived.has(`${shipOwner}:${x},${y}`);
+        
+        // Check if I shot at this cell (for any target that might have been there)
+        let iShotHere = false;
+        let myHitResult: boolean | undefined = undefined;
+        for (const p of players) {
+          if (p.player_index !== playerIndex) {
+            const shotKey = `${p.player_index}:${x},${y}`;
+            if (myShotsMap.has(shotKey)) {
+              iShotHere = true;
+              myHitResult = myShotsMap.get(shotKey);
+              break;
+            }
+          }
+        }
 
         let bgClass = "bg-background";
         let content = null;
 
-        // Priority: my ship hit > shot hit > shot miss > my ship > empty
+        // Priority: my ship hit > enemy ship hit > my shot miss > my ship > enemy ship hidden > empty
         if (isMyShip && isMyShipHit) {
           // My ship was hit - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
-        } else if (hasShot && isHitOnTarget) {
-          // I hit enemy ship - red
+        } else if (iShotHere && myHitResult) {
+          // I hit an enemy ship - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
-        } else if (hasShot && !isHitOnTarget) {
+        } else if (iShotHere && !myHitResult) {
           // I missed - gray dot
           bgClass = "bg-muted";
           content = <span className="text-muted-foreground">•</span>;
@@ -525,13 +569,27 @@ const BattleshipPlayer = () => {
           // My ship - gray during my turn, blue otherwise
           bgClass = isMyTurn ? "bg-muted-foreground/50" : "bg-primary";
         }
+        // Enemy ships stay hidden (bg-background) until hit
 
-        const canShoot = isMyTurn && !hasShot && !isMyShip && !isEliminated && !gameEnded;
+        // Can only shoot at cells that don't have my ships
+        const canShoot = isMyTurn && !iShotHere && !isMyShip && !isEliminated && !gameEnded;
 
         cells.push(
           <div
             key={key}
-            onClick={() => canShoot && handleShoot(selectedTarget, x, y)}
+            onClick={() => {
+              if (canShoot && hasEnemyShip) {
+                // Shooting at a cell with enemy ship
+                handleShoot(shipOwner!, x, y);
+              } else if (canShoot && !hasEnemyShip) {
+                // Shooting at empty cell - need to pick a random active enemy as target (it's a miss)
+                const activeEnemies = players.filter(p => p.player_index !== playerIndex && !p.is_eliminated);
+                if (activeEnemies.length > 0) {
+                  const randomEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+                  handleShoot(randomEnemy.player_index, x, y);
+                }
+              }
+            }}
             className={`aspect-square border border-border/50 flex items-center justify-center transition-all ${bgClass} ${
               canShoot ? "cursor-pointer hover:bg-accent" : ""
             }`}
@@ -544,37 +602,7 @@ const BattleshipPlayer = () => {
     return cells;
   };
 
-  // Grid showing only my ships (for when no target selected)
-  const renderMyShipsGrid = () => {
-    const cells = [];
-    for (let y = 0; y < game.grid_size; y++) {
-      for (let x = 0; x < game.grid_size; x++) {
-        const key = `${x},${y}`;
-        const isMyShip = myShipCells.has(key);
-        const isMyShipHit = myHits.has(key);
-
-        let bgClass = "bg-background";
-        let content = null;
-
-        if (isMyShip && isMyShipHit) {
-          bgClass = "bg-destructive";
-          content = <span className="text-destructive-foreground text-xs">💥</span>;
-        } else if (isMyShip) {
-          bgClass = isMyTurn ? "bg-muted-foreground/50" : "bg-primary";
-        }
-
-        cells.push(
-          <div
-            key={key}
-            className={`aspect-square border border-border/50 flex items-center justify-center ${bgClass}`}
-          >
-            {content}
-          </div>
-        );
-      }
-    }
-    return cells;
-  };
+  // No longer need separate grid - we use unified grid always
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 bg-background relative">
@@ -629,20 +657,26 @@ const BattleshipPlayer = () => {
           {t("games.player")} #{playerIndex + 1}
         </p>
 
-        {/* Target selection */}
+        {/* Active players display */}
         {!isEliminated && !gameEnded && (
           <div className="flex flex-wrap gap-2 justify-center mb-4">
+            <span className="text-xs text-muted-foreground self-center mr-2">
+              {t("games.battleship.active_players")}:
+            </span>
             {players
-              .filter(p => p.player_index !== playerIndex && !p.is_eliminated)
+              .filter(p => !p.is_eliminated)
               .map(p => (
-                <Button
+                <div
                   key={p.player_index}
-                  variant={selectedTarget === p.player_index ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedTarget(p.player_index)}
+                  className={`text-xs px-2 py-1 rounded ${
+                    p.player_index === playerIndex 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
-                  {t("games.player")} #{p.player_index + 1}
-                </Button>
+                  {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
+                  {p.player_index === playerIndex && " (Вы)"}
+                </div>
               ))}
           </div>
         )}
@@ -663,39 +697,20 @@ const BattleshipPlayer = () => {
           </div>
         </div>
 
-        {/* Unified Grid */}
+        {/* Unified Grid - all ships on one board */}
         <div className="mb-6">
-          {selectedTarget !== null && targetPlayer ? (
-            <>
-              <p className="text-sm font-bold text-center mb-2">
-                {t("games.battleship.attacking")}: {t("games.player")} #{selectedTarget + 1}
-              </p>
-              <div
-                className="grid gap-0.5 mx-auto"
-                style={{
-                  gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
-                  maxWidth: "320px",
-                }}
-              >
-                {renderUnifiedGrid()}
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm font-bold text-center mb-2">
-                {t("games.battleship.select_target")}
-              </p>
-              <div
-                className="grid gap-0.5 mx-auto"
-                style={{
-                  gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
-                  maxWidth: "320px",
-                }}
-              >
-                {renderMyShipsGrid()}
-              </div>
-            </>
-          )}
+          <p className="text-sm font-bold text-center mb-2">
+            {isMyTurn ? t("games.battleship.tap_to_shoot") : t("games.battleship.wait_turn")}
+          </p>
+          <div
+            className="grid gap-0.5 mx-auto"
+            style={{
+              gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
+              maxWidth: "320px",
+            }}
+          >
+            {renderUnifiedGrid()}
+          </div>
         </div>
       </div>
     </div>
