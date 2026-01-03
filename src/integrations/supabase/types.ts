@@ -14,6 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
+      battleship_games: {
+        Row: {
+          code: string
+          created_at: string
+          current_player_index: number | null
+          grid_size: number | null
+          id: string
+          player_count: number
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_player_index?: number | null
+          grid_size?: number | null
+          id?: string
+          player_count: number
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_player_index?: number | null
+          grid_size?: number | null
+          id?: string
+          player_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      battleship_players: {
+        Row: {
+          created_at: string
+          game_id: string
+          hits_received: Json
+          id: string
+          is_eliminated: boolean | null
+          player_index: number
+          ships: Json
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          hits_received?: Json
+          id?: string
+          is_eliminated?: boolean | null
+          player_index: number
+          ships?: Json
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          hits_received?: Json
+          id?: string
+          is_eliminated?: boolean | null
+          player_index?: number
+          ships?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battleship_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "battleship_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battleship_shots: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          is_hit: boolean
+          shooter_index: number
+          target_index: number
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          is_hit?: boolean
+          shooter_index: number
+          target_index: number
+          x: number
+          y: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          is_hit?: boolean
+          shooter_index?: number
+          target_index?: number
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battleship_shots_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "battleship_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casino_games: {
         Row: {
           code: string

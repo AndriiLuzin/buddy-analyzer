@@ -37,6 +37,9 @@ import WhoAmIPlayer from "./pages/games/WhoAmIPlayer";
 import CasinoCreate from "./pages/games/CasinoCreate";
 import CasinoGame from "./pages/games/CasinoGame";
 import CasinoPlayer from "./pages/games/CasinoPlayer";
+import BattleshipCreate from "./pages/games/BattleshipCreate";
+import BattleshipGame from "./pages/games/BattleshipGame";
+import BattleshipPlayer from "./pages/games/BattleshipPlayer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +86,9 @@ const App = () => {
                 <Route path="/games/casino" element={<CasinoCreate />} />
                 <Route path="/games/casino/:code" element={<CasinoGame />} />
                 <Route path="/games/casino-play/:code" element={<CasinoPlayer />} />
+                <Route path="/games/battleship" element={<BattleshipCreate />} />
+                <Route path="/games/battleship/:code" element={<BattleshipGame />} />
+                <Route path="/games/battleship-play/:code" element={<BattleshipPlayer />} />
                 <Route path="/notifications" element={<Index initialRoute="notifications" />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />

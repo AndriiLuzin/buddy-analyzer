@@ -385,6 +385,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Guessing',
     'games.casino.combination_info': 'The combination consists of player symbols.',
     'games.casino.can_repeat': 'One symbol can repeat!',
+
+    // Battleship game
+    'games.battleship.title': 'BATTLESHIP',
+    'games.battleship.description': 'Sink all enemy ships',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'Each player has 3 ships. Take turns shooting. Destroy all enemy ships to win!',
+    'games.battleship.grid_size': 'Grid size',
+    'games.battleship.go_to_game': 'Go to Game',
+    'games.battleship.my_ships': 'My Ships',
+    'games.battleship.show': 'Show',
+    'games.battleship.your_turn': 'Your turn to shoot!',
+    'games.battleship.current_turn': 'Current turn',
+    'games.battleship.attacking': 'Attacking',
+    'games.battleship.you_eliminated': 'You are eliminated!',
+    'games.battleship.you_won': 'You won',
+    'games.battleship.won': 'won',
+    'games.battleship.new_game_started': 'New game started!',
   },
 
   fr: {
@@ -737,6 +754,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Devine',
     'games.casino.combination_info': 'La combinaison est composée des symboles des joueurs.',
     'games.casino.can_repeat': 'Un symbole peut se répéter!',
+
+    // Battleship game
+    'games.battleship.title': 'BATAILLE NAVALE',
+    'games.battleship.description': 'Coulez tous les navires ennemis',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'Chaque joueur a 3 navires. Tirez à tour de rôle. Détruisez tous les navires ennemis pour gagner!',
+    'games.battleship.grid_size': 'Taille de la grille',
+    'games.battleship.go_to_game': 'Aller au jeu',
+    'games.battleship.my_ships': 'Mes navires',
+    'games.battleship.show': 'Afficher',
+    'games.battleship.your_turn': 'À vous de tirer!',
+    'games.battleship.current_turn': 'Tour actuel',
+    'games.battleship.attacking': 'Attaque',
+    'games.battleship.you_eliminated': 'Vous êtes éliminé!',
+    'games.battleship.you_won': 'Vous avez gagné',
+    'games.battleship.won': 'a gagné',
+    'games.battleship.new_game_started': 'Nouvelle partie commencée!',
   },
 
   es: {
@@ -1089,6 +1123,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Adivina',
     'games.casino.combination_info': 'La combinación consiste en símbolos de jugadores.',
     'games.casino.can_repeat': '¡Un símbolo puede repetirse!',
+
+    // Battleship game
+    'games.battleship.title': 'BATALLA NAVAL',
+    'games.battleship.description': 'Hunde todos los barcos enemigos',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'Cada jugador tiene 3 barcos. Disparen por turnos. ¡Destruye todos los barcos enemigos para ganar!',
+    'games.battleship.grid_size': 'Tamaño de cuadrícula',
+    'games.battleship.go_to_game': 'Ir al juego',
+    'games.battleship.my_ships': 'Mis barcos',
+    'games.battleship.show': 'Mostrar',
+    'games.battleship.your_turn': '¡Tu turno para disparar!',
+    'games.battleship.current_turn': 'Turno actual',
+    'games.battleship.attacking': 'Atacando',
+    'games.battleship.you_eliminated': '¡Estás eliminado!',
+    'games.battleship.you_won': 'Ganaste',
+    'games.battleship.won': 'ganó',
+    'games.battleship.new_game_started': '¡Nueva partida iniciada!',
   },
 
   ru: {
@@ -1454,6 +1505,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Угадывает',
     'games.casino.combination_info': 'Комбинация состоит из символов игроков.',
     'games.casino.can_repeat': 'Один символ может повторяться!',
+
+    // Battleship game
+    'games.battleship.title': 'МОРСКОЙ БОЙ',
+    'games.battleship.description': 'Потопи все корабли противников',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'У каждого 3 корабля. Стреляйте по очереди. Уничтожь все корабли врагов, чтобы победить!',
+    'games.battleship.grid_size': 'Размер поля',
+    'games.battleship.go_to_game': 'Перейти к игре',
+    'games.battleship.my_ships': 'Мои корабли',
+    'games.battleship.show': 'Показать',
+    'games.battleship.your_turn': 'Твой ход! Стреляй!',
+    'games.battleship.current_turn': 'Сейчас ходит',
+    'games.battleship.attacking': 'Атакуем',
+    'games.battleship.you_eliminated': 'Ты выбыл!',
+    'games.battleship.you_won': 'Ты победил',
+    'games.battleship.won': 'победил',
+    'games.battleship.new_game_started': 'Новая игра началась!',
   },
 
   pt: {
@@ -1806,6 +1874,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Adivinha',
     'games.casino.combination_info': 'A combinação consiste em símbolos dos jogadores.',
     'games.casino.can_repeat': 'Um símbolo pode repetir!',
+
+    // Battleship game
+    'games.battleship.title': 'BATALHA NAVAL',
+    'games.battleship.description': 'Afunde todos os navios inimigos',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'Cada jogador tem 3 navios. Atirem por turnos. Destrua todos os navios inimigos para vencer!',
+    'games.battleship.grid_size': 'Tamanho da grade',
+    'games.battleship.go_to_game': 'Ir para o jogo',
+    'games.battleship.my_ships': 'Meus navios',
+    'games.battleship.show': 'Mostrar',
+    'games.battleship.your_turn': 'Sua vez de atirar!',
+    'games.battleship.current_turn': 'Turno atual',
+    'games.battleship.attacking': 'Atacando',
+    'games.battleship.you_eliminated': 'Você foi eliminado!',
+    'games.battleship.you_won': 'Você venceu',
+    'games.battleship.won': 'venceu',
+    'games.battleship.new_game_started': 'Novo jogo iniciado!',
   },
 
   uk: {
@@ -2158,6 +2243,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': 'Вгадує',
     'games.casino.combination_info': 'Комбінація складається з символів гравців.',
     'games.casino.can_repeat': 'Один символ може повторюватися!',
+
+    // Battleship game
+    'games.battleship.title': 'МОРСЬКИЙ БІЙ',
+    'games.battleship.description': 'Потопи всі кораблі противників',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': 'У кожного 3 кораблі. Стріляйте по черзі. Знищ усі кораблі ворогів, щоб перемогти!',
+    'games.battleship.grid_size': 'Розмір поля',
+    'games.battleship.go_to_game': 'Перейти до гри',
+    'games.battleship.my_ships': 'Мої кораблі',
+    'games.battleship.show': 'Показати',
+    'games.battleship.your_turn': 'Твій хід! Стріляй!',
+    'games.battleship.current_turn': 'Зараз ходить',
+    'games.battleship.attacking': 'Атакуємо',
+    'games.battleship.you_eliminated': 'Ти вибув!',
+    'games.battleship.you_won': 'Ти переміг',
+    'games.battleship.won': 'переміг',
+    'games.battleship.new_game_started': 'Нова гра почалася!',
   },
 
   ko: {
@@ -2510,6 +2612,23 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': '맞추는 중',
     'games.casino.combination_info': '조합은 플레이어 심볼로 구성됩니다.',
     'games.casino.can_repeat': '하나의 심볼이 반복될 수 있습니다!',
+
+    // Battleship game
+    'games.battleship.title': '배틀쉽',
+    'games.battleship.description': '모든 적 함선을 침몰시키세요',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': '각 플레이어는 3척의 배를 가집니다. 번갈아 사격하세요. 모든 적 함선을 파괴하면 승리!',
+    'games.battleship.grid_size': '그리드 크기',
+    'games.battleship.go_to_game': '게임으로 이동',
+    'games.battleship.my_ships': '내 함선',
+    'games.battleship.show': '보기',
+    'games.battleship.your_turn': '당신 차례입니다!',
+    'games.battleship.current_turn': '현재 차례',
+    'games.battleship.attacking': '공격 중',
+    'games.battleship.you_eliminated': '탈락했습니다!',
+    'games.battleship.you_won': '승리했습니다',
+    'games.battleship.won': '승리',
+    'games.battleship.new_game_started': '새 게임 시작!',
   },
 
   zh: {
@@ -2862,5 +2981,22 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.casino.guessing': '猜测中',
     'games.casino.combination_info': '组合由玩家符号组成。',
     'games.casino.can_repeat': '一个符号可以重复！',
+
+    // Battleship game
+    'games.battleship.title': '海战',
+    'games.battleship.description': '击沉所有敌舰',
+    'games.battleship.players_range': '2-10',
+    'games.battleship.instruction': '每个玩家有3艘船。轮流射击。摧毁所有敌舰即可获胜！',
+    'games.battleship.grid_size': '网格大小',
+    'games.battleship.go_to_game': '进入游戏',
+    'games.battleship.my_ships': '我的船',
+    'games.battleship.show': '显示',
+    'games.battleship.your_turn': '轮到你射击！',
+    'games.battleship.current_turn': '当前回合',
+    'games.battleship.attacking': '攻击中',
+    'games.battleship.you_eliminated': '你被淘汰了！',
+    'games.battleship.you_won': '你赢了',
+    'games.battleship.won': '获胜',
+    'games.battleship.new_game_started': '新游戏开始！',
   },
 };
