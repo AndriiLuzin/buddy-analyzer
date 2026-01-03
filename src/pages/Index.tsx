@@ -191,8 +191,8 @@ const Index = ({ initialRoute }: IndexProps) => {
       }));
       setFriends(mappedFriends);
     } else {
-      // Use mock data if no friends yet
-      setFriends(MOCK_FRIENDS);
+      // No friends yet - show empty list
+      setFriends([]);
     }
   };
 
