@@ -6,7 +6,9 @@ import { useToast } from '../hooks/use-toast';
 import { NotificationDetailModal } from '../components/NotificationDetailModal';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, fr, es, ru, pt, uk, ko, zhCN } from 'date-fns/locale';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { Language } from '@/i18n/translations';
 
 interface NotificationsPageProps {
   friends: Friend[];
@@ -23,37 +25,45 @@ const REMINDER_INTERVALS: Record<FriendCategory, number> = {
   distant: 60
 };
 
-const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
-  soul_mate: [
-    'Пора созвониться!',
-    'Напишите что-нибудь тёплое',
-    'Поделитесь новостями'
-  ],
-  family: [
-    'Позвоните родным!',
-    'Узнайте как дела у семьи',
-    'Запланируйте встречу'
-  ],
-  close_friend: [
-    'Давно не общались!',
-    'Спросите как дела',
-    'Предложите встретиться'
-  ],
-  good_buddy: [
-    'Напомните о себе',
-    'Отправьте смешное видео',
-    'Пригласите на мероприятие'
-  ],
-  situational: [
-    'Поддержите связь',
-    'Напишите по делу',
-    'Поинтересуйтесь успехами'
-  ],
-  distant: [
-    'Поздравьте с праздником',
-    'Напишите формальное сообщение',
-    'Напомните о себе'
-  ]
+const getDateLocale = (language: Language) => {
+  const locales = { en: enUS, fr, es, ru, pt, uk, ko, zh: zhCN };
+  return locales[language] || enUS;
+};
+
+const getCategoryMessages = (category: FriendCategory, t: (key: string) => string): string[] => {
+  const messages: Record<FriendCategory, string[]> = {
+    soul_mate: [
+      t('notifications.msg_call'),
+      t('notifications.msg_warm'),
+      t('notifications.msg_share')
+    ],
+    family: [
+      t('notifications.msg_family_call'),
+      t('notifications.msg_family_check'),
+      t('notifications.msg_family_plan')
+    ],
+    close_friend: [
+      t('notifications.msg_havent_talked'),
+      t('notifications.msg_ask_howdy'),
+      t('notifications.msg_suggest_meet')
+    ],
+    good_buddy: [
+      t('notifications.msg_remind'),
+      t('notifications.msg_send_funny'),
+      t('notifications.msg_invite_event')
+    ],
+    situational: [
+      t('notifications.msg_keep_touch'),
+      t('notifications.msg_write_business'),
+      t('notifications.msg_ask_success')
+    ],
+    distant: [
+      t('notifications.msg_congrats'),
+      t('notifications.msg_formal'),
+      t('notifications.msg_remind_formal')
+    ]
+  };
+  return messages[category];
 };
 
 export interface Notification {
@@ -84,8 +94,8 @@ const getDaysSinceLastContact = (lastInteraction?: string): number => {
   return Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 };
 
-const getRandomMessage = (category: FriendCategory): string => {
-  const messages = CATEGORY_MESSAGES[category];
+const getRandomMessage = (category: FriendCategory, t: (key: string) => string): string => {
+  const messages = getCategoryMessages(category, t);
   return messages[Math.floor(Math.random() * messages.length)];
 };
 
@@ -121,9 +131,12 @@ const getUpcomingBirthdays = (friends: Friend[]) => {
 export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPageProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t, language } = useLanguage();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [dbNotifications, setDbNotifications] = useState<DBNotification[]>([]);
+
+  const dateLocale = getDateLocale(language);
 
   // Load notifications from database
   useEffect(() => {
@@ -181,20 +194,20 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
     onUpdateFriend(notification.friend.id, { lastInteraction: today });
     setDismissedIds(prev => new Set(prev).add(notification.id));
     toast({
-      title: "Отмечено!",
-      description: `Дата контакта с ${notification.friend.name} обновлена`,
+      title: t('notifications.marked'),
+      description: `${t('notifications.contact_updated')} - ${notification.friend.name}`,
     });
   };
 
   const handleDismissDbNotification = async (notificationId: string) => {
     await markDbNotificationAsRead(notificationId);
     toast({
-      title: "Прочитано",
-      description: "Уведомление отмечено как прочитанное",
+      title: t('notifications.read'),
+      description: t('notifications.marked_read'),
     });
   };
 
-  // Генерируем уведомления о контактах
+  // Generate contact notifications
   const contactNotifications: Notification[] = friends
     .filter(friend => friend.category)
     .map(friend => {
@@ -207,9 +220,9 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
         id: `contact-${friend.id}`,
         type: 'contact' as const,
         friend,
-        message: getRandomMessage(friend.category!),
+        message: getRandomMessage(friend.category!, t),
         urgency,
-        daysInfo: `${daysSince}д`,
+        daysInfo: `${daysSince}${t('notifications.days_short')}`,
         needsReminder
       };
     })
@@ -219,17 +232,17 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
     });
 
-  // Генерируем уведомления о днях рождения
+  // Generate birthday notifications
   const birthdayNotifications: Notification[] = getUpcomingBirthdays(friends)
     .map(({ friend, daysUntil }) => ({
       id: `birthday-${friend.id}`,
       type: 'birthday' as const,
       friend,
-      message: daysUntil === 0 ? 'День рождения сегодня! 🎉' : 
-               daysUntil === 1 ? 'День рождения завтра!' : 
-               `День рождения через ${daysUntil} дней`,
+      message: daysUntil === 0 ? t('notifications.birthday_today') : 
+               daysUntil === 1 ? t('notifications.birthday_tomorrow') : 
+               `${t('notifications.birthday_in')} ${daysUntil} ${t('notifications.days')}`,
       urgency: daysUntil <= 1 ? 'high' as const : daysUntil <= 7 ? 'medium' as const : 'low' as const,
-      daysInfo: daysUntil === 0 ? 'Сегодня' : `${daysUntil}д`
+      daysInfo: daysUntil === 0 ? t('notifications.today') : `${daysUntil}${t('notifications.days_short')}`
     }));
 
   // Convert DB notifications to Notification format
@@ -240,7 +253,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       type: 'new_friend' as const,
       message: n.message,
       urgency: 'low' as const,
-      daysInfo: 'Новый',
+      daysInfo: t('notifications.new'),
       title: n.title,
       data: n.data
     }));
@@ -253,7 +266,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       type: 'party_invite' as const,
       message: n.message,
       urgency: 'medium' as const,
-      daysInfo: n.data?.party_date ? format(new Date(n.data.party_date as string), 'd MMM', { locale: ru }) : '',
+      daysInfo: n.data?.party_date ? format(new Date(n.data.party_date as string), 'd MMM', { locale: dateLocale }) : '',
       title: n.title,
       data: n.data
     }));
@@ -266,7 +279,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       type: 'meeting_invite' as const,
       message: n.message,
       urgency: 'medium' as const,
-      daysInfo: n.data?.meeting_date ? format(new Date(n.data.meeting_date as string), 'd MMM', { locale: ru }) : '',
+      daysInfo: n.data?.meeting_date ? format(new Date(n.data.meeting_date as string), 'd MMM', { locale: dateLocale }) : '',
       title: n.title,
       data: n.data
     }));
@@ -310,8 +323,8 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
     await markDbNotificationAsRead(notificationId);
 
     toast({
-      title: accept ? 'Принято!' : 'Отклонено',
-      description: accept ? 'Вы подтвердили участие' : 'Вы отклонили приглашение',
+      title: accept ? t('notifications.accepted') : t('notifications.declined'),
+      description: accept ? t('notifications.confirmed') : t('notifications.invite_declined'),
     });
   };
 
@@ -327,9 +340,9 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">Уведомления</h1>
+            <h1 className="text-xl font-bold text-foreground">{t('notifications.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              {visibleNotifications.length} {visibleNotifications.length === 1 ? 'напоминание' : 'напоминаний'}
+              {visibleNotifications.length} {visibleNotifications.length === 1 ? t('notifications.reminder') : t('notifications.reminders')}
             </p>
           </div>
         </div>
@@ -353,6 +366,7 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
                     handleRespondToInvite(notification.id, notification.data?.meeting_id as string, accept, 'meeting');
                   }
                 }}
+                t={t}
               />
             ))}
           </>
@@ -361,22 +375,22 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
             <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
               <UserCheck className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold text-foreground mb-1">Всё под контролем!</h3>
+            <h3 className="font-semibold text-foreground mb-1">{t('notifications.all_good')}</h3>
             <p className="text-sm text-muted-foreground">
-              Нет срочных напоминаний о друзьях
+              {t('notifications.no_urgent')}
             </p>
           </div>
         )}
 
         {/* Tips */}
         <div className="glass rounded-2xl p-4">
-          <h3 className="font-semibold text-foreground mb-2">💡 Как это работает</h3>
+          <h3 className="font-semibold text-foreground mb-2">💡 {t('notifications.how_it_works')}</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Душа в душу — напоминание каждые 3 дня</li>
-            <li>• Близкий друг — раз в неделю</li>
-            <li>• Хороший приятель — раз в 2 недели</li>
-            <li>• Ситуативный знакомый — раз в месяц</li>
-            <li>• Дальний знакомый — раз в 2 месяца</li>
+            <li>• {t('notifications.soul_mate_interval')}</li>
+            <li>• {t('notifications.close_friend_interval')}</li>
+            <li>• {t('notifications.good_buddy_interval')}</li>
+            <li>• {t('notifications.situational_interval')}</li>
+            <li>• {t('notifications.distant_interval')}</li>
           </ul>
         </div>
       </main>
@@ -400,6 +414,7 @@ interface NotificationCardProps {
   onClick: () => void;
   onDismiss?: () => void;
   onRespond?: (accept: boolean) => void;
+  t: (key: string) => string;
 }
 
 const categoryBgStyles: Record<FriendCategory, string> = {
@@ -411,16 +426,13 @@ const categoryBgStyles: Record<FriendCategory, string> = {
   distant: 'bg-slate-400'
 };
 
-const NotificationCard = ({ notification, onClick, onDismiss, onRespond }: NotificationCardProps) => {
+const NotificationCard = ({ notification, onClick, onDismiss, onRespond, t }: NotificationCardProps) => {
   const { friend } = notification;
 
   // For party_invite and meeting_invite notifications
   if (notification.type === 'party_invite' || notification.type === 'meeting_invite') {
     const isParty = notification.type === 'party_invite';
-    const inviterName = notification.data?.inviter_name as string || '';
-    const eventTitle = (notification.data?.party_title || notification.data?.meeting_title) as string || '';
     const location = notification.data?.location as string;
-    const time = (notification.data?.party_time || notification.data?.meeting_time) as string;
     
     return (
       <div className="w-full glass rounded-2xl p-4 space-y-3 animate-slide-up">
@@ -454,14 +466,14 @@ const NotificationCard = ({ notification, onClick, onDismiss, onRespond }: Notif
             className="flex-1 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
           >
             <X className="w-4 h-4" />
-            Отклонить
+            {t('notifications.decline')}
           </button>
           <button
             onClick={() => onRespond?.(true)}
             className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
           >
             <Check className="w-4 h-4" />
-            Принять
+            {t('notifications.accept')}
           </button>
         </div>
       </div>
@@ -471,7 +483,7 @@ const NotificationCard = ({ notification, onClick, onDismiss, onRespond }: Notif
   
   // For new_friend notifications, use data from the notification
   if (notification.type === 'new_friend') {
-    const friendName = (notification.data?.friend_name as string) || 'Новый друг';
+    const friendName = (notification.data?.friend_name as string) || 'New friend';
     const matchScore = notification.data?.match_score as number;
     const initials = friendName.split(' ').map(n => n[0]).join('').toUpperCase();
     
@@ -497,7 +509,7 @@ const NotificationCard = ({ notification, onClick, onDismiss, onRespond }: Notif
           </div>
           <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
           {matchScore !== undefined && (
-            <p className="text-xs text-primary mt-1">Совместимость: {matchScore}%</p>
+            <p className="text-xs text-primary mt-1">{matchScore}%</p>
           )}
         </div>
 
