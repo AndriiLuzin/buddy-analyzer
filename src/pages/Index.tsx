@@ -418,6 +418,7 @@ const Index = ({ initialRoute }: IndexProps) => {
         onComplete={handleQuizComplete} 
         onSkip={handleSkipQuiz}
         showSkip={showSkipOption}
+        birthday={friendInfo?.birthday}
       />
     );
   }

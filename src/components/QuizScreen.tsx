@@ -4,7 +4,7 @@ import { Progress } from './ui/progress';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
-import { QUIZ_QUESTIONS_LOCALIZED } from '@/i18n/quizQuestions';
+import { QUIZ_QUESTIONS_LOCALIZED, getQuestionsByAgeGroup, getAgeGroup, getAgeFromBirthday, AgeGroup } from '@/i18n/quizQuestions';
 
 const QUIZ_PROGRESS_KEY = 'buddybe_quiz_progress';
 
@@ -20,9 +20,11 @@ interface QuizScreenProps {
   title?: string;
   subtitle?: string;
   showSkip?: boolean;
+  birthday?: Date; // Optional birthday for age-based questions
+  ageGroup?: AgeGroup; // Direct age group override
 }
 
-export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = false }: QuizScreenProps) => {
+export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = false, birthday, ageGroup: providedAgeGroup }: QuizScreenProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -32,7 +34,11 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
   const displayTitle = title || t('quiz.title');
   const displaySubtitle = subtitle || t('quiz.subtitle');
 
-  const questions = QUIZ_QUESTIONS_LOCALIZED[language];
+  // Determine age group from birthday or use provided one, default to adults
+  const ageGroup: AgeGroup = providedAgeGroup || (birthday ? getAgeGroup(getAgeFromBirthday(birthday)) : 'adults');
+  
+  // Get questions based on age group
+  const questions = getQuestionsByAgeGroup(ageGroup, language);
   const question = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
