@@ -11,8 +11,6 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-// Allowed admin email addresses
-const ADMIN_EMAILS = ['andrii@luzin.ca'];
 
 interface AdminStats {
   totalUsers: number;
@@ -70,8 +68,15 @@ const Admin = () => {
       
       setUser(session.user);
       
-      // Check if user is admin
-      if (ADMIN_EMAILS.includes(session.user.email || '')) {
+      // Check if user has admin role in user_roles table
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (roleData) {
         setIsAdmin(true);
         await loadStats();
       } else {
