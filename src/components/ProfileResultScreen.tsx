@@ -63,7 +63,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   };
 
   const personality = profile.personality;
-  const langKey = language === 'ru' || language === 'uk' ? 'ru' : 'en';
+  const langKey = language;
 
   return (
     <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
@@ -121,7 +121,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
               <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
                 <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">✨</div>
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{personality.personalityType}</h2>
-                <p className="text-white/80 text-xs sm:text-sm">{langKey === 'ru' ? 'Ваш тип личности' : 'Your personality type'}</p>
+                <p className="text-white/80 text-xs sm:text-sm">{t('profile.personality_type')}</p>
               </div>
 
               {/* Personality Dimensions */}
@@ -130,29 +130,29 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
                   {/* Social Style */}
                   <div className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-3 text-center">
                     <div className="text-2xl mb-1">{PERSONALITY_LABELS.socialStyle[personality.socialStyle].emoji}</div>
-                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.socialStyle[personality.socialStyle][langKey]}</div>
-                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Социальность' : 'Social style'}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.socialStyle[personality.socialStyle][langKey] || PERSONALITY_LABELS.socialStyle[personality.socialStyle].en}</div>
+                    <div className="text-[10px] text-muted-foreground">{t('profile.social_style')}</div>
                   </div>
                   
                   {/* Decision Style */}
                   <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 text-center">
                     <div className="text-2xl mb-1">{PERSONALITY_LABELS.decisionStyle[personality.decisionStyle].emoji}</div>
-                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.decisionStyle[personality.decisionStyle][langKey]}</div>
-                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Мышление' : 'Decision style'}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.decisionStyle[personality.decisionStyle][langKey] || PERSONALITY_LABELS.decisionStyle[personality.decisionStyle].en}</div>
+                    <div className="text-[10px] text-muted-foreground">{t('profile.decision_style')}</div>
                   </div>
                   
                   {/* Energy Style */}
                   <div className="bg-green-50 dark:bg-green-950/30 rounded-xl p-3 text-center">
                     <div className="text-2xl mb-1">{PERSONALITY_LABELS.energyStyle[personality.energyStyle].emoji}</div>
-                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.energyStyle[personality.energyStyle][langKey]}</div>
-                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Энергия' : 'Energy'}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.energyStyle[personality.energyStyle][langKey] || PERSONALITY_LABELS.energyStyle[personality.energyStyle].en}</div>
+                    <div className="text-[10px] text-muted-foreground">{t('profile.energy_style')}</div>
                   </div>
                   
                   {/* Leadership Style */}
                   <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-3 text-center">
                     <div className="text-2xl mb-1">{PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle].emoji}</div>
-                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle][langKey]}</div>
-                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Роль в группе' : 'Leadership'}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle][langKey] || PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle].en}</div>
+                    <div className="text-[10px] text-muted-foreground">{t('profile.leadership_style')}</div>
                   </div>
                 </div>
 
@@ -171,7 +171,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
                 {/* Description */}
                 <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5">
                   <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">
-                    {langKey === 'ru' ? 'О вашем типе' : 'About your type'}
+                    {t('profile.about_type')}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed text-sm">
                     {profile.description}
