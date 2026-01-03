@@ -10,15 +10,17 @@ import { LanguageSelector } from './LanguageSelector';
 import { WelcomeModal } from './WelcomeModal';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { DateWheelPicker } from './DateWheelPicker';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 interface AuthScreenProps {
   onAuthSuccess: (birthday?: Date) => void;
 }
 
-type AuthStep = 'phone' | 'code' | 'login' | 'password' | 'name' | 'birthday' | 'forgot' | 'reset_code' | 'new_password';
+type AuthStep = 'main' | 'verify_code' | 'name' | 'birthday' | 'forgot' | 'reset_code' | 'new_password';
 
 export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
-  const [step, setStep] = useState<AuthStep>('phone');
+  const [step, setStep] = useState<AuthStep>('main');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -26,7 +28,6 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isExistingUser, setIsExistingUser] = useState(false);
   const [dateValue, setDateValue] = useState<{ month: number; day: number; year?: number }>({
     month: new Date().getMonth(),
     day: new Date().getDate(),
@@ -53,9 +54,72 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const getNormalizedPhone = () => phone.startsWith('+') ? phone : `+${phone}`;
   const getFakeEmail = () => `${getNormalizedPhone().replace('+', '')}@phone.buddybe.app`;
 
-  // Step 1: Send SMS code
-  const handleSendCode = async (e: React.FormEvent) => {
+  const getLocalizedText = (ruText: string, enText: string) => {
+    return language === 'ru' || language === 'uk' ? ruText : enText;
+  };
+
+  // Login with phone + password (no SMS)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phone || !password) return;
+    
+    setIsLoading(true);
+
+    try {
+      const fakeEmail = getFakeEmail();
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: fakeEmail,
+        password: password,
+      });
+
+      if (error) {
+        toast({
+          title: t('auth.error_login'),
+          description: getLocalizedText('Неверный номер или пароль', 'Wrong phone or password'),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: t('auth.welcome'),
+        description: t('auth.welcome_login'),
+      });
+      onAuthSuccess();
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('auth.error_generic'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Register step 1: Send SMS code
+  const handleRegisterSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password.length < 6) {
+      toast({
+        title: t('common.error'),
+        description: t('auth.password_min'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: t('common.error'),
+        description: getLocalizedText('Пароли не совпадают', 'Passwords do not match'),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -78,7 +142,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         title: t('auth.code_sent'),
         description: t('auth.code_sent_desc'),
       });
-      setStep('code');
+      setStep('verify_code');
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -90,7 +154,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     }
   };
 
-  // Step 2: Verify SMS code
+  // Register step 2: Verify SMS code
   const handleVerifyCode = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (code.length !== 6) return;
@@ -113,16 +177,8 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         return;
       }
 
-      const { isNewUser } = response.data;
-      setIsExistingUser(!isNewUser);
-
-      if (isNewUser) {
-        // New user - create password
-        setStep('password');
-      } else {
-        // Existing user - login with password
-        setStep('login');
-      }
+      // Proceed to name step
+      setStep('name');
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -134,80 +190,14 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     }
   };
 
-  // Login with password (existing user)
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password) return;
-    
-    setIsLoading(true);
-
-    try {
-      const fakeEmail = getFakeEmail();
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: fakeEmail,
-        password: password,
-      });
-
-      if (error) {
-        toast({
-          title: t('auth.error_login'),
-          description: language === 'ru' || language === 'uk' ? 'Неверный пароль' : 'Wrong password',
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: t('auth.welcome'),
-        description: t('auth.welcome_login'),
-      });
-      onAuthSuccess();
-    } catch (error) {
-      toast({
-        title: t('common.error'),
-        description: t('auth.error_generic'),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Create password (new user)
-  const handleCreatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password.length < 6) {
-      toast({
-        title: t('common.error'),
-        description: t('auth.password_min'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: t('common.error'),
-        description: language === 'ru' || language === 'uk' ? 'Пароли не совпадают' : 'Passwords do not match',
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Save password and proceed to name step
-    setStep('name');
-  };
-
-  // Name step
+  // Register step 3: Enter name
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setStep('birthday');
   };
 
-  // Complete registration
+  // Register step 4: Complete registration
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!birthday) return;
@@ -233,34 +223,24 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       });
 
       if (signUpError) {
-        // If user exists, try to update password and sign in
         if (signUpError.message?.includes('already registered')) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: fakeEmail,
-            password: password,
+          toast({
+            title: t('common.error'),
+            description: getLocalizedText('Этот номер уже зарегистрирован', 'This phone is already registered'),
+            variant: "destructive",
           });
-
-          if (signInError) {
-            toast({
-              title: t('common.error'),
-              description: signInError.message,
-              variant: "destructive",
-            });
-            return;
-          }
         } else {
           toast({
             title: t('auth.error_register'),
             description: signUpError.message,
             variant: "destructive",
           });
-          return;
         }
+        return;
       }
 
       // Auto sign in after registration
       if (signUpData?.user && !signUpData.session) {
-        // Need to sign in manually
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: fakeEmail,
           password: password,
@@ -311,6 +291,15 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
   // Forgot password - send SMS
   const handleForgotPassword = async () => {
+    if (!phone) {
+      toast({
+        title: t('common.error'),
+        description: getLocalizedText('Введите номер телефона', 'Enter phone number'),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -399,7 +388,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     if (password !== confirmPassword) {
       toast({
         title: t('common.error'),
-        description: language === 'ru' || language === 'uk' ? 'Пароли не совпадают' : 'Passwords do not match',
+        description: getLocalizedText('Пароли не совпадают', 'Passwords do not match'),
         variant: "destructive",
       });
       return;
@@ -410,7 +399,6 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     try {
       const fakeEmail = getFakeEmail();
 
-      // Update password via edge function
       const response = await supabase.functions.invoke('reset-password', {
         body: { phone: getNormalizedPhone(), newPassword: password }
       });
@@ -440,7 +428,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       }
 
       toast({
-        title: language === 'ru' || language === 'uk' ? 'Пароль изменён!' : 'Password changed!',
+        title: getLocalizedText('Пароль изменён!', 'Password changed!'),
         description: t('auth.welcome_login'),
       });
       onAuthSuccess();
@@ -493,8 +481,11 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     onAuthSuccess(birthday);
   };
 
-  const getLocalizedText = (ruText: string, enText: string) => {
-    return language === 'ru' || language === 'uk' ? ruText : enText;
+  const resetToMain = () => {
+    setStep('main');
+    setCode('');
+    setPassword('');
+    setConfirmPassword('');
   };
 
   return (
@@ -505,7 +496,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       </div>
 
       {/* Logo and branding */}
-      <div className="relative mb-8">
+      <div className="relative mb-6">
         <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" style={{ animationDuration: '3s' }} />
         
         <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow animate-pulse-glow">
@@ -523,74 +514,200 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
       <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 text-center">
         {t('auth.title')}
       </h1>
-      <p className="text-muted-foreground text-center mb-6 sm:mb-8 max-w-xs text-sm sm:text-base px-2">
+      <p className="text-muted-foreground text-center mb-6 max-w-xs text-sm sm:text-base px-2">
         {t('auth.subtitle')}
       </p>
 
       {/* Auth form */}
       <div className="w-full max-w-sm p-4 sm:p-6 animate-scale-in">
         
-        {/* Step: Phone input */}
-        {step === 'phone' && (
-          <form onSubmit={handleSendCode} className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                <Phone className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">{t('auth.enter_phone')}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{t('auth.enter_phone_desc')}</p>
-            </div>
+        {/* Main: Login/Register tabs */}
+        {step === 'main' && (
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'register')} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="login">{t('auth.submit_login')}</TabsTrigger>
+              <TabsTrigger value="register">{getLocalizedText('Регистрация', 'Register')}</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-foreground font-medium">
-                {t('auth.phone')}
-              </Label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 234 567 8900"
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                  className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
-                  required
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t('auth.phone_format')}
-              </p>
-            </div>
+            {/* Login tab */}
+            <TabsContent value="login" className="mt-0">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-phone" className="text-foreground font-medium">
+                    {t('auth.phone')}
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="login-phone"
+                      type="tel"
+                      placeholder="+1 234 567 8900"
+                      value={phone}
+                      onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                      className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading || phone.length < 10}
-              className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  <span>{t('auth.loading')}</span>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password" className="text-foreground font-medium">
+                    {t('auth.password')}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span>{t('auth.send_code')}</span>
-                  <ArrowRight className="w-5 h-5" />
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || !phone || !password}
+                  className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      <span>{t('auth.loading')}</span>
+                    </div>
+                  ) : (
+                    <span>{t('auth.submit_login')}</span>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setStep('forgot')}
+                  className="w-full h-12 rounded-xl"
+                >
+                  {t('auth.forgot_password')}
+                </Button>
+              </form>
+            </TabsContent>
+
+            {/* Register tab */}
+            <TabsContent value="register" className="mt-0">
+              <form onSubmit={handleRegisterSendCode} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-phone" className="text-foreground font-medium">
+                    {t('auth.phone')}
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="register-phone"
+                      type="tel"
+                      placeholder="+1 234 567 8900"
+                      value={phone}
+                      onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                      className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t('auth.phone_format')}
+                  </p>
                 </div>
-              )}
-            </Button>
-          </form>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-password" className="text-foreground font-medium">
+                    {t('auth.password')}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="register-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('auth.password_min')}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-confirm-password" className="text-foreground font-medium">
+                    {getLocalizedText('Подтвердите пароль', 'Confirm password')}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="register-confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || phone.length < 10 || password.length < 6 || password !== confirmPassword}
+                  className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      <span>{t('auth.loading')}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span>{t('common.next')}</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
         )}
 
-        {/* Step: SMS code verification */}
-        {step === 'code' && (
+        {/* Step: Verify SMS code (registration) */}
+        {step === 'verify_code' && (
           <div className="animate-fade-in">
             <button
-              onClick={() => setStep('phone')}
+              onClick={resetToMain}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              {t('auth.change_phone')}
+              {t('quiz.back')}
             </button>
 
             <form onSubmit={handleVerifyCode} className="space-y-4">
@@ -652,178 +769,11 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           </div>
         )}
 
-        {/* Step: Login with password (existing user) */}
-        {step === 'login' && (
-          <div className="animate-fade-in">
-            <button
-              onClick={() => setStep('phone')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t('auth.change_phone')}
-            </button>
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Lock className="w-7 h-7 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {getLocalizedText('Введите пароль', 'Enter password')}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">{phone}</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground font-medium">
-                  {t('auth.password')}
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading || !password}
-                className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    <span>{t('auth.loading')}</span>
-                  </div>
-                ) : (
-                  <span>{t('auth.submit_login')}</span>
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleForgotPassword}
-                disabled={isLoading}
-                className="w-full h-12 rounded-xl"
-              >
-                {t('auth.forgot_password')}
-              </Button>
-            </form>
-          </div>
-        )}
-
-        {/* Step: Create password (new user) */}
-        {step === 'password' && (
-          <div className="animate-fade-in">
-            <button
-              onClick={() => setStep('code')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t('quiz.back')}
-            </button>
-
-            <form onSubmit={handleCreatePassword} className="space-y-4">
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <KeyRound className="w-7 h-7 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {getLocalizedText('Создайте пароль', 'Create password')}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {getLocalizedText('Для входа в аккаунт', 'To access your account')}
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password" className="text-foreground font-medium">
-                    {t('auth.password')}
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="new-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
-                      required
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{t('auth.password_min')}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="text-foreground font-medium">
-                    {getLocalizedText('Подтвердите пароль', 'Confirm password')}
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-12 pr-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading || password.length < 6 || password !== confirmPassword}
-                className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
-              >
-                <div className="flex items-center gap-2">
-                  <span>{t('common.next')}</span>
-                  <ArrowRight className="w-5 h-5" />
-                </div>
-              </Button>
-            </form>
-          </div>
-        )}
-
         {/* Step: Enter name */}
         {step === 'name' && (
           <div className="animate-fade-in">
             <button
-              onClick={() => setStep('password')}
+              onClick={() => setStep('verify_code')}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -887,19 +837,15 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   <Calendar className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">{t('auth.enter_birthday') || 'When is your birthday?'}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{t('auth.birthday_desc') || 'We will adapt questions to your age'}</p>
+                <h3 className="text-lg font-semibold text-foreground">{t('auth.enter_birthday') || getLocalizedText('Когда ваш день рождения?', 'When is your birthday?')}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{t('auth.birthday_desc') || getLocalizedText('Мы будем поздравлять вас!', "We'll celebrate with you!")}</p>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-foreground font-medium">
-                  {t('friend_reg.birthday') || 'Birthday'} <span className="text-destructive">*</span>
-                </Label>
+              <div className="py-4">
                 <DateWheelPicker
                   value={dateValue}
                   onChange={handleDateChange}
-                  showYear
-                  yearPlaceholder={t('friend_reg.year_placeholder') || 'When were you born?'}
+                  showYear={true}
                 />
               </div>
 
@@ -914,21 +860,79 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                     <span>{t('auth.loading')}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <span>{t('auth.submit_register')}</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </div>
+                  <span>{t('auth.register')}</span>
                 )}
               </Button>
             </form>
           </div>
         )}
 
-        {/* Step: Reset code verification */}
+        {/* Step: Forgot password */}
+        {step === 'forgot' && (
+          <div className="animate-fade-in">
+            <button
+              onClick={resetToMain}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t('quiz.back')}
+            </button>
+
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <KeyRound className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">{t('auth.forgot_password')}</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {getLocalizedText('Введите номер телефона для восстановления', 'Enter your phone number to reset')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="forgot-phone" className="text-foreground font-medium">
+                  {t('auth.phone')}
+                </Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="forgot-phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                    className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleForgotPassword}
+                disabled={isLoading || phone.length < 10}
+                className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <span>{t('auth.loading')}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>{t('auth.send_code')}</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Verify reset code */}
         {step === 'reset_code' && (
           <div className="animate-fade-in">
             <button
-              onClick={() => setStep('login')}
+              onClick={() => setStep('forgot')}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -994,17 +998,9 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           </div>
         )}
 
-        {/* Step: New password */}
+        {/* Step: Set new password */}
         {step === 'new_password' && (
           <div className="animate-fade-in">
-            <button
-              onClick={() => setStep('reset_code')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t('quiz.back')}
-            </button>
-
             <form onSubmit={handleSetNewPassword} className="space-y-4">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -1020,13 +1016,13 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-pw" className="text-foreground font-medium">
+                  <Label htmlFor="new-password" className="text-foreground font-medium">
                     {t('auth.password')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
-                      id="new-pw"
+                      id="new-password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••"
                       value={password}
@@ -1047,13 +1043,13 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-new-pw" className="text-foreground font-medium">
+                  <Label htmlFor="confirm-new-password" className="text-foreground font-medium">
                     {getLocalizedText('Подтвердите пароль', 'Confirm password')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
-                      id="confirm-new-pw"
+                      id="confirm-new-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••"
                       value={confirmPassword}
@@ -1083,7 +1079,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                     <span>{t('auth.loading')}</span>
                   </div>
                 ) : (
-                  <span>{getLocalizedText('Сохранить пароль', 'Save password')}</span>
+                  <span>{getLocalizedText('Сохранить', 'Save')}</span>
                 )}
               </Button>
             </form>
@@ -1091,13 +1087,14 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         )}
       </div>
 
-      {/* Footer */}
-      <p className="text-xs text-muted-foreground mt-8 text-center max-w-xs">
+      <p className="mt-6 text-xs text-muted-foreground text-center px-4">
         {t('auth.terms')}
       </p>
 
-      {/* Welcome Modal */}
-      <WelcomeModal open={showWelcome} onClose={handleWelcomeClose} />
+      <WelcomeModal 
+        open={showWelcome} 
+        onClose={handleWelcomeClose}
+      />
     </div>
   );
 };
