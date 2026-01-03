@@ -7,9 +7,9 @@ import {
   Calendar, 
   Home,
   Share2,
-  Gamepad2
+  Gamepad2,
+  LayoutGrid
 } from 'lucide-react';
-import menuIcon from '@/assets/menu-icon-grid.png';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FloatingActionMenuProps {
@@ -121,10 +121,10 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-6 w-[70px] h-[70px] rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50"
+          className="fixed right-6 w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center transition-all duration-300 z-50 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 hover:scale-105 active:scale-95"
           style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
         >
-          <img src={menuIcon} alt="Menu" className="w-14 h-14 object-contain" />
+          <LayoutGrid className="w-7 h-7 text-white" strokeWidth={2} />
         </button>
       )}
 
