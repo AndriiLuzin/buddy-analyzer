@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Home } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
@@ -27,6 +28,7 @@ interface BattleshipPlayer {
   id: string;
   game_id: string;
   player_index: number;
+  player_name: string | null;
   ships: Ship[];
   hits_received: { x: number; y: number }[];
   is_eliminated: boolean;
@@ -55,6 +57,10 @@ const BattleshipPlayer = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [showTurnNotification, setShowTurnNotification] = useState(false);
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [playerName, setPlayerName] = useState("");
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
 
   const gameStarted = game?.status === 'playing';
   const gameEnded = game?.status === 'finished';
@@ -166,6 +172,7 @@ const BattleshipPlayer = () => {
       }
     }
 
+    // Check for available slot
     const usedIndices = parsedPlayers.map(p => p.player_index);
     let availableIndex = -1;
     for (let i = 0; i < gameData.player_count - 1; i++) {
@@ -181,13 +188,25 @@ const BattleshipPlayer = () => {
       return;
     }
 
-    const ships = generateShips(gameData.grid_size);
+    // Show name input screen instead of auto-joining
+    setPendingIndex(availableIndex);
+    setShowNameInput(true);
+    setIsLoading(false);
+  }, [code, searchParams, t]);
+
+  const handleJoinGame = async () => {
+    if (!game || pendingIndex === null || !playerName.trim()) return;
+    
+    setIsJoining(true);
+    
+    const ships = generateShips(game.grid_size);
 
     const { data: newPlayer, error: insertError } = await supabase
       .from("battleship_players")
       .insert({
-        game_id: gameData.id,
-        player_index: availableIndex,
+        game_id: game.id,
+        player_index: pendingIndex,
+        player_name: playerName.trim(),
         ships: ships as unknown as any,
       })
       .select()
@@ -196,26 +215,27 @@ const BattleshipPlayer = () => {
     if (insertError) {
       console.error(insertError);
       setError(t("games.registration_error"));
-      setIsLoading(false);
+      setIsJoining(false);
       return;
     }
 
-    setSearchParams({ p: String(availableIndex) });
-    setPlayerIndex(availableIndex);
+    setSearchParams({ p: String(pendingIndex) });
+    setPlayerIndex(pendingIndex);
     setMyPlayer({
       ...newPlayer,
       ships,
       hits_received: [],
     });
+    setShowNameInput(false);
 
     const { data: shotsData } = await supabase
       .from("battleship_shots")
       .select("*")
-      .eq("game_id", gameData.id);
+      .eq("game_id", game.id);
     setShots(shotsData || []);
-
-    setIsLoading(false);
-  }, [code, searchParams, setSearchParams, t]);
+    
+    setIsJoining(false);
+  };
 
   useStableConnection({
     channelName: `battleship-player-${code}`,
@@ -378,6 +398,46 @@ const BattleshipPlayer = () => {
         <div className="text-center">
           <p className="text-foreground font-bold mb-2">{error}</p>
           <p className="text-muted-foreground text-sm">{t("games.ask_link")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Name input screen
+  if (showNameInput && game) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/games")}
+          className="absolute top-4 left-4"
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+        <div className="w-full max-w-sm animate-fade-in">
+          <h1 className="text-2xl font-bold text-foreground mb-2 text-center">
+            {t("games.battleship.title")}
+          </h1>
+          <p className="text-muted-foreground text-center mb-6">
+            {t("games.enter_name")}
+          </p>
+          <Input
+            type="text"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            placeholder={t("games.your_name")}
+            className="mb-4 h-12 text-center text-lg"
+            maxLength={20}
+            autoFocus
+          />
+          <Button
+            onClick={handleJoinGame}
+            disabled={!playerName.trim() || isJoining}
+            className="w-full h-12 text-lg font-bold"
+          >
+            {isJoining ? t("games.loading") : t("games.join_game")}
+          </Button>
         </div>
       </div>
     );

@@ -52,6 +52,7 @@ export type Database = {
           id: string
           is_eliminated: boolean | null
           player_index: number
+          player_name: string | null
           ships: Json
         }
         Insert: {
@@ -61,6 +62,7 @@ export type Database = {
           id?: string
           is_eliminated?: boolean | null
           player_index: number
+          player_name?: string | null
           ships?: Json
         }
         Update: {
@@ -70,6 +72,7 @@ export type Database = {
           id?: string
           is_eliminated?: boolean | null
           player_index?: number
+          player_name?: string | null
           ships?: Json
         }
         Relationships: [
