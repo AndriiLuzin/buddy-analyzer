@@ -68,76 +68,21 @@ serve(async (req) => {
       .eq('id', verification.id);
 
     const fakeEmail = `${normalizedPhone.replace('+', '')}@phone.buddybe.app`;
-    // Use a consistent password based on phone
-    const consistentPassword = `phone_${normalizedPhone.replace('+', '')}_auth_2024`;
     
-    let userId: string;
     let isNewUser = false;
-    let accessToken: string | null = null;
-    let refreshToken: string | null = null;
 
-    // First check if user already exists
+    // Check if user already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(u => u.phone === normalizedPhone || u.email === fakeEmail);
     
     if (existingUser) {
       // User exists
-      userId = existingUser.id;
       isNewUser = false;
-      console.log("Existing user found:", userId);
-      
-      // Update password to consistent one so we can sign in
-      const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
-        password: consistentPassword,
-      });
-      
-      if (updateError) {
-        console.error("Error updating user password:", updateError);
-      }
+      console.log("Existing user found:", existingUser.id);
     } else {
-      // Create new user
-      const { data: signUpData, error: signUpError } = await supabase.auth.admin.createUser({
-        email: fakeEmail,
-        phone: normalizedPhone,
-        phone_confirm: true,
-        email_confirm: true,
-        password: consistentPassword,
-        user_metadata: {
-          name: name || '',
-          phone: normalizedPhone,
-        },
-      });
-
-      if (signUpError) {
-        console.error("Error creating user:", signUpError);
-        return new Response(
-          JSON.stringify({ error: "Failed to create user" }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      userId = signUpData.user!.id;
+      // New user
       isNewUser = true;
-      console.log("New user created:", userId);
-    }
-
-    // Now sign in the user to get tokens
-    // Create a new client with anon key for signing in
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const anonClient = createClient(supabaseUrl, anonKey);
-    
-    const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
-      email: fakeEmail,
-      password: consistentPassword,
-    });
-
-    if (signInError) {
-      console.error("Error signing in user:", signInError);
-      // Still return success but without tokens - client will handle
-    } else if (signInData.session) {
-      accessToken = signInData.session.access_token;
-      refreshToken = signInData.session.refresh_token;
-      console.log("Session created successfully");
+      console.log("New user - will need to create account with password");
     }
 
     // Delete the verification record
@@ -146,15 +91,12 @@ serve(async (req) => {
       .delete()
       .eq('id', verification.id);
 
-    console.log("Verification successful for user:", userId);
+    console.log("Verification successful, isNewUser:", isNewUser);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        userId,
         isNewUser,
-        accessToken,
-        refreshToken,
         message: "Phone verified successfully" 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
