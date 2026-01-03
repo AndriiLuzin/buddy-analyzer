@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ArrowLeft, Calendar, MapPin, Users, Check, X, Clock, Trash2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, Check, X, Clock, Trash2, MessageCircle, Link as LinkIcon, Copy, Share2, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
 
 interface Participant {
@@ -14,6 +15,16 @@ interface Participant {
   status: string;
   friend_name: string;
   friend_last_name: string;
+}
+
+interface ExternalGuest {
+  id: string;
+  invite_code: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  status: string;
+  responded_at: string | null;
 }
 
 interface Party {
@@ -25,6 +36,7 @@ interface Party {
   location: string | null;
   description: string | null;
   participants: Participant[];
+  externalGuests: ExternalGuest[];
 }
 
 const partyTypeEmojis: Record<string, string> = {
@@ -40,9 +52,10 @@ const partyTypeEmojis: Record<string, string> = {
 export default function PartyDetail() {
   const navigate = useNavigate();
   const { partyId } = useParams<{ partyId: string }>();
-  const { toast } = useToast();
+  const { toast: showToast } = useToast();
   const [party, setParty] = useState<Party | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [inviteLink, setInviteLink] = useState('');
 
   useEffect(() => {
     if (partyId) {
@@ -58,7 +71,7 @@ export default function PartyDetail() {
       .single();
 
     if (error || !partyData) {
-      toast({ title: 'Ошибка', description: 'Мероприятие не найдено', variant: 'destructive' });
+      showToast({ title: 'Ошибка', description: 'Мероприятие не найдено', variant: 'destructive' });
       navigate('/parties');
       return;
     }
@@ -74,6 +87,18 @@ export default function PartyDetail() {
       `)
       .eq('party_id', partyId);
 
+    // Fetch external guests
+    const { data: externalGuests } = await supabase
+      .from('party_external_invites')
+      .select('*')
+      .eq('party_id', partyId);
+
+    // Get the invite link if exists
+    if (externalGuests && externalGuests.length > 0) {
+      const baseUrl = window.location.origin;
+      setInviteLink(`${baseUrl}/invite/${externalGuests[0].invite_code}`);
+    }
+
     setParty({
       ...partyData,
       participants: (participants || []).map((p: any) => ({
@@ -83,6 +108,7 @@ export default function PartyDetail() {
         friend_name: p.friends.friend_name,
         friend_last_name: p.friends.friend_last_name,
       })),
+      externalGuests: externalGuests || [],
     });
     setIsLoading(false);
   };
@@ -96,12 +122,37 @@ export default function PartyDetail() {
       .eq('id', party.id);
 
     if (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось удалить мероприятие', variant: 'destructive' });
+      showToast({ title: 'Ошибка', description: 'Не удалось удалить мероприятие', variant: 'destructive' });
       return;
     }
 
-    toast({ title: 'Готово', description: 'Мероприятие удалено' });
+    showToast({ title: 'Готово', description: 'Мероприятие удалено' });
     navigate('/parties');
+  };
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success('Ссылка скопирована!');
+    } catch {
+      toast.error('Не удалось скопировать ссылку');
+    }
+  };
+
+  const shareInviteLink = async () => {
+    if (navigator.share && party) {
+      try {
+        await navigator.share({
+          title: party.title,
+          text: `Приглашаю вас на ${party.title}!`,
+          url: inviteLink,
+        });
+      } catch (err) {
+        // User cancelled or error
+      }
+    } else {
+      copyInviteLink();
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -139,9 +190,22 @@ export default function PartyDetail() {
   if (!party) return null;
 
   const IconComponent = partyTypeIcons[party.party_type];
-  const acceptedCount = party.participants.filter(p => p.status === 'accepted').length;
-  const pendingCount = party.participants.filter(p => p.status === 'pending').length;
-  const declinedCount = party.participants.filter(p => p.status === 'declined').length;
+  
+  // Count from both participants and external guests
+  const participantAccepted = party.participants.filter(p => p.status === 'accepted').length;
+  const participantPending = party.participants.filter(p => p.status === 'pending').length;
+  const participantDeclined = party.participants.filter(p => p.status === 'declined').length;
+  
+  const externalAccepted = party.externalGuests.filter(g => g.status === 'accepted').length;
+  const externalPending = party.externalGuests.filter(g => g.status === 'pending').length;
+  const externalDeclined = party.externalGuests.filter(g => g.status === 'declined').length;
+
+  const acceptedCount = participantAccepted + externalAccepted;
+  const pendingCount = participantPending + externalPending;
+  const declinedCount = participantDeclined + externalDeclined;
+
+  // Filter external guests who have responded
+  const respondedExternalGuests = party.externalGuests.filter(g => g.status !== 'pending');
 
   return (
     <div className="min-h-[100dvh] bg-background pb-24">
@@ -213,6 +277,45 @@ export default function PartyDetail() {
           </div>
         </div>
 
+        {/* Invite Link Card */}
+        {inviteLink && (
+          <div className="bg-primary/5 rounded-2xl border border-primary/20 p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <LinkIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Ссылка для гостей</p>
+                <p className="text-sm text-muted-foreground">Отправьте людям без аккаунта</p>
+              </div>
+            </div>
+
+            <div className="bg-background rounded-xl p-3 flex items-center gap-2">
+              <input
+                type="text"
+                value={inviteLink}
+                readOnly
+                className="flex-1 bg-transparent text-sm text-foreground truncate outline-none"
+              />
+              <button
+                onClick={copyInviteLink}
+                className="shrink-0 w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              >
+                <Copy className="w-4 h-4 text-foreground" />
+              </button>
+            </div>
+
+            <Button
+              onClick={shareInviteLink}
+              variant="outline"
+              className="w-full h-11 rounded-xl gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              Поделиться ссылкой
+            </Button>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-green-500/10 rounded-2xl p-4 text-center border border-green-500/20">
@@ -242,32 +345,62 @@ export default function PartyDetail() {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-foreground">Приглашённые ({party.participants.length})</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Приглашённые ({party.participants.length + respondedExternalGuests.length})
+            </h3>
           </div>
 
           <div className="space-y-2">
-            {party.participants.length === 0 ? (
+            {party.participants.length === 0 && respondedExternalGuests.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">Нет приглашённых</p>
             ) : (
-              party.participants.map((participant) => (
-                <div
-                  key={participant.id}
-                  className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
-                    {participant.friend_name[0]}{participant.friend_last_name[0]}
+              <>
+                {/* Regular participants */}
+                {party.participants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                      {participant.friend_name[0]}{participant.friend_last_name[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {participant.friend_name} {participant.friend_last_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{getStatusLabel(participant.status)}</p>
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${getStatusColor(participant.status)}`}>
+                      {getStatusIcon(participant.status)}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">
-                      {participant.friend_name} {participant.friend_last_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{getStatusLabel(participant.status)}</p>
+                ))}
+
+                {/* External guests who responded */}
+                {respondedExternalGuests.map((guest) => (
+                  <div
+                    key={guest.id}
+                    className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground font-semibold">
+                      {guest.first_name?.[0] || '?'}{guest.last_name?.[0] || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {guest.first_name} {guest.last_name}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-3 h-3" />
+                        <span>{guest.phone}</span>
+                        <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">по ссылке</span>
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${getStatusColor(guest.status)}`}>
+                      {getStatusIcon(guest.status)}
+                    </div>
                   </div>
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${getStatusColor(participant.status)}`}>
-                    {getStatusIcon(participant.status)}
-                  </div>
-                </div>
-              ))
+                ))}
+              </>
             )}
           </div>
         </div>

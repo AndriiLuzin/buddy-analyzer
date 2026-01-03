@@ -10,13 +10,17 @@ import {
   Calendar as CalendarIcon, 
   Users, 
   Check,
-  MapPin
+  MapPin,
+  Link as LinkIcon,
+  Copy,
+  Share2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
 import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
+import { toast } from 'sonner';
 
 interface Friend {
   id: string;
@@ -25,7 +29,7 @@ interface Friend {
   friend_user_id: string;
 }
 
-type Step = 'type' | 'details' | 'datetime' | 'friends';
+type Step = 'type' | 'details' | 'datetime' | 'friends' | 'share';
 
 const partyTypes = [
   { id: 'birthday', label: 'День рождения', emoji: '🎂' },
@@ -37,9 +41,19 @@ const partyTypes = [
   { id: 'other', label: 'Другое', emoji: '🎊' },
 ];
 
+// Generate a short random invite code
+const generateInviteCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 export default function PartyCreate() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: showToast } = useToast();
 
   const [step, setStep] = useState<Step>('type');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -53,6 +67,7 @@ export default function PartyCreate() {
   const [partyDescription, setPartyDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
 
   const handleTimeChange = useCallback((val: { hours: number; minutes: number }) => {
     setSelectedTime(`${val.hours.toString().padStart(2, '0')}:${val.minutes.toString().padStart(2, '0')}`);
@@ -148,9 +163,23 @@ export default function PartyCreate() {
       .single();
 
     if (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось создать мероприятие', variant: 'destructive' });
+      showToast({ title: 'Ошибка', description: 'Не удалось создать мероприятие', variant: 'destructive' });
       setIsSubmitting(false);
       return;
+    }
+
+    // Generate invite link for external guests
+    const inviteCode = generateInviteCode();
+    const { error: inviteError } = await supabase
+      .from('party_external_invites')
+      .insert({
+        party_id: party.id,
+        invite_code: inviteCode,
+      });
+
+    if (!inviteError) {
+      const baseUrl = window.location.origin;
+      setInviteLink(`${baseUrl}/invite/${inviteCode}`);
     }
 
     if (selectedFriends.length > 0 && party) {
@@ -200,8 +229,9 @@ export default function PartyCreate() {
       }
     }
 
-    toast({ title: 'Готово!', description: 'Приглашения отправлены' });
-    navigate('/parties');
+    showToast({ title: 'Готово!', description: 'Приглашения отправлены' });
+    setIsSubmitting(false);
+    setStep('share');
   };
 
   const getStepTitle = () => {
@@ -210,6 +240,7 @@ export default function PartyCreate() {
       case 'details': return 'Детали';
       case 'datetime': return 'Когда?';
       case 'friends': return 'Кого пригласить?';
+      case 'share': return 'Ссылка для гостей';
     }
   };
 
@@ -218,7 +249,8 @@ export default function PartyCreate() {
       case 'type': return !!selectedType;
       case 'details': return !!partyTitle.trim();
       case 'datetime': return !!selectedDate;
-      case 'friends': return selectedFriends.length > 0;
+      case 'friends': return selectedFriends.length > 0 || true; // Allow proceeding even without friends
+      case 'share': return true;
     }
   };
 
@@ -228,6 +260,7 @@ export default function PartyCreate() {
       case 'details': setStep('datetime'); break;
       case 'datetime': setStep('friends'); break;
       case 'friends': handleSubmit(); break;
+      case 'share': navigate('/parties'); break;
     }
   };
 
@@ -236,12 +269,38 @@ export default function PartyCreate() {
       case 'details': setStep('type'); break;
       case 'datetime': setStep('details'); break;
       case 'friends': setStep('datetime'); break;
+      case 'share': navigate('/parties'); break;
       default: navigate('/parties'); break;
     }
   };
 
   const isSameDay = (date1: Date, date2: Date) => {
     return date1.toDateString() === date2.toDateString();
+  };
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success('Ссылка скопирована!');
+    } catch {
+      toast.error('Не удалось скопировать ссылку');
+    }
+  };
+
+  const shareInviteLink = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: partyTitle,
+          text: `Приглашаю вас на ${partyTitle}!`,
+          url: inviteLink,
+        });
+      } catch (err) {
+        // User cancelled or error
+      }
+    } else {
+      copyInviteLink();
+    }
   };
 
   return (
@@ -256,21 +315,25 @@ export default function PartyCreate() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-foreground">Новое мероприятие</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              {step === 'share' ? 'Мероприятие создано!' : 'Новое мероприятие'}
+            </h2>
             <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
           </div>
-          <div className="flex gap-1.5">
-            {['type', 'details', 'datetime', 'friends'].map((s, i) => (
-              <div 
-                key={s}
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                  step === s ? "bg-primary scale-110" : 
-                  ['type', 'details', 'datetime', 'friends'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
-                )}
-              />
-            ))}
-          </div>
+          {step !== 'share' && (
+            <div className="flex gap-1.5">
+              {['type', 'details', 'datetime', 'friends'].map((s, i) => (
+                <div 
+                  key={s}
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                    step === s ? "bg-primary scale-110" : 
+                    ['type', 'details', 'datetime', 'friends'].indexOf(step as Step) > i ? "bg-primary/50" : "bg-muted"
+                  )}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -537,6 +600,62 @@ export default function PartyCreate() {
             )}
           </div>
         )}
+
+        {/* Step 5: Share Link */}
+        {step === 'share' && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center py-6">
+              <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                <Check className="w-10 h-10 text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">{partyTitle}</h3>
+              <p className="text-muted-foreground">
+                {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: ru })}
+                {selectedTime && ` в ${selectedTime}`}
+              </p>
+            </div>
+
+            <div className="bg-secondary/50 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <LinkIcon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Ссылка для гостей</p>
+                  <p className="text-sm text-muted-foreground">Отправьте людям без аккаунта</p>
+                </div>
+              </div>
+
+              <div className="bg-background rounded-xl p-3 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inviteLink}
+                  readOnly
+                  className="flex-1 bg-transparent text-sm text-foreground truncate outline-none"
+                />
+                <button
+                  onClick={copyInviteLink}
+                  className="shrink-0 w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+
+              <Button
+                onClick={shareInviteLink}
+                variant="outline"
+                className="w-full h-12 rounded-xl gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                Поделиться ссылкой
+              </Button>
+            </div>
+
+            <p className="text-sm text-muted-foreground text-center">
+              Когда гости откроют ссылку и ответят, вы получите уведомление
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Bottom Button */}
@@ -554,8 +673,10 @@ export default function PartyCreate() {
           ) : step === 'friends' ? (
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5" />
-              <span>Отправить приглашения</span>
+              <span>Создать мероприятие</span>
             </div>
+          ) : step === 'share' ? (
+            'Готово'
           ) : (
             'Далее'
           )}
