@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Users, Heart, Sparkles, Phone, User, ArrowRight, UserPlus, ArrowLeft, CheckCircle, Calendar, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Users, Heart, Sparkles, User, ArrowRight, UserPlus, ArrowLeft, CheckCircle, Calendar, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -11,6 +11,7 @@ import { WelcomeModal } from './WelcomeModal';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { DateWheelPicker } from './DateWheelPicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { CountryCodeSelector, Country, detectCountryByIP, getDefaultCountry } from './CountryCodeSelector';
 
 interface AuthScreenProps {
   onAuthSuccess: (birthday?: Date) => void;
@@ -22,6 +23,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const [step, setStep] = useState<AuthStep>('main');
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [phone, setPhone] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +40,11 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
 
+  // Auto-detect country by IP on mount
+  useEffect(() => {
+    detectCountryByIP().then(setSelectedCountry);
+  }, []);
+
   const handleDateChange = useCallback((value: { month: number; day: number; year?: number }) => {
     setDateValue(value);
   }, []);
@@ -51,8 +58,13 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     return cleaned;
   };
 
-  const getNormalizedPhone = () => phone.startsWith('+') ? phone : `+${phone}`;
-  const getFakeEmail = () => `${getNormalizedPhone().replace('+', '')}@phone.buddybe.app`;
+  const getFullPhoneNumber = () => {
+    const cleanPhone = phone.replace(/[^\d]/g, '');
+    return `${selectedCountry.dialCode}${cleanPhone}`;
+  };
+
+  const getNormalizedPhone = () => getFullPhoneNumber();
+  const getFakeEmail = () => `${getFullPhoneNumber().replace('+', '')}@phone.buddybe.app`;
 
   const getLocalizedText = (ruText: string, enText: string) => {
     return language === 'ru' || language === 'uk' ? ruText : enText;
@@ -532,19 +544,29 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             {/* Login tab */}
             <TabsContent value="login" className="mt-0">
               <form onSubmit={handleLogin} className="space-y-4">
+                {/* Country selector */}
+                <div className="mb-2">
+                  <CountryCodeSelector 
+                    value={selectedCountry} 
+                    onChange={setSelectedCountry} 
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="login-phone" className="text-foreground font-medium">
                     {t('auth.phone')}
                   </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-muted-foreground font-medium">
+                      {selectedCountry.dialCode}
+                    </span>
                     <Input
                       id="login-phone"
                       type="tel"
-                      placeholder="+1 234 567 8900"
+                      placeholder="234 567 8900"
                       value={phone}
-                      onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                      className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                      onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+                      className="pl-16 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
                       required
                     />
                   </div>
@@ -604,25 +626,32 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             {/* Register tab */}
             <TabsContent value="register" className="mt-0">
               <form onSubmit={handleRegisterSendCode} className="space-y-4">
+                {/* Country selector */}
+                <div className="mb-2">
+                  <CountryCodeSelector 
+                    value={selectedCountry} 
+                    onChange={setSelectedCountry} 
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="register-phone" className="text-foreground font-medium">
                     {t('auth.phone')}
                   </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-muted-foreground font-medium">
+                      {selectedCountry.dialCode}
+                    </span>
                     <Input
                       id="register-phone"
                       type="tel"
-                      placeholder="+1 234 567 8900"
+                      placeholder="234 567 8900"
                       value={phone}
-                      onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                      className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                      onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+                      className="pl-16 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
                       required
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t('auth.phone_format')}
-                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -889,19 +918,29 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                 </p>
               </div>
 
+              {/* Country selector */}
+              <div className="mb-2">
+                <CountryCodeSelector 
+                  value={selectedCountry} 
+                  onChange={setSelectedCountry} 
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="forgot-phone" className="text-foreground font-medium">
                   {t('auth.phone')}
                 </Label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-muted-foreground font-medium">
+                    {selectedCountry.dialCode}
+                  </span>
                   <Input
                     id="forgot-phone"
                     type="tel"
-                    placeholder="+1 234 567 8900"
+                    placeholder="234 567 8900"
                     value={phone}
-                    onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                    className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
+                    onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+                    className="pl-16 h-12 rounded-xl bg-card/50 border-border focus:border-primary text-lg"
                     required
                   />
                 </div>
