@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { toast } from 'sonner';
+import { meetingTypeIcons } from '@/components/icons/MeetingTypeIcons';
 
 interface Friend {
   id: string;
@@ -368,21 +369,28 @@ export default function MeetingCreate() {
         {step === 'type' && (
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-3 gap-3">
-              {meetingTypeIds.map(typeId => (
-                <button
-                  key={typeId}
-                  onClick={() => setSelectedType(typeId)}
-                  className={cn(
-                    "aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
-                    selectedType === typeId 
-                      ? "bg-primary text-primary-foreground scale-105" 
-                      : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
-                  )}
-                >
-                  <span className="text-3xl">{meetingTypeEmojis[typeId]}</span>
-                  <span className="text-sm font-medium">{getMeetingTypeLabel(typeId)}</span>
-                </button>
-              ))}
+              {meetingTypeIds.map(typeId => {
+                const IconComponent = meetingTypeIcons[typeId];
+                return (
+                  <button
+                    key={typeId}
+                    onClick={() => setSelectedType(typeId)}
+                    className={cn(
+                      "aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
+                      selectedType === typeId 
+                        ? "bg-primary text-primary-foreground scale-105" 
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    {IconComponent ? (
+                      <IconComponent size={44} />
+                    ) : (
+                      <span className="text-3xl">{meetingTypeEmojis[typeId]}</span>
+                    )}
+                    <span className="text-sm font-medium">{getMeetingTypeLabel(typeId)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
