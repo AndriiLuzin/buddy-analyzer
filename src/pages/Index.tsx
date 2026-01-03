@@ -45,6 +45,7 @@ const Index = ({ initialRoute }: IndexProps) => {
   const [referrerName, setReferrerName] = useState<string>('');
   const [pendingQuizAnswers, setPendingQuizAnswers] = useState<number[] | null>(null);
   const [pendingProfile, setPendingProfile] = useState<UserProfile | null>(null);
+  const [userBirthday, setUserBirthday] = useState<Date | undefined>(undefined);
   const { classifyUser, isLoading } = useFriendClassifier();
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -195,7 +196,12 @@ const Index = ({ initialRoute }: IndexProps) => {
     setScreen('userQuiz'); // Go directly to quiz without auth
   };
 
-  const handleAuthSuccess = async () => {
+  const handleAuthSuccess = async (birthday?: Date) => {
+    // Store birthday if provided
+    if (birthday) {
+      setUserBirthday(birthday);
+    }
+
     // If we have pending quiz results from friend flow, save them now
     if (pendingQuizAnswers && pendingProfile && friendInfo && user) {
       // Save the user's profile
@@ -427,7 +433,7 @@ const Index = ({ initialRoute }: IndexProps) => {
         onComplete={handleQuizComplete} 
         onSkip={handleSkipQuiz}
         showSkip={showSkipOption}
-        birthday={friendInfo?.birthday}
+        birthday={friendInfo?.birthday || userBirthday}
       />
     );
   }
