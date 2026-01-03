@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { ru, enUS } from 'date-fns/locale';
 import { Plus, Calendar, Users, Check, Clock, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { PartyIcon } from '@/components/icons/PartyIcon';
 import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Party {
   id: string;
@@ -41,6 +42,9 @@ export default function Parties() {
   const navigate = useNavigate();
   const [parties, setParties] = useState<Party[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { t, language } = useLanguage();
+  
+  const dateLocale = language === 'ru' || language === 'uk' ? ru : enUS;
 
   useEffect(() => {
     fetchParties();
@@ -109,8 +113,8 @@ export default function Parties() {
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-foreground">Мероприятия</h1>
-              <p className="text-sm text-muted-foreground">Ваши праздники и события</p>
+              <h1 className="text-xl font-bold text-foreground">{t('parties.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('parties.subtitle')}</p>
             </div>
             <Button
               onClick={() => navigate('/parties/create')}
@@ -134,11 +138,11 @@ export default function Parties() {
             <div className="w-24 h-24 flex items-center justify-center mx-auto mb-4">
               <PartyIcon size={80} />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Нет мероприятий</h3>
-            <p className="text-muted-foreground mb-6">Создайте своё первое мероприятие!</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">{t('parties.no_parties')}</h3>
+            <p className="text-muted-foreground mb-6">{t('parties.create_first')}</p>
             <Button onClick={() => navigate('/parties/create')}>
               <Plus className="w-4 h-4 mr-2" />
-              Создать мероприятие
+              {t('parties.create')}
             </Button>
           </div>
         ) : (
@@ -166,7 +170,7 @@ export default function Parties() {
                     <h3 className="font-semibold text-foreground text-lg truncate">{party.title}</h3>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                       <Calendar className="w-4 h-4 shrink-0" />
-                      <span>{format(new Date(party.party_date), 'd MMMM yyyy', { locale: ru })}</span>
+                      <span>{format(new Date(party.party_date), 'd MMMM yyyy', { locale: dateLocale })}</span>
                       {party.party_time && (
                         <>
                           <span className="text-muted-foreground/50">•</span>
