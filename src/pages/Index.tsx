@@ -105,6 +105,25 @@ const Index = ({ initialRoute }: IndexProps) => {
         return;
       }
 
+      // User is logged in - check if they have a profile with quiz completed
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('category, quiz_answers')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // If user already has completed quiz, go directly to friend list
+      if (profile && profile.category) {
+        loadUserProfile();
+        return;
+      }
+
+      // If coming from referral link and user hasn't completed quiz yet
+      if (referrerId && !profile?.quiz_answers) {
+        setScreen('friendRegistration');
+        return;
+      }
+
       // Load user profile from DB
       loadUserProfile();
     };
