@@ -55,7 +55,6 @@ const BattleshipGame = () => {
   const [shots, setShots] = useState<BattleshipShot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
-  const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/battleship-play/${code}`;
@@ -265,22 +264,34 @@ const BattleshipGame = () => {
     return ships;
   };
 
-  const handleShoot = async (targetIndex: number, x: number, y: number) => {
-    if (!game || !isAdminTurn || isAdminEliminated || targetIndex === adminIndex) return;
+  const handleShoot = async (x: number, y: number) => {
+    if (!game || !isAdminTurn || isAdminEliminated) return;
 
-    const targetPlayer = players.find(p => p.player_index === targetIndex);
-    if (!targetPlayer || targetPlayer.is_eliminated) return;
-
-    // Check if already shot there
-    const alreadyShot = shots.some(
-      s => s.shooter_index === adminIndex && s.target_index === targetIndex && s.x === x && s.y === y
-    );
+    // Check if already shot at this cell (by anyone)
+    const alreadyShot = shots.some(s => s.x === x && s.y === y);
     if (alreadyShot) return;
 
-    // Check if hit
-    const isHit = targetPlayer.ships.some(ship =>
+    // Check if it's my own ship
+    const myShips = adminPlayer?.ships || [];
+    const isMyShip = myShips.some(ship =>
       ship.cells.some(cell => cell.x === x && cell.y === y)
     );
+    if (isMyShip) return;
+
+    // Check if we hit any player's ship at this cell
+    let targetIndex = -1;
+    let isHit = false;
+    for (const p of players) {
+      if (p.player_index === adminIndex) continue;
+      const hasShipHere = p.ships.some(ship =>
+        ship.cells.some(cell => cell.x === x && cell.y === y)
+      );
+      if (hasShipHere) {
+        targetIndex = p.player_index;
+        isHit = true;
+        break;
+      }
+    }
 
     // Record shot
     await supabase.from("battleship_shots").insert({
@@ -292,42 +303,42 @@ const BattleshipGame = () => {
       is_hit: isHit,
     });
 
-    if (isHit) {
-      // Update target's hits_received
-      const newHits = [...targetPlayer.hits_received, { x, y }];
-      await supabase
-        .from("battleship_players")
-        .update({ hits_received: newHits as unknown as any })
-        .eq("id", targetPlayer.id);
-
-      // Check if all ships destroyed
-      const allShipCells = targetPlayer.ships.flatMap(s => s.cells);
-      const allDestroyed = allShipCells.every(cell =>
-        newHits.some(h => h.x === cell.x && h.y === cell.y)
-      );
-
-      if (allDestroyed) {
+    if (isHit && targetIndex >= 0) {
+      const targetPlayer = players.find(p => p.player_index === targetIndex);
+      if (targetPlayer) {
+        const newHits = [...targetPlayer.hits_received, { x, y }];
         await supabase
           .from("battleship_players")
-          .update({ is_eliminated: true })
+          .update({ hits_received: newHits as unknown as any })
           .eq("id", targetPlayer.id);
 
-        // Check if game over
-        const remainingPlayers = players.filter(
-          p => !p.is_eliminated && p.player_index !== targetIndex
+        const allShipCells = targetPlayer.ships.flatMap(s => s.cells);
+        const allDestroyed = allShipCells.every(cell =>
+          newHits.some(h => h.x === cell.x && h.y === cell.y)
         );
 
-        if (remainingPlayers.length === 1) {
+        if (allDestroyed) {
           await supabase
-            .from("battleship_games")
-            .update({ status: 'finished' })
-            .eq("id", game.id);
-          return;
+            .from("battleship_players")
+            .update({ is_eliminated: true })
+            .eq("id", targetPlayer.id);
+
+          const remainingPlayers = players.filter(
+            p => !p.is_eliminated && p.player_index !== targetIndex
+          );
+
+          if (remainingPlayers.length === 1) {
+            await supabase
+              .from("battleship_games")
+              .update({ status: 'finished' })
+              .eq("id", game.id);
+            return;
+          }
         }
       }
     }
 
-    // Next player's turn
+    // Move to next player
     let nextPlayer = (game.current_player_index + 1) % game.player_count;
     const currentPlayers = players.map(p =>
       p.player_index === targetIndex && isHit
@@ -372,7 +383,6 @@ const BattleshipGame = () => {
 
       setPlayers([]);
       setShots([]);
-      setSelectedTarget(null);
       setViewMode('admin');
 
       toast.success(t("games.battleship.new_game_started"));
@@ -402,8 +412,6 @@ const BattleshipGame = () => {
         adminIndex={adminIndex}
         isAdminTurn={isAdminTurn}
         isAdminEliminated={isAdminEliminated}
-        selectedTarget={selectedTarget}
-        setSelectedTarget={setSelectedTarget}
         handleShoot={handleShoot}
         setViewMode={setViewMode}
         winner={winner}
@@ -564,7 +572,7 @@ const BattleshipGame = () => {
   );
 };
 
-// Player view component
+// Player view component - unified grid like BattleshipPlayer
 interface BattleshipPlayerViewProps {
   game: BattleshipGame;
   adminPlayer: BattleshipPlayer;
@@ -573,9 +581,7 @@ interface BattleshipPlayerViewProps {
   adminIndex: number;
   isAdminTurn: boolean;
   isAdminEliminated: boolean;
-  selectedTarget: number | null;
-  setSelectedTarget: (index: number | null) => void;
-  handleShoot: (targetIndex: number, x: number, y: number) => void;
+  handleShoot: (x: number, y: number) => void;
   setViewMode: (mode: 'admin' | 'player') => void;
   winner: BattleshipPlayer | null;
   t: (key: string) => string;
@@ -590,15 +596,23 @@ const BattleshipPlayerView = ({
   adminIndex,
   isAdminTurn,
   isAdminEliminated,
-  selectedTarget,
-  setSelectedTarget,
   handleShoot,
   setViewMode,
   winner,
   t,
   navigate,
 }: BattleshipPlayerViewProps) => {
-  const [showMyShips, setShowMyShips] = useState(true);
+  const [showTurnNotification, setShowTurnNotification] = useState(false);
+  const gameEnded = game.status === 'finished';
+
+  // Show turn notification when it becomes my turn
+  useEffect(() => {
+    if (isAdminTurn && !gameEnded && !isAdminEliminated) {
+      setShowTurnNotification(true);
+      const timer = setTimeout(() => setShowTurnNotification(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAdminTurn, gameEnded, isAdminEliminated]);
 
   const myShipCells = new Set(
     adminPlayer.ships.flatMap(s => s.cells.map(c => `${c.x},${c.y}`))
@@ -607,75 +621,67 @@ const BattleshipPlayerView = ({
     adminPlayer.hits_received.map(h => `${h.x},${h.y}`)
   );
 
-  const targetPlayer = selectedTarget !== null
-    ? players.find(p => p.player_index === selectedTarget)
-    : null;
+  // All shots on the board - key is just coordinates for all players to see
+  const allShotsMap = new Map<string, { shooter: number; isHit: boolean }>();
+  shots.forEach(s => {
+    const key = `${s.x},${s.y}`;
+    allShotsMap.set(key, { shooter: s.shooter_index, isHit: s.is_hit });
+  });
 
-  const getShotsAtTarget = (targetIndex: number) => {
-    return shots.filter(s => s.shooter_index === adminIndex && s.target_index === targetIndex);
-  };
-
-  const renderMyGrid = () => {
+  // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
+  const renderUnifiedGrid = () => {
     const gridHeight = game.grid_size;
     const cells = [];
     for (let y = 0; y < gridHeight; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
         const key = `${x},${y}`;
-        const isShip = myShipCells.has(key);
-        const isHit = myHits.has(key);
+        const isMyShip = myShipCells.has(key);
+        const isMyShipHit = myHits.has(key);
+        
+        // Check if anyone shot at this cell
+        const shotData = allShotsMap.get(key);
+        const cellWasShot = shotData !== undefined;
+        const wasHit = cellWasShot && shotData.isHit;
+        const wasMiss = cellWasShot && !shotData.isHit;
+
+        let bgClass = "bg-background";
+        let content = null;
+
+        // Priority: my ship hit > any hit > any miss > my ship > empty
+        if (isMyShip && isMyShipHit) {
+          // My ship was hit - red
+          bgClass = "bg-destructive";
+          content = <span className="text-destructive-foreground text-xs">💥</span>;
+        } else if (wasHit) {
+          // Someone hit a ship here - red
+          bgClass = "bg-destructive";
+          content = <span className="text-destructive-foreground text-xs">💥</span>;
+        } else if (wasMiss) {
+          // Someone missed here - gray dot
+          bgClass = "bg-muted";
+          content = <span className="text-muted-foreground">•</span>;
+        } else if (isMyShip) {
+          // My ship - gray during my turn, blue otherwise
+          bgClass = isAdminTurn ? "bg-muted-foreground/50" : "bg-primary";
+        }
+        // Enemy ships stay hidden (bg-background) until hit
+
+        // Can only shoot at cells that don't have my ships and weren't shot yet
+        const canShoot = isAdminTurn && !cellWasShot && !isMyShip && !isAdminEliminated && !gameEnded;
 
         cells.push(
           <div
             key={key}
-            className={`aspect-square border border-border/50 flex items-center justify-center text-xs ${
-              isHit
-                ? isShip
-                  ? "bg-destructive"
-                  : "bg-muted"
-                : isShip && showMyShips
-                ? "bg-primary"
-                : "bg-background"
+            onClick={() => {
+              if (canShoot) {
+                handleShoot(x, y);
+              }
+            }}
+            className={`aspect-square border border-border/50 flex items-center justify-center transition-all ${bgClass} ${
+              canShoot ? "cursor-pointer hover:bg-accent" : ""
             }`}
           >
-            {isHit && isShip && "💥"}
-            {isHit && !isShip && "•"}
-          </div>
-        );
-      }
-    }
-    return cells;
-  };
-
-  const renderTargetGrid = () => {
-    if (!targetPlayer || selectedTarget === null) return null;
-
-    const myShots = getShotsAtTarget(selectedTarget);
-    const shotMap = new Map(myShots.map(s => [`${s.x},${s.y}`, s.is_hit]));
-
-    const gridHeight = game.grid_size;
-    const cells = [];
-    for (let y = 0; y < gridHeight; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        const key = `${x},${y}`;
-        const hasShot = shotMap.has(key);
-        const isHit = shotMap.get(key);
-
-        cells.push(
-          <div
-            key={key}
-            onClick={() => !hasShot && isAdminTurn && handleShoot(selectedTarget, x, y)}
-            className={`aspect-square border border-border/50 flex items-center justify-center text-xs cursor-pointer transition-colors ${
-              hasShot
-                ? isHit
-                  ? "bg-destructive"
-                  : "bg-muted-foreground/30"
-                : isAdminTurn
-                ? "bg-background hover:bg-accent"
-                : "bg-background"
-            }`}
-          >
-            {hasShot && isHit && "💥"}
-            {hasShot && !isHit && "•"}
+            {content}
           </div>
         );
       }
@@ -695,6 +701,15 @@ const BattleshipPlayerView = ({
       </div>
 
       <div className="w-full max-w-md pt-16 animate-fade-in">
+        {/* Turn notification banner */}
+        {showTurnNotification && isAdminTurn && !isAdminEliminated && !gameEnded && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+            <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full shadow-lg font-bold">
+              🎯 {t("games.battleship.your_turn")}!
+            </div>
+          </div>
+        )}
+
         {winner ? (
           <div className="text-center mb-6 p-4 bg-primary/20 border border-primary/40 rounded-lg">
             <p className="text-2xl font-bold text-primary">
@@ -710,13 +725,13 @@ const BattleshipPlayerView = ({
             </p>
           </div>
         ) : isAdminTurn ? (
-          <div className="text-center mb-4 p-3 bg-primary/20 border border-primary/40 rounded-lg animate-pulse">
+          <div className="text-center mb-4 p-3 bg-primary/20 border border-primary/40 rounded-lg">
             <p className="text-lg font-bold text-primary">
               🎯 {t("games.battleship.your_turn")}
             </p>
           </div>
         ) : (
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 p-2 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground">
               {t("games.battleship.current_turn")}: {t("games.player")} #{game.current_player_index + 1}
             </p>
@@ -727,60 +742,59 @@ const BattleshipPlayerView = ({
           {t("games.player")} #{adminIndex + 1}
         </p>
 
-        {/* Target selection */}
-        <div className="flex flex-wrap gap-2 justify-center mb-4">
-          {players
-            .filter(p => p.player_index !== adminIndex && !p.is_eliminated)
-            .map(p => (
-              <Button
-                key={p.player_index}
-                variant={selectedTarget === p.player_index ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedTarget(p.player_index)}
-              >
-                {t("games.player")} #{p.player_index + 1}
-              </Button>
-            ))}
-        </div>
-
-        {/* Target grid */}
-        {selectedTarget !== null && targetPlayer && (
-          <div className="mb-6">
-            <p className="text-sm font-bold text-center mb-2">
-              {t("games.battleship.attacking")}: {t("games.player")} #{selectedTarget + 1}
-            </p>
-            <div
-              className="grid gap-0.5 mx-auto"
-              style={{
-                gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
-                maxWidth: "300px",
-              }}
-            >
-              {renderTargetGrid()}
-            </div>
+        {/* Active players display */}
+        {!isAdminEliminated && !gameEnded && (
+          <div className="flex flex-wrap gap-2 justify-center mb-4">
+            <span className="text-xs text-muted-foreground self-center mr-2">
+              {t("games.battleship.active_players")}:
+            </span>
+            {players
+              .filter(p => !p.is_eliminated)
+              .map(p => (
+                <div
+                  key={p.player_index}
+                  className={`text-xs px-2 py-1 rounded ${
+                    p.player_index === adminIndex 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
+                  {p.player_index === adminIndex && " (Вы)"}
+                </div>
+              ))}
           </div>
         )}
 
-        {/* My ships */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold">{t("games.battleship.my_ships")}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMyShips(!showMyShips)}
-            >
-              {showMyShips ? t("games.hide") : t("games.battleship.show")}
-            </Button>
+        {/* Legend */}
+        <div className="flex justify-center gap-4 text-xs mb-4">
+          <div className="flex items-center gap-1">
+            <div className={`w-4 h-4 rounded ${isAdminTurn ? "bg-muted-foreground/50" : "bg-primary"}`}></div>
+            <span className="text-muted-foreground">{t("games.battleship.my_ships")}</span>
           </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-destructive"></div>
+            <span className="text-muted-foreground">{t("games.battleship.hit")}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-muted flex items-center justify-center">•</div>
+            <span className="text-muted-foreground">{t("games.battleship.miss")}</span>
+          </div>
+        </div>
+
+        {/* Unified Grid - all ships on one board */}
+        <div className="mb-6">
+          <p className="text-sm font-bold text-center mb-2">
+            {isAdminTurn ? t("games.battleship.tap_to_shoot") : t("games.battleship.wait_turn")}
+          </p>
           <div
             className="grid gap-0.5 mx-auto"
             style={{
               gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
-              maxWidth: "250px",
+              maxWidth: "368px",
             }}
           >
-            {renderMyGrid()}
+            {renderUnifiedGrid()}
           </div>
         </div>
       </div>
