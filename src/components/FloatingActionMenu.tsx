@@ -6,7 +6,7 @@ import {
   PartyPopper,
   Calendar, 
   Home,
-  Share2,
+  QrCode,
   Gamepad2,
   LayoutGrid
 } from 'lucide-react';
@@ -84,7 +84,7 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       active: isActive('/meetings')
     },
     {
-      icon: Share2,
+      icon: QrCode,
       labelKey: 'nav.analysis',
       onClick: () => {
         navigate('/share');
