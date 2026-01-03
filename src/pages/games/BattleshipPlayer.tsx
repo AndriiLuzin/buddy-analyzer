@@ -44,6 +44,18 @@ interface BattleshipShot {
 
 const GRID_WIDTH = 8; // Grid width is always 8, height varies by player count
 
+// Player colors for destroyed ships
+const PLAYER_COLORS = [
+  { bg: "bg-blue-500", text: "text-white" },
+  { bg: "bg-green-500", text: "text-white" },
+  { bg: "bg-yellow-500", text: "text-black" },
+  { bg: "bg-purple-500", text: "text-white" },
+  { bg: "bg-orange-500", text: "text-white" },
+  { bg: "bg-pink-500", text: "text-white" },
+  { bg: "bg-cyan-500", text: "text-black" },
+  { bg: "bg-red-500", text: "text-white" },
+];
+
 const BattleshipPlayer = () => {
   const { code } = useParams<{ code: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -538,6 +550,29 @@ const BattleshipPlayer = () => {
     allShotsMap.set(key, { shooter: s.shooter_index, isHit: s.is_hit });
   });
 
+  // Check if a ship is fully destroyed
+  const getDestroyedShips = () => {
+    const destroyedCells = new Map<string, number>(); // cell key -> owner player_index
+    
+    players.forEach(p => {
+      const hitsSet = new Set(p.hits_received.map(h => `${h.x},${h.y}`));
+      
+      p.ships.forEach(ship => {
+        const allCellsHit = ship.cells.every(cell => hitsSet.has(`${cell.x},${cell.y}`));
+        if (allCellsHit) {
+          // This ship is destroyed - mark all its cells
+          ship.cells.forEach(cell => {
+            destroyedCells.set(`${cell.x},${cell.y}`, p.player_index);
+          });
+        }
+      });
+    });
+    
+    return destroyedCells;
+  };
+
+  const destroyedShipCells = getDestroyedShips();
+
   // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
   // All players see the same shots (hits and misses)
   const renderUnifiedGrid = () => {
@@ -555,16 +590,25 @@ const BattleshipPlayer = () => {
         const wasHit = cellWasShot && shotData.isHit;
         const wasMiss = cellWasShot && !shotData.isHit;
 
+        // Check if this cell belongs to a destroyed ship
+        const destroyedOwner = destroyedShipCells.get(key);
+        const isDestroyed = destroyedOwner !== undefined;
+
         let bgClass = "bg-background";
         let content = null;
 
-        // Priority: my ship hit > any hit > any miss > my ship > empty
-        if (isMyShip && isMyShipHit) {
-          // My ship was hit - red
+        // Priority: destroyed ship (player color) > hit > miss > my ship > empty
+        if (isDestroyed) {
+          // Destroyed ship - show in player's color
+          const colorIndex = destroyedOwner % PLAYER_COLORS.length;
+          bgClass = PLAYER_COLORS[colorIndex].bg;
+          content = <span className={`${PLAYER_COLORS[colorIndex].text} text-xs`}>✕</span>;
+        } else if (isMyShip && isMyShipHit) {
+          // My ship was hit but not destroyed yet - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
         } else if (wasHit) {
-          // Someone hit a ship here - red
+          // Someone hit a ship here but not destroyed yet - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
         } else if (wasMiss) {
