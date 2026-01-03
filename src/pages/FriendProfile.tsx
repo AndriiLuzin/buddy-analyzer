@@ -74,7 +74,7 @@ export default function FriendProfile() {
 
   if (isLoading || !friend) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="animate-pulse text-muted-foreground">Загрузка...</div>
       </div>
     );

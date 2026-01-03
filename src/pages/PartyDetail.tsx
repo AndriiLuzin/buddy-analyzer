@@ -181,7 +181,7 @@ export default function PartyDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="h-[100dvh] bg-background flex items-center justify-center overflow-hidden">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
@@ -208,7 +208,7 @@ export default function PartyDetail() {
   const respondedExternalGuests = party.externalGuests.filter(g => g.status !== 'pending');
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-24">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="px-5 py-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
@@ -233,7 +233,7 @@ export default function PartyDetail() {
         </div>
       </div>
 
-      <div className="px-5 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6 pb-24">
         {/* Party Info Card */}
         <div className="bg-card rounded-2xl border border-border/50 p-5">
           <div className="flex items-center gap-4 mb-5">

@@ -97,7 +97,7 @@ export default function Parties() {
 
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-8">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="px-5 py-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
@@ -124,7 +124,7 @@ export default function Parties() {
       </div>
 
       {/* Content */}
-      <div className="px-5 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 pb-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
