@@ -30,16 +30,56 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Check admin access
+  // Check admin access and load unread notifications count
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAdminAndNotifications = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && ADMIN_EMAILS.includes(session.user.email || '')) {
-        setIsAdmin(true);
+      if (session) {
+        if (ADMIN_EMAILS.includes(session.user.email || '')) {
+          setIsAdmin(true);
+        }
+        
+        // Load unread notifications count
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', session.user.id)
+          .eq('is_read', false);
+        
+        setUnreadCount(count || 0);
       }
     };
-    checkAdmin();
+    checkAdminAndNotifications();
+
+    // Subscribe to notification changes
+    const channel = supabase
+      .channel('notifications-count')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications'
+        },
+        async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const { count } = await supabase
+              .from('notifications')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', session.user.id)
+              .eq('is_read', false);
+            setUnreadCount(count || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const filteredFriends = friends.filter(friend => {
@@ -102,7 +142,9 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
               className="p-2 hover:opacity-70 transition-opacity relative"
             >
               <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+              )}
             </button>
             <ThemeToggle />
             <button 
