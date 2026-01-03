@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
-import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings, Pencil } from 'lucide-react';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const categoryGradients: Record<FriendCategory, string> = {
   soul_mate: 'from-amber-400 to-orange-500',
@@ -21,6 +27,8 @@ export default function FriendProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
+  const [isEditingBirthday, setIsEditingBirthday] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchFriend = async () => {
@@ -122,6 +130,32 @@ export default function FriendProfile() {
     }
   };
 
+  const handleBirthdayChange = async (date: Date | undefined) => {
+    if (!date || !friend) return;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    const { error } = await supabase
+      .from('friends')
+      .update({ friend_birthday: dateStr })
+      .eq('id', friend.id);
+    
+    if (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось обновить дату рождения',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Сохранено',
+        description: 'Дата рождения обновлена'
+      });
+      setFriend({ ...friend, birthday: dateStr });
+    }
+    setIsEditingBirthday(false);
+  };
+
   return (
     <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
       {/* Header with gradient */}
@@ -202,26 +236,45 @@ export default function FriendProfile() {
               <p className="font-medium text-foreground text-base">{formatDate(friend.lastInteraction)}</p>
             </div>
           )}
-          {friend.birthday && (() => {
-            const birthdayInfo = getBirthdayInfo(friend.birthday);
-            return birthdayInfo ? (
-              <div className="bg-secondary/50 rounded-xl p-4 flex items-center gap-3">
+          {/* Birthday - editable */}
+          <Popover open={isEditingBirthday} onOpenChange={setIsEditingBirthday}>
+            <PopoverTrigger asChild>
+              <button className="w-full bg-secondary/50 rounded-xl p-4 flex items-center gap-3 hover:bg-secondary/70 transition-colors text-left group">
                 <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center shrink-0">
                   <span className="text-2xl">🎂</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground">{friend.name}</p>
-                  <p className="text-sm text-muted-foreground">{birthdayInfo.formattedDate}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xl font-bold text-foreground">{birthdayInfo.daysUntil}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {birthdayInfo.daysUntil === 0 ? 'today' : birthdayInfo.daysUntil === 1 ? 'day left' : 'days left'}
+                  <p className="text-sm text-muted-foreground">
+                    {friend.birthday 
+                      ? getBirthdayInfo(friend.birthday)?.formattedDate 
+                      : 'Дата не указана — нажмите чтобы добавить'}
                   </p>
                 </div>
-              </div>
-            ) : null;
-          })()}
+                {friend.birthday && getBirthdayInfo(friend.birthday) && (
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-bold text-foreground">{getBirthdayInfo(friend.birthday)?.daysUntil}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {getBirthdayInfo(friend.birthday)?.daysUntil === 0 ? 'сегодня' : getBirthdayInfo(friend.birthday)?.daysUntil === 1 ? 'день' : 'дней'}
+                    </p>
+                  </div>
+                )}
+                <Pencil className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={friend.birthday ? new Date(friend.birthday) : undefined}
+                onSelect={handleBirthdayChange}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+                captionLayout="dropdown-buttons"
+                fromYear={1920}
+                toYear={new Date().getFullYear()}
+              />
+            </PopoverContent>
+          </Popover>
           
           {/* Important dates section */}
           {currentUserId && (

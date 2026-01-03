@@ -4,11 +4,17 @@ import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { X, Heart, MessageCircle, Calendar, Sparkles, Send } from 'lucide-react';
+import { X, Heart, MessageCircle, Calendar, Sparkles, Send, Pencil } from 'lucide-react';
 import { FriendActionsModal } from './FriendActionsModal';
 import { ChatModal } from './ChatModal';
 import { FriendDatesSection } from './FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar as CalendarComponent } from './ui/calendar';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface FriendDetailModalProps {
   friend: Friend | null;
@@ -16,6 +22,7 @@ interface FriendDetailModalProps {
   onClose: () => void;
   isMatch?: boolean;
   currentUserId?: string | null;
+  onUpdateFriend?: (friendId: string, updates: Partial<Friend>) => void;
 }
 
 const categoryGradients: Record<FriendCategory, string> = {
@@ -26,10 +33,15 @@ const categoryGradients: Record<FriendCategory, string> = {
   distant: 'from-slate-400 to-gray-500'
 };
 
-export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUserId }: FriendDetailModalProps) => {
+export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUserId, onUpdateFriend }: FriendDetailModalProps) => {
   const navigate = useNavigate();
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isEditingBirthday, setIsEditingBirthday] = useState(false);
+  const [selectedBirthday, setSelectedBirthday] = useState<Date | undefined>(
+    friend?.birthday ? new Date(friend.birthday) : undefined
+  );
+  const { toast } = useToast();
 
   if (!friend) return null;
 
@@ -41,6 +53,33 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  const handleBirthdayChange = async (date: Date | undefined) => {
+    if (!date || !currentUserId) return;
+    
+    setSelectedBirthday(date);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    const { error } = await supabase
+      .from('friends')
+      .update({ friend_birthday: dateStr })
+      .eq('id', friend.id);
+    
+    if (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось обновить дату рождения',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Сохранено',
+        description: 'Дата рождения обновлена'
+      });
+      onUpdateFriend?.(friend.id, { birthday: dateStr });
+    }
+    setIsEditingBirthday(false);
   };
 
   const handleWriteClick = () => {
@@ -124,15 +163,36 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
 
             {/* Info cards */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
-              {friend.birthday && (
-                <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
-                    <span className="text-xs sm:text-sm text-muted-foreground">День рождения</span>
-                  </div>
-                  <p className="font-medium text-foreground text-sm sm:text-base">{formatDate(friend.birthday)}</p>
-                </div>
-              )}
+              {/* Birthday - always show with edit option */}
+              <Popover open={isEditingBirthday} onOpenChange={setIsEditingBirthday}>
+                <PopoverTrigger asChild>
+                  <button className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2.5 sm:p-3 text-left hover:bg-pink-100 dark:hover:bg-pink-950/50 transition-colors group">
+                    <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+                        <span className="text-xs sm:text-sm text-muted-foreground">День рождения</span>
+                      </div>
+                      <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <p className="font-medium text-foreground text-sm sm:text-base">
+                      {selectedBirthday ? format(selectedBirthday, 'd MMMM yyyy', { locale: ru }) : 'Не указано'}
+                    </p>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedBirthday}
+                    onSelect={handleBirthdayChange}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    captionLayout="dropdown-buttons"
+                    fromYear={1920}
+                    toYear={new Date().getFullYear()}
+                  />
+                </PopoverContent>
+              </Popover>
+              
               {friend.lastInteraction && (
                 <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
