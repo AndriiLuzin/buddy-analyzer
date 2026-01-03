@@ -12,8 +12,8 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
   const { t } = useLanguage();
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden bg-background border-0 rounded-3xl">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) return; }}>
+      <DialogContent className="max-w-sm p-0 overflow-hidden bg-background border-0 rounded-3xl" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         {/* Header with gradient */}
         <div className="relative bg-gradient-to-br from-primary via-primary/80 to-accent p-8 text-center">
           <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center animate-float">
