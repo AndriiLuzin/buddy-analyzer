@@ -342,6 +342,8 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
                   onChange={setCode}
                   maxLength={6}
                   onComplete={handleVerifyCode}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} className="w-12 h-14 text-xl" />
