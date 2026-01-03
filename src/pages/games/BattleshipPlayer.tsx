@@ -93,12 +93,19 @@ const BattleshipPlayer = () => {
     }
   }, [isMyTurn, gameStarted, gameEnded, isEliminated]);
 
-  // Generate ships avoiding cells already occupied by other players
-  // gridHeight is from game.grid_size, width is always GRID_WIDTH
-  const generateShips = (gridHeight: number, occupiedCells: Set<string>): Ship[] => {
+  // Generate ships with unique random placement for each player
+  // Uses timestamp + random seed to ensure different placements even with same link
+  const generateShips = (gridHeight: number): Ship[] => {
     const ships: Ship[] = [];
-    const myOccupied = new Set<string>(occupiedCells);
+    const myOccupied = new Set<string>();
     const sizes = [1, 2, 3];
+    
+    // Use current timestamp + Math.random for unique seed
+    const seed = Date.now() + Math.random() * 1000000;
+    const seededRandom = () => {
+      const x = Math.sin(seed + ships.length * 100 + myOccupied.size) * 10000;
+      return x - Math.floor(x);
+    };
 
     for (const size of sizes) {
       let placed = false;
@@ -215,24 +222,8 @@ const BattleshipPlayer = () => {
     
     setIsJoining(true);
     
-    // Get latest players to collect all occupied cells
-    const { data: latestPlayers } = await supabase
-      .from("battleship_players")
-      .select("*")
-      .eq("game_id", game.id);
-    
-    // Collect all cells occupied by other players' ships
-    const occupiedCells = new Set<string>();
-    (latestPlayers || []).forEach(p => {
-      const ships = (p.ships as unknown as Ship[]) || [];
-      ships.forEach(ship => {
-        ship.cells.forEach(cell => {
-          occupiedCells.add(`${cell.x},${cell.y}`);
-        });
-      });
-    });
-    
-    const ships = generateShips(game.grid_size, occupiedCells);
+    // Generate unique ships for this player - each player gets their own random placement
+    const ships = generateShips(game.grid_size);
 
     const { data: newPlayer, error: insertError } = await supabase
       .from("battleship_players")
@@ -745,8 +736,12 @@ const BattleshipPlayer = () => {
             {isMyTurn ? t("games.battleship.tap_to_shoot") : t("games.battleship.wait_turn")}
           </p>
           <div 
-            className="overflow-auto max-h-[60vh]"
-            style={{ maxWidth: "331px", margin: "0 auto" }}
+            className="overflow-y-auto overflow-x-hidden pb-8"
+            style={{ 
+              maxWidth: "298px", 
+              margin: "0 auto",
+              maxHeight: "calc(100vh - 280px)",
+            }}
           >
             <div
               className="grid gap-0.5"
