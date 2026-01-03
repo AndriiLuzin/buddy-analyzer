@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, MapPin, Clock, X, CalendarClock, Sparkles, Users, CalendarPlus, Download } from 'lucide-react';
+import { MeetingIcon } from '@/components/icons/MeetingIcon';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isTomorrow, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { enUS, fr, es, ru, pt, uk, ko, zhCN } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -342,7 +343,9 @@ export default function Meetings() {
           </div>
         ) : meetings.length === 0 ? (
           <div className="text-center py-8">
-            <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+            <div className="flex justify-center mb-3">
+              <MeetingIcon size={72} />
+            </div>
             <p className="text-muted-foreground text-sm">{t('meetings.no_meetings')}</p>
             <p className="text-xs text-muted-foreground mt-1">{t('meetings.tap_to_create')}</p>
           </div>
