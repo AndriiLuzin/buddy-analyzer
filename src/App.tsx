@@ -13,6 +13,8 @@ import GroupCreate from "./pages/GroupCreate";
 import GroupEdit from "./pages/GroupEdit";
 import Meetings from "./pages/Meetings";
 import MeetingCreate from "./pages/MeetingCreate";
+import Parties from "./pages/Parties";
+import PartyCreate from "./pages/PartyCreate";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
@@ -68,6 +70,8 @@ const App = () => {
                 <Route path="/groups/:groupId/edit" element={<GroupEdit />} />
                 <Route path="/meetings" element={<Meetings />} />
                 <Route path="/meetings/create" element={<MeetingCreate />} />
+                <Route path="/parties" element={<Parties />} />
+                <Route path="/parties/create" element={<PartyCreate />} />
                 <Route path="/share" element={<Share />} />
                 {/* Games */}
                 <Route path="/games" element={<GamesHome />} />

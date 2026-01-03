@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
-import { ArrowLeft, UserCheck, UserPlus } from 'lucide-react';
+import { ArrowLeft, UserCheck, UserPlus, Check, X, Calendar, PartyPopper } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { NotificationDetailModal } from '../components/NotificationDetailModal';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface NotificationsPageProps {
   friends: Friend[];
@@ -50,7 +52,7 @@ const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
 
 export interface Notification {
   id: string;
-  type: 'contact' | 'birthday' | 'new_friend';
+  type: 'contact' | 'birthday' | 'new_friend' | 'party_invite' | 'meeting_invite';
   friend?: Friend;
   message: string;
   urgency: 'low' | 'medium' | 'high';
@@ -237,8 +239,75 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
       data: n.data
     }));
 
-  const visibleNotifications = [...newFriendNotifications, ...birthdayNotifications, ...contactNotifications]
+  // Party invite notifications
+  const partyInviteNotifications: Notification[] = dbNotifications
+    .filter(n => n.type === 'party_invite')
+    .map(n => ({
+      id: n.id,
+      type: 'party_invite' as const,
+      message: n.message,
+      urgency: 'medium' as const,
+      daysInfo: n.data?.party_date ? format(new Date(n.data.party_date as string), 'd MMM', { locale: ru }) : '',
+      title: n.title,
+      data: n.data
+    }));
+
+  // Meeting invite notifications
+  const meetingInviteNotifications: Notification[] = dbNotifications
+    .filter(n => n.type === 'meeting_invite')
+    .map(n => ({
+      id: n.id,
+      type: 'meeting_invite' as const,
+      message: n.message,
+      urgency: 'medium' as const,
+      daysInfo: n.data?.meeting_date ? format(new Date(n.data.meeting_date as string), 'd MMM', { locale: ru }) : '',
+      title: n.title,
+      data: n.data
+    }));
+
+  const visibleNotifications = [...partyInviteNotifications, ...meetingInviteNotifications, ...newFriendNotifications, ...birthdayNotifications, ...contactNotifications]
     .filter(n => !dismissedIds.has(n.id));
+
+  const handleRespondToInvite = async (notificationId: string, partyId: string | undefined, accept: boolean, type: 'party' | 'meeting') => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Find the participant record via friend relationship
+    const { data: friendRecord } = await supabase
+      .from('friends')
+      .select('id')
+      .eq('friend_user_id', user.id)
+      .maybeSingle();
+
+    if (friendRecord && partyId) {
+      if (type === 'party') {
+        await supabase
+          .from('party_participants')
+          .update({ 
+            status: accept ? 'accepted' : 'declined',
+            responded_at: new Date().toISOString()
+          })
+          .eq('party_id', partyId)
+          .eq('friend_id', friendRecord.id);
+      } else {
+        await supabase
+          .from('meeting_participants')
+          .update({ 
+            status: accept ? 'accepted' : 'declined'
+          })
+          .eq('meeting_id', partyId)
+          .eq('friend_id', friendRecord.id);
+      }
+    }
+
+    // Mark notification as read
+    await markDbNotificationAsRead(notificationId);
+
+    toast({
+      title: accept ? 'Принято!' : 'Отклонено',
+      description: accept ? 'Вы подтвердили участие' : 'Вы отклонили приглашение',
+    });
+  };
 
   return (
     <div className="h-[100dvh] bg-background animate-fade-in flex flex-col overflow-hidden">
@@ -269,8 +338,15 @@ export const NotificationsPage = ({ friends, onUpdateFriend }: NotificationsPage
               <NotificationCard 
                 key={notification.id} 
                 notification={notification}
-                onClick={() => notification.type !== 'new_friend' && setSelectedNotification(notification)}
+                onClick={() => !['new_friend', 'party_invite', 'meeting_invite'].includes(notification.type) && setSelectedNotification(notification)}
                 onDismiss={notification.type === 'new_friend' ? () => handleDismissDbNotification(notification.id) : undefined}
+                onRespond={(accept) => {
+                  if (notification.type === 'party_invite') {
+                    handleRespondToInvite(notification.id, notification.data?.party_id as string, accept, 'party');
+                  } else if (notification.type === 'meeting_invite') {
+                    handleRespondToInvite(notification.id, notification.data?.meeting_id as string, accept, 'meeting');
+                  }
+                }}
               />
             ))}
           </>
@@ -317,6 +393,7 @@ interface NotificationCardProps {
   notification: Notification;
   onClick: () => void;
   onDismiss?: () => void;
+  onRespond?: (accept: boolean) => void;
 }
 
 const categoryBgStyles: Record<FriendCategory, string> = {
@@ -327,8 +404,63 @@ const categoryBgStyles: Record<FriendCategory, string> = {
   distant: 'bg-slate-400'
 };
 
-const NotificationCard = ({ notification, onClick, onDismiss }: NotificationCardProps) => {
+const NotificationCard = ({ notification, onClick, onDismiss, onRespond }: NotificationCardProps) => {
   const { friend } = notification;
+
+  // For party_invite and meeting_invite notifications
+  if (notification.type === 'party_invite' || notification.type === 'meeting_invite') {
+    const isParty = notification.type === 'party_invite';
+    const inviterName = notification.data?.inviter_name as string || '';
+    const eventTitle = (notification.data?.party_title || notification.data?.meeting_title) as string || '';
+    const location = notification.data?.location as string;
+    const time = (notification.data?.party_time || notification.data?.meeting_time) as string;
+    
+    return (
+      <div className="w-full glass rounded-2xl p-4 space-y-3 animate-slide-up">
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div className="w-14 h-14 rounded-full flex items-center justify-center bg-primary/10 text-primary shrink-0">
+            {isParty ? <PartyPopper className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground">{notification.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+            {location && (
+              <p className="text-xs text-muted-foreground mt-1">📍 {location}</p>
+            )}
+          </div>
+
+          {/* Date badge */}
+          <div className="shrink-0">
+            <div className="px-3 py-1.5 rounded-full text-xs font-medium border border-primary/30 bg-primary/10 text-primary">
+              {notification.daysInfo}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 pt-2">
+          <button
+            onClick={() => onRespond?.(false)}
+            className="flex-1 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            <X className="w-4 h-4" />
+            Отклонить
+          </button>
+          <button
+            onClick={() => onRespond?.(true)}
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            <Check className="w-4 h-4" />
+            Принять
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   
   // For new_friend notifications, use data from the notification
   if (notification.type === 'new_friend') {
