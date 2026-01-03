@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Check, Eye, EyeOff, SkipForward, Settings, User } from "lucide-react";
+import { Home, Check, Eye, EyeOff, SkipForward, Settings, User, Share2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface Game {
   id: string;
@@ -42,6 +43,7 @@ const WhoAmIGame = () => {
   const [guessedOrder, setGuessedOrder] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
   const [showGuesserCharacter, setShowGuesserCharacter] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/whoami-play/${code}`;
   const adminIndex = game ? game.player_count - 1 : 0;
@@ -460,7 +462,13 @@ const WhoAmIGame = () => {
         </div>
 
         <div className="text-center mb-6">
-          <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            className="h-12 px-6 font-bold"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('games.share.invite')}
+          </Button>
         </div>
 
         <div className="grid grid-cols-5 gap-2 mb-8">
@@ -513,6 +521,14 @@ const WhoAmIGame = () => {
           {t('games.new_game')}
         </Button>
       </div>
+
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.whoami.title")}
+        gamePath="/games/whoami-play"
+      />
     </div>
   );
 };
