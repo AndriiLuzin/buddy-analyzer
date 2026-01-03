@@ -157,6 +157,31 @@ export default function FriendProfile() {
     setIsEditingBirthday(false);
   };
 
+  const handleCategoryChange = async (newCategory: FriendCategory) => {
+    if (!friend) return;
+    
+    const { error } = await supabase
+      .from('friends')
+      .update({ friend_category: newCategory })
+      .eq('id', friend.id);
+    
+    if (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить категорию',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Сохранено',
+        description: 'Категория изменена'
+      });
+      setFriend({ ...friend, category: newCategory });
+    }
+  };
+
+  const categoryOrder: FriendCategory[] = ['soul_mate', 'close_friend', 'good_buddy', 'situational', 'distant'];
+
   return (
     <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
       {/* Header with gradient */}
@@ -195,16 +220,43 @@ export default function FriendProfile() {
 
       {/* Content */}
       <div className="px-4 sm:px-6 pt-4 pb-8">
-        {/* Category badges */}
+        {/* Category badges - editable in edit mode */}
         <div className="text-center mb-6">
-          <div className="flex flex-wrap justify-center gap-2">
-            {categoryInfo && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary">
-                <span className="text-lg">{categoryInfo.emoji}</span>
-                <span className="font-medium text-secondary-foreground">{categoryInfo.label}</span>
+          {isEditMode ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground mb-2">Выберите категорию:</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {categoryOrder.map((cat) => {
+                  const info = CATEGORY_INFO[cat];
+                  const isSelected = friend.category === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategoryChange(cat)}
+                      className={cn(
+                        "inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all",
+                        isSelected 
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" 
+                          : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+                      )}
+                    >
+                      <span className="text-lg">{info.emoji}</span>
+                      <span className="font-medium text-sm">{info.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-2">
+              {categoryInfo && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary">
+                  <span className="text-lg">{categoryInfo.emoji}</span>
+                  <span className="font-medium text-secondary-foreground">{categoryInfo.label}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Description */}
