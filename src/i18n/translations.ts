@@ -402,6 +402,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'You won',
     'games.battleship.won': 'won',
     'games.battleship.new_game_started': 'New game started!',
+    'games.battleship.hit': 'Hit',
+    'games.battleship.miss': 'Miss',
+    'games.battleship.select_target': 'Select a target to attack',
   },
 
   fr: {
@@ -771,6 +774,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'Vous avez gagné',
     'games.battleship.won': 'a gagné',
     'games.battleship.new_game_started': 'Nouvelle partie commencée!',
+    'games.battleship.hit': 'Touché',
+    'games.battleship.miss': 'Raté',
+    'games.battleship.select_target': 'Choisissez une cible',
   },
 
   es: {
@@ -1140,6 +1146,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'Ganaste',
     'games.battleship.won': 'ganó',
     'games.battleship.new_game_started': '¡Nueva partida iniciada!',
+    'games.battleship.hit': 'Impacto',
+    'games.battleship.miss': 'Fallido',
+    'games.battleship.select_target': 'Selecciona un objetivo',
   },
 
   ru: {
@@ -1522,6 +1531,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'Ты победил',
     'games.battleship.won': 'победил',
     'games.battleship.new_game_started': 'Новая игра началась!',
+    'games.battleship.hit': 'Попадание',
+    'games.battleship.miss': 'Промах',
+    'games.battleship.select_target': 'Выбери цель для атаки',
   },
 
   pt: {
@@ -1891,6 +1903,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'Você venceu',
     'games.battleship.won': 'venceu',
     'games.battleship.new_game_started': 'Novo jogo iniciado!',
+    'games.battleship.hit': 'Acertou',
+    'games.battleship.miss': 'Errou',
+    'games.battleship.select_target': 'Selecione um alvo',
   },
 
   uk: {
@@ -2260,6 +2275,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': 'Ти переміг',
     'games.battleship.won': 'переміг',
     'games.battleship.new_game_started': 'Нова гра почалася!',
+    'games.battleship.hit': 'Влучення',
+    'games.battleship.miss': 'Промах',
+    'games.battleship.select_target': 'Обери ціль для атаки',
   },
 
   ko: {
@@ -2629,6 +2647,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': '승리했습니다',
     'games.battleship.won': '승리',
     'games.battleship.new_game_started': '새 게임 시작!',
+    'games.battleship.hit': '명중',
+    'games.battleship.miss': '빗나감',
+    'games.battleship.select_target': '공격할 대상을 선택하세요',
   },
 
   zh: {
@@ -2998,5 +3019,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.you_won': '你赢了',
     'games.battleship.won': '获胜',
     'games.battleship.new_game_started': '新游戏开始！',
+    'games.battleship.hit': '命中',
+    'games.battleship.miss': '未命中',
+    'games.battleship.select_target': '选择攻击目标',
   },
 };
