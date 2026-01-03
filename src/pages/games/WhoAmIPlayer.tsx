@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Eye, EyeOff } from "lucide-react";
+import { Home, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -31,7 +31,7 @@ const WhoAmIPlayer = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [characters, setCharacters] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [showOthers, setShowOthers] = useState(false);
+  const [showCharacter, setShowCharacter] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
 
   useEffect(() => {
@@ -122,6 +122,8 @@ const WhoAmIPlayer = () => {
         async (payload) => {
           if (payload.new) {
             setGame(payload.new as Game);
+            setShowCharacter(false);
+            setHasViewed(false);
             playNotificationSound();
           }
         }
@@ -173,7 +175,7 @@ const WhoAmIPlayer = () => {
     });
 
     setHasViewed(true);
-    setShowOthers(true);
+    setShowCharacter(true);
   };
 
   if (isLoading) {
@@ -186,7 +188,9 @@ const WhoAmIPlayer = () => {
 
   if (!game || playerIndex === null) return null;
 
-  const otherPlayers = players.filter((p) => p.player_index !== playerIndex);
+  const isGuesser = playerIndex === game.guesser_index;
+  const guesserPlayer = players.find((p) => p.player_index === game.guesser_index);
+  const guesserCharacter = guesserPlayer ? characters[guesserPlayer.character_id] : null;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
@@ -209,66 +213,74 @@ const WhoAmIPlayer = () => {
           </h1>
         </div>
 
-        {!hasViewed ? (
-          <Button
-            onClick={handleView}
-            className="w-full h-14 text-lg font-bold uppercase tracking-wider"
-          >
-            <Eye className="w-5 h-5 mr-2" />
-            {t('games.whoami.view_characters')}
-          </Button>
+        {isGuesser ? (
+          // Guesser view - shows "Who Am I?"
+          <div className="space-y-6">
+            <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+              <HelpCircle className="w-16 h-16 mx-auto mb-4 text-primary" />
+              <h2 className="text-3xl font-bold text-foreground mb-2">
+                {t('games.whoami.title')}
+              </h2>
+              <p className="text-muted-foreground">
+                {t('games.whoami.you_are_guessing')}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t('games.whoami.ask_yes_no')}
+            </p>
+          </div>
         ) : (
+          // Other players view - shows only the guesser's character
           <>
-            <Button
-              onClick={() => setShowOthers(!showOthers)}
-              variant="outline"
-              className="w-full h-12 mb-6"
-            >
-              {showOthers ? (
-                <EyeOff className="w-5 h-5 mr-2" />
-              ) : (
+            {!hasViewed ? (
+              <Button
+                onClick={handleView}
+                className="w-full h-14 text-lg font-bold uppercase tracking-wider"
+              >
                 <Eye className="w-5 h-5 mr-2" />
-              )}
-              {showOthers ? t('games.hide') : t('games.whoami.view_characters')}
-            </Button>
+                {t('games.whoami.view_character')}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setShowCharacter(!showCharacter)}
+                  variant="outline"
+                  className="w-full h-12 mb-6"
+                >
+                  {showCharacter ? (
+                    <EyeOff className="w-5 h-5 mr-2" />
+                  ) : (
+                    <Eye className="w-5 h-5 mr-2" />
+                  )}
+                  {showCharacter ? t('games.hide') : t('games.whoami.view_character')}
+                </Button>
 
-            {showOthers && (
-              <div className="space-y-2 animate-fade-in">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-                  {t('games.whoami.others_characters')}
-                </p>
-                {otherPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className={`p-4 rounded-lg ${
-                      player.guessed ? "bg-primary/20" : "bg-secondary"
-                    }`}
-                  >
-                    <p className="font-bold text-foreground">
-                      {t('games.player')} #{player.player_index + 1}
+                {showCharacter && (
+                  <div className="animate-fade-in">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
+                      {t('games.whoami.guesser_character')}
                     </p>
-                    <p className="text-lg text-muted-foreground">
-                      {characters[player.character_id] || "—"}
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {t('games.player')} #{game.guesser_index + 1} {t('games.whoami.is')}
+                      </p>
+                      <p className="text-3xl font-bold text-foreground">
+                        {guesserCharacter || "—"}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      {t('games.whoami.help_guess')}
                     </p>
                   </div>
-                ))}
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 mt-4">
-                  <p className="font-bold text-foreground">{t('games.whoami.your_character')}</p>
-                  <p className="text-lg text-primary">???</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {t('games.whoami.ask_questions')}
-                  </p>
-                </div>
-              </div>
+                )}
+              </>
             )}
           </>
         )}
 
         <div className="mt-12 text-center">
           <p className="text-xs text-muted-foreground">
-            {t('games.whoami.see_all_except')}
-            <br />
-            {t('games.whoami.ask_yes_no')}
+            {t('games.whoami.current_guesser')}: {t('games.player')} #{game.guesser_index + 1}
           </p>
         </div>
       </div>
