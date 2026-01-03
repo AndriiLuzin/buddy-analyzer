@@ -62,24 +62,52 @@ Deno.serve(async (req) => {
     // Generate a UUID for the friend if not provided
     const friendUserId = newUserId || crypto.randomUUID();
 
-    // Add as friend to referrer (referrer sees the new user)
-    const { error: insertError } = await supabaseAdmin
+    // Check if friend with same name already exists for this referrer
+    const { data: existingFriend } = await supabaseAdmin
       .from('friends')
-      .insert({
-        owner_id: referrerId,
-        friend_user_id: friendUserId,
-        friend_name: friendInfo.firstName,
-        friend_last_name: friendInfo.lastName,
-        friend_birthday: friendInfo.birthday,
-        friend_category: profile.category,
-        friend_description: profile.description,
-        friend_quiz_answers: answers,
-        match_score: matchScore
-      });
+      .select('id')
+      .eq('owner_id', referrerId)
+      .eq('friend_name', friendInfo.firstName)
+      .eq('friend_last_name', friendInfo.lastName)
+      .maybeSingle();
 
-    if (insertError) {
-      console.error('Error inserting friend:', insertError);
-      throw insertError;
+    if (existingFriend) {
+      console.log('Friend already exists, updating instead of inserting');
+      const { error: updateError } = await supabaseAdmin
+        .from('friends')
+        .update({
+          friend_birthday: friendInfo.birthday,
+          friend_category: profile.category,
+          friend_description: profile.description,
+          friend_quiz_answers: answers,
+          match_score: matchScore
+        })
+        .eq('id', existingFriend.id);
+
+      if (updateError) {
+        console.error('Error updating friend:', updateError);
+        throw updateError;
+      }
+    } else {
+      // Add as friend to referrer (referrer sees the new user)
+      const { error: insertError } = await supabaseAdmin
+        .from('friends')
+        .insert({
+          owner_id: referrerId,
+          friend_user_id: friendUserId,
+          friend_name: friendInfo.firstName,
+          friend_last_name: friendInfo.lastName,
+          friend_birthday: friendInfo.birthday,
+          friend_category: profile.category,
+          friend_description: profile.description,
+          friend_quiz_answers: answers,
+          match_score: matchScore
+        });
+
+      if (insertError) {
+        console.error('Error inserting friend:', insertError);
+        throw insertError;
+      }
     }
 
     console.log('Friend added successfully to referrer');
