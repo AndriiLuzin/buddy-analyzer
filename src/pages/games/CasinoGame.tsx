@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, RotateCcw, Eye, EyeOff } from "lucide-react";
+import { Home, RotateCcw, Eye, EyeOff, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -36,8 +36,15 @@ const CasinoGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCombination, setShowCombination] = useState(false);
   const [showAllSymbols, setShowAllSymbols] = useState(false);
+  const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
+  const [showMySymbol, setShowMySymbol] = useState(false);
+  const [showOthers, setShowOthers] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/casino-play/${code}`;
+  const adminIndex = game ? game.player_count - 1 : 0;
+  const adminPlayer = players.find(p => p.player_index === adminIndex);
+  const isAdminGuessing = game ? game.guesser_index === adminIndex : false;
+  const otherPlayers = players.filter(p => p.player_index !== adminIndex);
 
   useEffect(() => {
     if (!code) return;
@@ -163,6 +170,10 @@ const CasinoGame = () => {
         .eq("id", game.id);
 
       setShowCombination(false);
+      setShowAllSymbols(false);
+      setShowMySymbol(false);
+      setShowOthers(false);
+      setViewMode('admin');
       toast.success(t('games.impostor.round_started'));
     } catch (error) {
       toast.error(t('games.error'));
@@ -179,16 +190,126 @@ const CasinoGame = () => {
 
   if (!game) return null;
 
+  // Player view mode
+  if (viewMode === 'player') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/games")}
+          >
+            <Home className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode('admin')}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="w-full max-w-sm animate-fade-in">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t('games.player')} #{adminIndex + 1}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {t('games.casino.title')}
+            </h1>
+            <p className="text-muted-foreground text-sm">{t('games.round')}: {game.current_round}</p>
+          </div>
+
+          {isAdminGuessing && (
+            <div className="p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/30 mb-6 text-center">
+              <p className="text-lg font-bold text-foreground">
+                {t('games.casino.your_turn')}
+              </p>
+            </div>
+          )}
+
+          <div className="bg-secondary p-6 rounded-lg mb-6 text-center">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t('games.casino.now_guessing')}
+            </p>
+            <p className="text-3xl font-bold text-foreground">
+              {t('games.player')} #{game.guesser_index + 1}
+            </p>
+          </div>
+
+          <Button
+            onClick={() => setShowMySymbol(!showMySymbol)}
+            className="w-full h-12 mb-4"
+          >
+            {showMySymbol ? t('games.casino.hide_my_symbol') : t('games.casino.show_my_symbol')}
+          </Button>
+
+          {showMySymbol && adminPlayer && (
+            <div className="text-center mb-6 animate-scale-in">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                {t('games.casino.your_symbol')}
+              </p>
+              <p className="text-6xl">{adminPlayer.symbol}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {t('games.casino.dont_show')}
+              </p>
+            </div>
+          )}
+
+          <Button
+            onClick={() => setShowOthers(!showOthers)}
+            variant="outline"
+            className="w-full h-12 mb-4"
+          >
+            {showOthers ? t('games.casino.hide_others') : t('games.casino.show_others')}
+          </Button>
+
+          {showOthers && (
+            <div className="grid grid-cols-4 gap-2 mb-6 animate-fade-in">
+              {otherPlayers.map((player) => (
+                <div
+                  key={player.id}
+                  className="aspect-square flex flex-col items-center justify-center bg-secondary rounded-lg p-2"
+                >
+                  <span className="text-2xl">❓</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    #{player.player_index + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="text-center text-sm text-muted-foreground">
+            <p>{t('games.casino.combination_info')}</p>
+            <p>{t('games.casino.can_repeat')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin panel view
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate("/games")}
-        className="absolute top-4 left-4"
-      >
-        <Home className="w-5 h-5" />
-      </Button>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/games")}
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setViewMode('player')}
+        >
+          <User className="w-5 h-5" />
+        </Button>
+      </div>
 
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
@@ -197,6 +318,9 @@ const CasinoGame = () => {
           </h1>
           <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
           <p className="text-muted-foreground text-sm">{t('games.round')}: {game.current_round}</p>
+          <p className="text-xs text-primary mt-2">
+            {t('games.you')}: {t('games.player')} #{adminIndex + 1}
+          </p>
         </div>
 
         <div className="bg-secondary p-6 rounded-lg mb-6 text-center">
@@ -205,8 +329,18 @@ const CasinoGame = () => {
           </p>
           <p className="text-3xl font-bold text-foreground">
             {t('games.player')} #{game.guesser_index + 1}
+            {game.guesser_index === adminIndex && (
+              <span className="text-lg text-primary ml-2">({t('games.you')})</span>
+            )}
           </p>
         </div>
+
+        <Button
+          onClick={() => setViewMode('player')}
+          className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
+        >
+          {t('games.show_my_role')}
+        </Button>
 
         <Button
           onClick={() => setShowCombination(!showCombination)}
@@ -243,7 +377,11 @@ const CasinoGame = () => {
             {players.map((player) => (
               <div
                 key={player.id}
-                className="aspect-square flex flex-col items-center justify-center bg-secondary rounded-lg p-2"
+                className={`aspect-square flex flex-col items-center justify-center rounded-lg p-2 ${
+                  player.player_index === adminIndex
+                    ? "bg-primary/20 border border-primary/30"
+                    : "bg-secondary"
+                }`}
               >
                 <span className="text-2xl">{player.symbol}</span>
                 <span className="text-xs text-muted-foreground mt-1">

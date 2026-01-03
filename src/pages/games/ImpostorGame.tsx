@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home } from "lucide-react";
+import { Home, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -34,8 +34,12 @@ const ImpostorGame = () => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [startingPlayer, setStartingPlayer] = useState<number | null>(null);
   const [showMyRole, setShowMyRole] = useState(false);
+  const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
 
   const gameUrl = `${window.location.origin}/games/impostor-play/${code}`;
+  const adminIndex = game ? game.player_count - 1 : 0;
+  const isAdminImpostor = game ? game.impostor_index === adminIndex : false;
+  const allViewed = game ? views.length >= game.player_count : false;
 
   useEffect(() => {
     if (!code) return;
@@ -60,12 +64,12 @@ const ImpostorGame = () => {
         .select("player_index")
         .eq("game_id", gameData.id);
 
-      const adminIndex = gameData.player_count - 1;
-      const adminViewed = viewsData?.some((v) => v.player_index === adminIndex);
+      const adminIdx = gameData.player_count - 1;
+      const adminViewed = viewsData?.some((v) => v.player_index === adminIdx);
       if (!adminViewed) {
         await supabase.from("player_views").insert({
           game_id: gameData.id,
-          player_index: adminIndex,
+          player_index: adminIdx,
         });
         const { data: updatedViews } = await supabase
           .from("player_views")
@@ -104,16 +108,29 @@ const ImpostorGame = () => {
 
           setWord(wordData?.word || null);
           setIsRevealed(true);
-          const validPlayers = Array.from({ length: gameData.player_count }, (_, i) => i)
-            .filter(i => i !== gameData.impostor_index);
-          const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
-          setStartingPlayer(selectedPlayer);
-          await supabase
-            .from("games")
-            .update({ starting_player: selectedPlayer })
-            .eq("id", gameData.id);
-          playNotificationSound();
+          if (gameData.starting_player !== null) {
+            setStartingPlayer(gameData.starting_player);
+          } else {
+            const validPlayers = Array.from({ length: gameData.player_count }, (_, i) => i)
+              .filter(i => i !== gameData.impostor_index);
+            const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
+            setStartingPlayer(selectedPlayer);
+            await supabase
+              .from("games")
+              .update({ starting_player: selectedPlayer })
+              .eq("id", gameData.id);
+          }
         }
+      }
+
+      // Fetch word for admin if not impostor
+      if (adminIdx !== gameData.impostor_index) {
+        const { data: wordData } = await supabase
+          .from("game_words")
+          .select("word")
+          .eq("id", gameData.word_id)
+          .single();
+        setWord(wordData?.word || null);
       }
 
       setIsLoading(false);
@@ -148,14 +165,18 @@ const ImpostorGame = () => {
 
             setWord(wordData?.word || null);
             setIsRevealed(true);
-            const validPlayers = Array.from({ length: game.player_count }, (_, i) => i)
-              .filter(i => i !== game.impostor_index);
-            const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
-            setStartingPlayer(selectedPlayer);
-            await supabase
-              .from("games")
-              .update({ starting_player: selectedPlayer })
-              .eq("id", game.id);
+            if (game.starting_player !== null) {
+              setStartingPlayer(game.starting_player);
+            } else {
+              const validPlayers = Array.from({ length: game.player_count }, (_, i) => i)
+                .filter(i => i !== game.impostor_index);
+              const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
+              setStartingPlayer(selectedPlayer);
+              await supabase
+                .from("games")
+                .update({ starting_player: selectedPlayer })
+                .eq("id", game.id);
+            }
             playNotificationSound();
           }
         }
@@ -165,7 +186,7 @@ const ImpostorGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, game?.player_count, game?.word_id, game?.impostor_index, t]);
+  }, [code, navigate, game?.id, game?.player_count, game?.word_id, game?.impostor_index, game?.starting_player, t]);
 
   const startNewRound = async () => {
     if (!game) return;
@@ -194,6 +215,8 @@ const ImpostorGame = () => {
       setViews([]);
       setIsRevealed(false);
       setStartingPlayer(null);
+      setShowMyRole(false);
+      setViewMode('admin');
       setGame({ ...game, word_id: randomWord.id, impostor_index: newImpostorIndex });
 
       toast.success(t("games.impostor.round_started"));
@@ -212,129 +235,113 @@ const ImpostorGame = () => {
 
   if (!game) return null;
 
-  const allViewed = views.length >= game.player_count;
-  const adminIndex = game.player_count - 1;
-  const isAdminImpostor = game.impostor_index === adminIndex;
+  // Player view mode
+  if (viewMode === 'player' && allViewed) {
+    const isStartingPlayer = startingPlayer === adminIndex;
 
-  if (allViewed && isRevealed) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/games")}
-          className="absolute top-4 left-4"
-        >
-          <Home className="w-5 h-5" />
-        </Button>
-        <div className="text-center animate-scale-in">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            {isAdminImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
-          </p>
-          <h1 className="text-4xl font-bold text-foreground">
-            {isAdminImpostor ? t("games.impostor.impostor") : word}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-6">
-            {isAdminImpostor ? (
-              <>
-                {t("games.impostor.you_dont_know")}
-                <br />
-                {t("games.impostor.pretend")}
-              </>
-            ) : (
-              <>
-                {t("games.impostor.find_impostor")}
-                <br />
-                {t("games.impostor.doesnt_know")}
-              </>
-            )}
-          </p>
-
-          {startingPlayer !== null && (
-            <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-              <p className="text-sm text-muted-foreground">{t("games.impostor.starts_first")}</p>
-              <p className="text-2xl font-bold text-primary">
-                {t("games.player")} #{startingPlayer + 1}
-              </p>
-            </div>
-          )}
-
-          <Button
-            onClick={() => setIsRevealed(false)}
-            variant="outline"
-            className="mt-12"
-          >
-            {t("games.hide")}
-          </Button>
-
-          <Button
-            onClick={startNewRound}
-            variant="outline"
-            className="w-full mt-4 h-12 font-bold uppercase tracking-wider"
-          >
-            {t("games.new_round")}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (showMyRole) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/games")}
-          className="absolute top-4 left-4"
-        >
-          <Home className="w-5 h-5" />
-        </Button>
-        <div className="text-center animate-scale-in">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
-            {isAdminImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
-          </p>
-          <h1 className="text-4xl font-bold text-foreground">
-            {isAdminImpostor ? t("games.impostor.impostor") : word}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-6">
-            {isAdminImpostor ? (
-              <>
-                {t("games.impostor.you_dont_know")}
-                <br />
-                {t("games.impostor.pretend")}
-              </>
-            ) : (
-              <>
-                {t("games.impostor.find_impostor")}
-                <br />
-                {t("games.impostor.doesnt_know")}
-              </>
-            )}
-          </p>
-
+        <div className="absolute top-4 left-4 flex gap-2">
           <Button
-            onClick={() => setShowMyRole(false)}
-            variant="outline"
-            className="mt-12"
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/games")}
           >
-            {t("games.hide")}
+            <Home className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode('admin')}
+          >
+            <Settings className="w-5 h-5" />
           </Button>
         </div>
+
+        {showMyRole ? (
+          <div className="text-center animate-scale-in">
+            {isStartingPlayer && (
+              <div className="mb-6 p-4 bg-primary/20 border border-primary/40 rounded-lg animate-pulse">
+                <p className="text-2xl font-bold text-primary">
+                  🎯 {t("games.you_start")}
+                </p>
+              </div>
+            )}
+
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t('games.player')} #{adminIndex + 1}
+            </p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
+              {isAdminImpostor ? t("games.impostor.your_role") : t("games.impostor.secret_word")}
+            </p>
+            <h1 className="text-4xl font-bold text-foreground">
+              {isAdminImpostor ? t("games.impostor.impostor") : word}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-6">
+              {isAdminImpostor ? (
+                <>
+                  {t("games.impostor.you_dont_know")}
+                  <br />
+                  {t("games.impostor.pretend")}
+                </>
+              ) : (
+                <>
+                  {t("games.impostor.find_impostor")}
+                  <br />
+                  {t("games.impostor.doesnt_know")}
+                </>
+              )}
+            </p>
+
+            <Button
+              onClick={() => setShowMyRole(false)}
+              variant="outline"
+              className="mt-12"
+            >
+              {t("games.hide")}
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center animate-fade-in">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
+              {t("games.player")} #{adminIndex + 1}
+            </p>
+            <Button
+              onClick={() => setShowMyRole(true)}
+              className="h-20 px-12 text-xl font-bold uppercase tracking-wider"
+            >
+              {t("games.show_role")}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-6">
+              {t("games.dont_show_screen")}
+            </p>
+          </div>
+        )}
       </div>
     );
   }
 
+  // Admin panel view
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate("/games")}
-        className="absolute top-4 left-4"
-      >
-        <Home className="w-5 h-5" />
-      </Button>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/games")}
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+        {allViewed && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode('player')}
+          >
+            <User className="w-5 h-5" />
+          </Button>
+        )}
+      </div>
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
@@ -343,14 +350,19 @@ const ImpostorGame = () => {
           <p className="text-muted-foreground text-sm">
             {views.length} / {game.player_count} {t("games.players_viewed")}
           </p>
+          <p className="text-xs text-primary mt-2">
+            {t('games.you')}: {t('games.player')} #{adminIndex + 1}
+          </p>
         </div>
 
-        <Button
-          onClick={() => setShowMyRole(true)}
-          className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
-        >
-          {t("games.show_my_role")}
-        </Button>
+        {allViewed && (
+          <Button
+            onClick={() => setViewMode('player')}
+            className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
+          >
+            {t("games.show_my_role")}
+          </Button>
+        )}
 
         <div className="bg-secondary p-6 flex items-center justify-center mb-6">
           <QRCodeSVG
@@ -382,7 +394,9 @@ const ImpostorGame = () => {
                 key={i}
                 className={`aspect-square flex items-center justify-center text-sm font-bold transition-colors ${
                   hasViewed
-                    ? "bg-foreground text-background"
+                    ? i === adminIndex
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-foreground text-background"
                     : "bg-secondary text-muted-foreground"
                 }`}
               >

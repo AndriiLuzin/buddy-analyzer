@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Check, Eye, EyeOff, SkipForward } from "lucide-react";
+import { Home, Check, Eye, EyeOff, SkipForward, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -39,8 +39,16 @@ const WhoAmIGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [guessedOrder, setGuessedOrder] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
+  const [showGuesserCharacter, setShowGuesserCharacter] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/whoami-play/${code}`;
+  const adminIndex = game ? game.player_count - 1 : 0;
+  const adminPlayer = players.find(p => p.player_index === adminIndex);
+  const isAdminGuesser = game ? game.guesser_index === adminIndex : false;
+  const currentGuesser = game ? players.find(p => p.player_index === game.guesser_index) : null;
+  const currentGuesserCharacter = currentGuesser ? characters[currentGuesser.character_id] : null;
+  const allGuessed = players.every(p => p.guessed);
 
   useEffect(() => {
     if (!code) return;
@@ -89,7 +97,6 @@ const WhoAmIGame = () => {
 
       setViews(viewsData?.map((v) => v.player_index) || []);
       
-      // Initialize guessed order from players who have guessed
       const guessed = playersData?.filter(p => p.guessed).map(p => p.player_index) || [];
       setGuessedOrder(guessed);
       
@@ -158,43 +165,37 @@ const WhoAmIGame = () => {
   const markGuessedAndNextRound = async () => {
     if (!game) return;
 
-    const currentGuesser = players.find((p) => p.player_index === game.guesser_index);
-    if (!currentGuesser) return;
+    const guesser = players.find((p) => p.player_index === game.guesser_index);
+    if (!guesser) return;
 
-    // Mark current guesser as guessed
     await supabase
       .from("whoami_players")
       .update({ guessed: true })
-      .eq("id", currentGuesser.id);
+      .eq("id", guesser.id);
 
-    // Add to guessed order
     const newGuessedOrder = [...guessedOrder, game.guesser_index];
     setGuessedOrder(newGuessedOrder);
 
-    // Find next guesser (player who hasn't guessed yet)
     const notGuessed = players
       .filter(p => !p.guessed && p.player_index !== game.guesser_index)
       .map(p => p.player_index);
 
     if (notGuessed.length === 0) {
-      // All players have guessed - game complete
       toast.success(t('games.whoami.game_complete'));
       return;
     }
 
-    // Pick the next guesser (in order)
     const nextGuesser = Math.min(...notGuessed);
 
-    // Clear views for new round
     await supabase.from("whoami_views").delete().eq("game_id", game.id);
 
-    // Update game with new guesser
     await supabase
       .from("whoami_games")
       .update({ guesser_index: nextGuesser })
       .eq("id", game.id);
 
     setViews([]);
+    setShowGuesserCharacter(false);
     toast.success(t('games.whoami.next_round'));
   };
 
@@ -202,14 +203,14 @@ const WhoAmIGame = () => {
     if (!game) return;
 
     try {
-      const { data: characters } = await supabase
+      const { data: chars } = await supabase
         .from("whoami_characters")
         .select("id");
 
-      if (!characters?.length) throw new Error("No characters");
+      if (!chars?.length) throw new Error("No characters");
 
-      const shuffled = [...characters].sort(() => Math.random() - 0.5);
-      const newGuesser = 0; // Start from player 1
+      const shuffled = [...chars].sort(() => Math.random() - 0.5);
+      const newGuesser = 0;
 
       await supabase.from("whoami_views").delete().eq("game_id", game.id);
 
@@ -230,6 +231,8 @@ const WhoAmIGame = () => {
 
       setViews([]);
       setGuessedOrder([]);
+      setViewMode('admin');
+      setShowGuesserCharacter(false);
       toast.success(t('games.impostor.round_started'));
     } catch (error) {
       toast.error(t('games.error'));
@@ -246,20 +249,111 @@ const WhoAmIGame = () => {
 
   if (!game) return null;
 
-  const currentGuesser = players.find(p => p.player_index === game.guesser_index);
-  const currentGuesserCharacter = currentGuesser ? characters[currentGuesser.character_id] : null;
-  const allGuessed = players.every(p => p.guessed);
+  // Player view mode
+  if (viewMode === 'player') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/games")}
+          >
+            <Home className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode('admin')}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
 
+        <div className="w-full max-w-sm animate-fade-in">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t('games.player')} #{adminIndex + 1}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {t('games.whoami.title')}
+            </h1>
+          </div>
+
+          {isAdminGuesser ? (
+            <div className="text-center">
+              <div className="p-6 rounded-lg bg-yellow-500/20 border border-yellow-500/30 mb-6">
+                <p className="text-lg font-bold text-foreground">
+                  {t('games.whoami.you_are_guessing')}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {t('games.whoami.ask_yes_no')}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 mb-6">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  {t('games.whoami.current_guesser')}
+                </p>
+                <p className="text-xl font-bold text-foreground">
+                  {t('games.player')} #{game.guesser_index + 1}
+                </p>
+              </div>
+
+              {showGuesserCharacter ? (
+                <div className="animate-scale-in">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
+                    {t('games.whoami.guesser_character')}
+                  </p>
+                  <h2 className="text-3xl font-bold text-foreground mb-6">
+                    {currentGuesserCharacter || '—'}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {t('games.whoami.help_guess')}
+                  </p>
+                  <Button
+                    onClick={() => setShowGuesserCharacter(false)}
+                    variant="outline"
+                  >
+                    {t('games.hide')}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowGuesserCharacter(true)}
+                  className="h-14 px-8 text-lg font-bold uppercase tracking-wider"
+                >
+                  {t('games.whoami.view_character')}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Admin panel view
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate("/games")}
-        className="absolute top-4 left-4"
-      >
-        <Home className="w-5 h-5" />
-      </Button>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/games")}
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setViewMode('player')}
+        >
+          <User className="w-5 h-5" />
+        </Button>
+      </div>
 
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
@@ -270,9 +364,11 @@ const WhoAmIGame = () => {
           <p className="text-muted-foreground text-sm">
             {views.length} / {game.player_count - 1} {t('games.whoami.viewed')}
           </p>
+          <p className="text-xs text-primary mt-2">
+            {t('games.you')}: {t('games.player')} #{adminIndex + 1}
+          </p>
         </div>
 
-        {/* Current guesser info */}
         <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 mb-6 text-center">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
             {t('games.whoami.current_guesser')}
@@ -286,6 +382,13 @@ const WhoAmIGame = () => {
             </p>
           )}
         </div>
+
+        <Button
+          onClick={() => setViewMode('player')}
+          className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-4"
+        >
+          {t('games.show_my_role')}
+        </Button>
 
         <Button
           onClick={() => setShowAll(!showAll)}
@@ -306,12 +409,17 @@ const WhoAmIGame = () => {
                     ? "bg-primary/20" 
                     : player.player_index === game.guesser_index
                     ? "bg-yellow-500/20 border border-yellow-500/30"
+                    : player.player_index === adminIndex
+                    ? "bg-primary/10 border border-primary/30"
                     : "bg-secondary"
                 }`}
               >
                 <div>
                   <p className="font-bold text-foreground">
                     {t('games.player')} #{player.player_index + 1}
+                    {player.player_index === adminIndex && (
+                      <span className="ml-2 text-xs text-primary">({t('games.you')})</span>
+                    )}
                     {player.player_index === game.guesser_index && (
                       <span className="ml-2 text-xs text-yellow-600">
                         ({t('games.whoami.guessing')})
@@ -350,6 +458,7 @@ const WhoAmIGame = () => {
             const player = players.find((p) => p.player_index === i);
             const hasGuessed = player?.guessed;
             const isCurrentGuesser = i === game.guesser_index;
+            const isAdmin = i === adminIndex;
             return (
               <div
                 key={i}
@@ -358,6 +467,8 @@ const WhoAmIGame = () => {
                     ? "bg-primary text-primary-foreground"
                     : isCurrentGuesser
                     ? "bg-yellow-500 text-yellow-950"
+                    : isAdmin
+                    ? "bg-primary/60 text-primary-foreground"
                     : hasViewed
                     ? "bg-foreground text-background"
                     : "bg-secondary text-muted-foreground"

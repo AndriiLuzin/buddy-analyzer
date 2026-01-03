@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Check, RotateCcw } from "lucide-react";
+import { Home, Check, RotateCcw, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -29,8 +29,11 @@ const CrocodileGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showWord, setShowWord] = useState(false);
   const [playersJoined, setPlayersJoined] = useState(0);
+  const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
 
   const gameUrl = `${window.location.origin}/games/crocodile-play/${code}`;
+  const adminIndex = game ? game.player_count - 1 : 0;
+  const isAdminShowing = game ? game.showing_player === adminIndex : false;
 
   useEffect(() => {
     if (!code) return;
@@ -92,6 +95,7 @@ const CrocodileGame = () => {
                 .eq("id", newGame.current_word_id)
                 .single();
               setWord(wordData?.word || null);
+              playNotificationSound();
             }
           }
         }
@@ -198,6 +202,7 @@ const CrocodileGame = () => {
         .eq("id", game.id);
 
       setShowWord(false);
+      setViewMode('admin');
       toast.success(t('games.crocodile.new_game_started'));
     } catch (error) {
       toast.error(t('games.error'));
@@ -214,16 +219,108 @@ const CrocodileGame = () => {
 
   if (!game) return null;
 
+  // Player view mode
+  if (viewMode === 'player') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/games")}
+          >
+            <Home className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode('admin')}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="w-full max-w-sm animate-fade-in">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t('games.player')} #{adminIndex + 1}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {t('games.crocodile.title')}
+            </h1>
+            <p className="text-muted-foreground text-sm">{t('games.round')}: {game.round}</p>
+          </div>
+
+          {isAdminShowing ? (
+            <div className="text-center">
+              <div className="p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/30 mb-6">
+                <p className="text-lg font-bold text-foreground">
+                  {t('games.crocodile.your_turn')}
+                </p>
+              </div>
+
+              {showWord ? (
+                <div className="animate-scale-in mb-6">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
+                    {t('games.crocodile.word_to_show')}
+                  </p>
+                  <h2 className="text-4xl font-bold text-foreground">{word}</h2>
+                  <Button
+                    onClick={() => setShowWord(false)}
+                    variant="outline"
+                    className="mt-6"
+                  >
+                    {t('games.hide')}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowWord(true)}
+                  className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
+                >
+                  {t('games.crocodile.show_word')}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="bg-secondary p-6 rounded-lg mb-6">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                  {t('games.crocodile.now_showing')}
+                </p>
+                <p className="text-3xl font-bold text-foreground">
+                  {t('games.player')} #{game.showing_player + 1}
+                </p>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                {t('games.crocodile.watch_and_guess')}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Admin panel view
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate("/games")}
-        className="absolute top-4 left-4"
-      >
-        <Home className="w-5 h-5" />
-      </Button>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/games")}
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setViewMode('player')}
+        >
+          <User className="w-5 h-5" />
+        </Button>
+      </div>
 
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
@@ -232,6 +329,9 @@ const CrocodileGame = () => {
           </h1>
           <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
           <p className="text-muted-foreground text-sm">{t('games.round')}: {game.round}</p>
+          <p className="text-xs text-primary mt-2">
+            {t('games.you')}: {t('games.player')} #{adminIndex + 1}
+          </p>
         </div>
 
         <div className="bg-secondary p-6 rounded-lg mb-6 text-center">
@@ -240,8 +340,18 @@ const CrocodileGame = () => {
           </p>
           <p className="text-3xl font-bold text-foreground">
             {t('games.player')} #{game.showing_player + 1}
+            {game.showing_player === adminIndex && (
+              <span className="text-lg text-primary ml-2">({t('games.you')})</span>
+            )}
           </p>
         </div>
+
+        <Button
+          onClick={() => setViewMode('player')}
+          className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
+        >
+          {t('games.show_my_role')}
+        </Button>
 
         {showWord ? (
           <div className="text-center animate-scale-in mb-6">
@@ -260,7 +370,8 @@ const CrocodileGame = () => {
         ) : (
           <Button
             onClick={() => setShowWord(true)}
-            className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-6"
+            variant="outline"
+            className="w-full h-12 mb-6"
           >
             {t('games.crocodile.show_word')}
           </Button>
