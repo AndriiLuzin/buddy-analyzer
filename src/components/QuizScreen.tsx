@@ -151,13 +151,20 @@ export const QuizScreen = ({ onComplete, onSkip, title, subtitle, showSkip = fal
               <button
                 key={index}
                 onClick={() => handleOptionSelect(index)}
-                className={`w-full p-3 sm:p-4 rounded-xl text-left transition-all duration-200 border-2 ${
+                className={`w-full flex items-center gap-3 p-4 rounded-xl text-left transition-all duration-200 border ${
                   selectedOption === index
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-card/50 text-foreground hover:border-primary/50 hover:bg-primary/5'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-card hover:border-primary/50 hover:bg-muted/50'
                 }`}
               >
-                <span className="font-medium text-sm sm:text-base">{option}</span>
+                <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                  selectedOption === index
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-primary/10 text-primary'
+                }`}>
+                  {String.fromCharCode(65 + index)}
+                </div>
+                <span className="font-medium text-sm sm:text-base text-foreground">{option}</span>
               </button>
             ))}
           </div>
