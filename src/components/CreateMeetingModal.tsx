@@ -172,7 +172,7 @@ export const CreateMeetingModal = ({
       );
     }
 
-    toast({ title: 'Готово', description: 'Встреча создана' });
+    toast({ title: 'Готово', description: 'Отличный шаг. BuddyBe напомнит о встрече' });
     setIsSubmitting(false);
     onSuccess?.();
     onClose();

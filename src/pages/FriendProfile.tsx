@@ -383,12 +383,15 @@ export default function FriendProfile() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-col items-center gap-2">
               {categoryInfo && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary">
-                  <span className="text-lg">{categoryInfo.emoji}</span>
-                  <span className="font-medium text-secondary-foreground">{categoryInfo.label}</span>
-                </div>
+                <>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary">
+                    <span className="text-lg">{categoryInfo.emoji}</span>
+                    <span className="font-medium text-secondary-foreground">{categoryInfo.label}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground/70 text-center max-w-xs">{categoryInfo.hint}</p>
+                </>
               )}
             </div>
           )}

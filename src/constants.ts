@@ -28,11 +28,11 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
   { id: 25, text: "Что вы готовы простить другу?", options: ["Практически всё", "Многое", "Немногое", "Почти ничего"] }
 ];
 
-export const CATEGORY_INFO: Record<FriendCategory, { label: string; emoji: string; color: string }> = {
-  soul_mate: { label: 'Душа в душу', emoji: '💫', color: 'amber' },
-  family: { label: 'Семья', emoji: '👨‍👩‍👧‍👦', color: 'rose' },
-  close_friend: { label: 'Близкий друг', emoji: '❤️', color: 'coral' },
-  good_buddy: { label: 'Хороший приятель', emoji: '🤝', color: 'teal' },
-  situational: { label: 'Ситуативный знакомый', emoji: '👋', color: 'blue' },
-  distant: { label: 'Дальний знакомый', emoji: '🌙', color: 'gray' }
+export const CATEGORY_INFO: Record<FriendCategory, { label: string; emoji: string; color: string; hint: string }> = {
+  soul_mate: { label: 'Душа в душу', emoji: '💫', color: 'amber', hint: 'Этому типу друзей важно чувствовать ваше внимание' },
+  family: { label: 'Семья', emoji: '👨‍👩‍👧‍👦', color: 'rose', hint: 'Регулярный контакт укрепляет семейные связи' },
+  close_friend: { label: 'Близкий друг', emoji: '❤️', color: 'coral', hint: 'Лучше коротко, но искренне' },
+  good_buddy: { label: 'Хороший приятель', emoji: '🤝', color: 'teal', hint: 'Можно писать по поводу общих интересов' },
+  situational: { label: 'Ситуативный знакомый', emoji: '👋', color: 'blue', hint: 'Достаточно поддерживать контакт изредка' },
+  distant: { label: 'Дальний знакомый', emoji: '🌙', color: 'gray', hint: 'Поздравления с праздниками будет достаточно' }
 };
