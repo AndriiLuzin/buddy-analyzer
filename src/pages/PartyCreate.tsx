@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, addDays } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { ru, enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,11 +16,11 @@ import {
   Share2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
 import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
 import { toast } from 'sonner';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Friend {
   id: string;
@@ -31,15 +31,7 @@ interface Friend {
 
 type Step = 'type' | 'details' | 'datetime' | 'friends' | 'share';
 
-const partyTypes = [
-  { id: 'birthday', label: 'День рождения', emoji: '🎂' },
-  { id: 'party', label: 'Вечеринка', emoji: '🎉' },
-  { id: 'bbq', label: 'Барбекю', emoji: '🍖' },
-  { id: 'wedding', label: 'Свадьба', emoji: '💒' },
-  { id: 'newyear', label: 'Новый год', emoji: '🎄' },
-  { id: 'corporate', label: 'Корпоратив', emoji: '🏢' },
-  { id: 'other', label: 'Другое', emoji: '🎊' },
-];
+const partyTypeIds = ['birthday', 'party', 'bbq', 'wedding', 'newyear', 'corporate', 'other'];
 
 // Generate a short random invite code
 const generateInviteCode = () => {
@@ -53,7 +45,8 @@ const generateInviteCode = () => {
 
 export default function PartyCreate() {
   const navigate = useNavigate();
-  const { toast: showToast } = useToast();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'ru' || language === 'uk' ? ru : enUS;
 
   const [step, setStep] = useState<Step>('type');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -91,12 +84,9 @@ export default function PartyCreate() {
   // Auto-fill title based on type
   useEffect(() => {
     if (selectedType && !partyTitle) {
-      const typeInfo = partyTypes.find(t => t.id === selectedType);
-      if (typeInfo) {
-        setPartyTitle(typeInfo.label);
-      }
+      setPartyTitle(t(`party_type.${selectedType}`));
     }
-  }, [selectedType]);
+  }, [selectedType, t]);
 
   const fetchFriends = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -140,13 +130,10 @@ export default function PartyCreate() {
       .select('first_name, last_name')
       .eq('user_id', user.id)
       .maybeSingle();
-
+      
     const userName = userProfile 
       ? `${userProfile.first_name} ${userProfile.last_name}`.trim() 
-      : 'Друг';
-
-    const typeInfo = partyTypes.find(t => t.id === selectedType);
-    const emoji = typeInfo?.emoji || '🎊';
+      : language === 'ru' ? 'Друг' : 'Friend';
 
     const { data: party, error } = await supabase
       .from('parties')
@@ -163,7 +150,7 @@ export default function PartyCreate() {
       .single();
 
     if (error) {
-      showToast({ title: 'Ошибка', description: 'Не удалось создать мероприятие', variant: 'destructive' });
+      toast.error(t('common.error'));
       setIsSubmitting(false);
       return;
     }
@@ -200,7 +187,7 @@ export default function PartyCreate() {
 
       // Send notifications to friends who have accounts
       if (friendsWithAccounts && friendsWithAccounts.length > 0) {
-        const dateFormatted = format(selectedDate, 'd MMMM', { locale: ru });
+        const dateFormatted = format(selectedDate, 'd MMMM', { locale: dateLocale });
         const timeStr = selectedTime ? ` в ${selectedTime}` : '';
         const locationStr = partyLocation.trim() ? ` • ${partyLocation.trim()}` : '';
         
@@ -209,8 +196,8 @@ export default function PartyCreate() {
           .map(friend => ({
             user_id: friend.friend_user_id,
             type: 'party_invite',
-            title: `${emoji} Приглашение на ${partyTitle}`,
-            message: `${userName} приглашает вас: ${partyTitle} — ${dateFormatted}${timeStr}${locationStr}`,
+            title: `🎉 ${language === 'ru' ? 'Приглашение на' : 'Invitation to'} ${partyTitle}`,
+            message: `${userName} ${language === 'ru' ? 'приглашает вас' : 'invites you'}: ${partyTitle} — ${dateFormatted}${timeStr}${locationStr}`,
             data: {
               party_id: party.id,
               inviter_id: user.id,
@@ -229,18 +216,18 @@ export default function PartyCreate() {
       }
     }
 
-    showToast({ title: 'Готово!', description: 'Приглашения отправлены' });
+    toast.success(t('parties.invitations_sent'));
     setIsSubmitting(false);
     setStep('share');
   };
 
   const getStepTitle = () => {
     switch (step) {
-      case 'type': return 'Тип мероприятия';
-      case 'details': return 'Детали';
-      case 'datetime': return 'Когда?';
-      case 'friends': return 'Кого пригласить?';
-      case 'share': return 'Ссылка для гостей';
+      case 'type': return t('parties.type');
+      case 'details': return t('parties.details');
+      case 'datetime': return t('parties.when');
+      case 'friends': return t('parties.who');
+      case 'share': return t('parties.share');
     }
   };
 
@@ -281,9 +268,9 @@ export default function PartyCreate() {
   const copyInviteLink = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink);
-      toast.success('Ссылка скопирована!');
+      toast.success(t('parties.link_copied'));
     } catch {
-      toast.error('Не удалось скопировать ссылку');
+      toast.error(t('parties.copy_failed'));
     }
   };
 
@@ -292,7 +279,7 @@ export default function PartyCreate() {
       try {
         await navigator.share({
           title: partyTitle,
-          text: `Приглашаю вас на ${partyTitle}!`,
+          text: language === 'ru' ? `Приглашаю вас на ${partyTitle}!` : `Join me at ${partyTitle}!`,
           url: inviteLink,
         });
       } catch (err) {
@@ -316,7 +303,7 @@ export default function PartyCreate() {
           </button>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-foreground">
-              {step === 'share' ? 'Мероприятие создано!' : 'Новое мероприятие'}
+              {step === 'share' ? t('parties.created') : t('parties.create_title')}
             </h2>
             <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
           </div>
@@ -344,21 +331,21 @@ export default function PartyCreate() {
         {step === 'type' && (
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-2 gap-3">
-              {partyTypes.map(type => {
-                const IconComponent = partyTypeIcons[type.id];
+              {partyTypeIds.map(typeId => {
+                const IconComponent = partyTypeIcons[typeId];
                 return (
                   <button
-                    key={type.id}
-                    onClick={() => setSelectedType(type.id)}
+                    key={typeId}
+                    onClick={() => setSelectedType(typeId)}
                     className={cn(
                       "aspect-[4/3] rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
-                      selectedType === type.id 
+                      selectedType === typeId 
                         ? "bg-primary/20 ring-2 ring-primary scale-105" 
                         : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                     )}
                   >
                     {IconComponent && <IconComponent size={48} />}
-                    <span className="text-sm font-medium">{type.label}</span>
+                    <span className="text-sm font-medium">{t(`party_type.${typeId}`)}</span>
                   </button>
                 );
               })}
@@ -370,11 +357,11 @@ export default function PartyCreate() {
         {step === 'details' && (
           <div className="space-y-6 animate-fade-in">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Название</label>
+              <label className="text-sm font-medium text-foreground">{t('parties.name')}</label>
               <Input
                 value={partyTitle}
                 onChange={(e) => setPartyTitle(e.target.value)}
-                placeholder="Название мероприятия"
+                placeholder={t('parties.name_placeholder')}
                 className="h-12 rounded-xl"
               />
             </div>
@@ -382,22 +369,22 @@ export default function PartyCreate() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Место
+                {t('parties.location')}
               </label>
               <Input
                 value={partyLocation}
                 onChange={(e) => setPartyLocation(e.target.value)}
-                placeholder="Адрес или название места"
+                placeholder={t('parties.location_placeholder')}
                 className="h-12 rounded-xl"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Описание (необязательно)</label>
+              <label className="text-sm font-medium text-foreground">{t('parties.description')}</label>
               <Textarea
                 value={partyDescription}
                 onChange={(e) => setPartyDescription(e.target.value)}
-                placeholder="Дополнительная информация..."
+                placeholder={t('parties.description_placeholder')}
                 className="min-h-[100px] rounded-xl resize-none"
               />
             </div>
@@ -422,7 +409,7 @@ export default function PartyCreate() {
                       : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                   )}
                 >
-                  Сегодня
+                  {t('parties.today')}
                 </button>
                 <button
                   onClick={() => {
@@ -436,7 +423,7 @@ export default function PartyCreate() {
                       : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                   )}
                 >
-                  Завтра
+                  {t('parties.tomorrow')}
                 </button>
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
@@ -543,11 +530,10 @@ export default function PartyCreate() {
           <div className="space-y-6 animate-fade-in">
             {/* Summary */}
             <div className="p-4 rounded-2xl glass flex items-center gap-3 flex-wrap">
-              <span className="text-xl">{partyTypes.find(t => t.id === selectedType)?.emoji}</span>
               <span className="font-medium">{partyTitle}</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-sm">
-                {selectedDate && (isSameDay(selectedDate, today) ? 'Сегодня' : isSameDay(selectedDate, tomorrow) ? 'Завтра' : format(selectedDate, 'd MMM', { locale: ru }))}
+                {selectedDate && (isSameDay(selectedDate, today) ? t('parties.today') : isSameDay(selectedDate, tomorrow) ? t('parties.tomorrow') : format(selectedDate, 'd MMM', { locale: dateLocale }))}
               </span>
               {selectedTime && (
                 <>
@@ -559,7 +545,7 @@ export default function PartyCreate() {
 
             <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Пригласить друзей
+              {t('parties.who')}
             </p>
             
             {friends.length === 0 ? (
@@ -567,7 +553,7 @@ export default function PartyCreate() {
                 <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3">
                   <Users className="w-8 h-8 opacity-50" />
                 </div>
-                <p className="font-medium">Нет добавленных друзей</p>
+                <p className="font-medium">{t('parties.no_friends')}</p>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -595,7 +581,7 @@ export default function PartyCreate() {
 
             {selectedFriends.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Выбрано: {selectedFriends.length}
+                {t('parties.selected')}: {selectedFriends.length}
               </p>
             )}
           </div>
@@ -610,8 +596,8 @@ export default function PartyCreate() {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">{partyTitle}</h3>
               <p className="text-muted-foreground">
-                {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-                {selectedTime && ` в ${selectedTime}`}
+                {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: dateLocale })}
+                {selectedTime && ` ${language === 'ru' ? 'в' : 'at'} ${selectedTime}`}
               </p>
             </div>
 
@@ -621,8 +607,8 @@ export default function PartyCreate() {
                   <LinkIcon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Ссылка для гостей</p>
-                  <p className="text-sm text-muted-foreground">Отправьте людям без аккаунта</p>
+                  <p className="font-medium text-foreground">{t('parties.invite_link')}</p>
+                  <p className="text-sm text-muted-foreground">{t('parties.send_to_guests')}</p>
                 </div>
               </div>
 
@@ -647,12 +633,12 @@ export default function PartyCreate() {
                 className="w-full h-12 rounded-xl gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                Поделиться ссылкой
+                {t('parties.share_link')}
               </Button>
             </div>
 
             <p className="text-sm text-muted-foreground text-center">
-              Когда гости откроют ссылку и ответят, вы получите уведомление
+              {t('parties.guests_will_respond')}
             </p>
           </div>
         )}
@@ -668,17 +654,17 @@ export default function PartyCreate() {
           {isSubmitting ? (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-              <span>Создание...</span>
+              <span>{t('auth.loading')}</span>
             </div>
           ) : step === 'friends' ? (
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5" />
-              <span>Создать мероприятие</span>
+              <span>{t('parties.create')}</span>
             </div>
           ) : step === 'share' ? (
-            'Готово'
+            t('parties.done')
           ) : (
-            'Далее'
+            t('parties.next')
           )}
         </Button>
       </div>
