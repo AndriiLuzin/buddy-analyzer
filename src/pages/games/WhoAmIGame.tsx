@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Check, Eye, EyeOff, SkipForward, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -50,63 +51,73 @@ const WhoAmIGame = () => {
   const currentGuesserCharacter = currentGuesser ? characters[currentGuesser.character_id] : null;
   const allGuessed = players.every(p => p.guessed);
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("whoami_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("whoami_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const { data: playersData } = await supabase
-        .from("whoami_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+    const { data: playersData } = await supabase
+      .from("whoami_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
 
-      setPlayers(playersData || []);
+    setPlayers(playersData || []);
 
-      const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
-      if (charIds.length > 0) {
-        const { data: charsData } = await supabase
-          .from("whoami_characters")
-          .select("id, name")
-          .in("id", charIds);
+    const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
+    if (charIds.length > 0) {
+      const { data: charsData } = await supabase
+        .from("whoami_characters")
+        .select("id, name")
+        .in("id", charIds);
 
-        const charMap: Record<string, string> = {};
-        charsData?.forEach((c) => {
-          charMap[c.id] = c.name;
-        });
-        setCharacters(charMap);
-      }
+      const charMap: Record<string, string> = {};
+      charsData?.forEach((c) => {
+        charMap[c.id] = c.name;
+      });
+      setCharacters(charMap);
+    }
 
-      const { data: viewsData } = await supabase
-        .from("whoami_views")
-        .select("player_index")
-        .eq("game_id", gameData.id);
+    const { data: viewsData } = await supabase
+      .from("whoami_views")
+      .select("player_index")
+      .eq("game_id", gameData.id);
 
-      setViews(viewsData?.map((v) => v.player_index) || []);
-      
-      const guessed = playersData?.filter(p => p.guessed).map(p => p.player_index) || [];
-      setGuessedOrder(guessed);
-      
-      setIsLoading(false);
-    };
+    setViews(viewsData?.map((v) => v.player_index) || []);
+    
+    const guessed = playersData?.filter(p => p.guessed).map(p => p.player_index) || [];
+    setGuessedOrder(guessed);
+    
+    setIsLoading(false);
+  }, [code, navigate, t]);
 
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `whoami-game-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`whoami-${code}`)
+      .channel(`whoami-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -160,7 +171,7 @@ const WhoAmIGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, t]);
+  }, [code, game?.id]);
 
   const markGuessedAndNextRound = async () => {
     if (!game) return;

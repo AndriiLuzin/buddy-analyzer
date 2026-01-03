@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Check, RotateCcw, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -35,46 +36,56 @@ const CrocodileGame = () => {
   const adminIndex = game ? game.player_count - 1 : 0;
   const isAdminShowing = game ? game.showing_player === adminIndex : false;
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("crocodile_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("crocodile_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      if (gameData.current_word_id) {
-        const { data: wordData } = await supabase
-          .from("crocodile_words")
-          .select("word")
-          .eq("id", gameData.current_word_id)
-          .single();
-        setWord(wordData?.word || null);
-      }
+    if (gameData.current_word_id) {
+      const { data: wordData } = await supabase
+        .from("crocodile_words")
+        .select("word")
+        .eq("id", gameData.current_word_id)
+        .single();
+      setWord(wordData?.word || null);
+    }
 
-      const { count } = await supabase
-        .from("crocodile_players")
-        .select("*", { count: "exact", head: true })
-        .eq("game_id", gameData.id);
+    const { count } = await supabase
+      .from("crocodile_players")
+      .select("*", { count: "exact", head: true })
+      .eq("game_id", gameData.id);
 
-      setPlayersJoined(count || 0);
-      setIsLoading(false);
-    };
+    setPlayersJoined(count || 0);
+    setIsLoading(false);
+  }, [code, navigate, t]);
 
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `crocodile-game-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`crocodile-${code}`)
+      .channel(`crocodile-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -121,7 +132,7 @@ const CrocodileGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, t]);
+  }, [code, game?.id]);
 
   const handleCorrectGuess = async () => {
     if (!game) return;

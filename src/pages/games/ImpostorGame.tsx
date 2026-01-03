@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -41,51 +42,75 @@ const ImpostorGame = () => {
   const isAdminImpostor = game ? game.impostor_index === adminIndex : false;
   const allViewed = game ? views.length >= game.player_count : false;
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t("games.not_found"));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t("games.not_found"));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const { data: viewsData } = await supabase
+    const { data: viewsData } = await supabase
+      .from("player_views")
+      .select("player_index")
+      .eq("game_id", gameData.id);
+
+    const adminIdx = gameData.player_count - 1;
+    const adminViewed = viewsData?.some((v) => v.player_index === adminIdx);
+    if (!adminViewed) {
+      await supabase.from("player_views").insert({
+        game_id: gameData.id,
+        player_index: adminIdx,
+      });
+      const { data: updatedViews } = await supabase
         .from("player_views")
         .select("player_index")
         .eq("game_id", gameData.id);
+      setViews(updatedViews || []);
 
-      const adminIdx = gameData.player_count - 1;
-      const adminViewed = viewsData?.some((v) => v.player_index === adminIdx);
-      if (!adminViewed) {
-        await supabase.from("player_views").insert({
-          game_id: gameData.id,
-          player_index: adminIdx,
-        });
-        const { data: updatedViews } = await supabase
-          .from("player_views")
-          .select("player_index")
-          .eq("game_id", gameData.id);
-        setViews(updatedViews || []);
+      if (updatedViews && updatedViews.length >= gameData.player_count) {
+        const { data: wordData } = await supabase
+          .from("game_words")
+          .select("word")
+          .eq("id", gameData.word_id)
+          .single();
 
-        if (updatedViews && updatedViews.length >= gameData.player_count) {
-          const { data: wordData } = await supabase
-            .from("game_words")
-            .select("word")
-            .eq("id", gameData.word_id)
-            .single();
+        setWord(wordData?.word || null);
+        setIsRevealed(true);
+        const validPlayers = Array.from({ length: gameData.player_count }, (_, i) => i)
+          .filter(i => i !== gameData.impostor_index);
+        const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
+        setStartingPlayer(selectedPlayer);
+        await supabase
+          .from("games")
+          .update({ starting_player: selectedPlayer })
+          .eq("id", gameData.id);
+        playNotificationSound();
+      }
+    } else {
+      setViews(viewsData || []);
 
-          setWord(wordData?.word || null);
-          setIsRevealed(true);
+      if (viewsData && viewsData.length >= gameData.player_count) {
+        const { data: wordData } = await supabase
+          .from("game_words")
+          .select("word")
+          .eq("id", gameData.word_id)
+          .single();
+
+        setWord(wordData?.word || null);
+        setIsRevealed(true);
+        if (gameData.starting_player !== null) {
+          setStartingPlayer(gameData.starting_player);
+        } else {
           const validPlayers = Array.from({ length: gameData.player_count }, (_, i) => i)
             .filter(i => i !== gameData.impostor_index);
           const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
@@ -94,52 +119,38 @@ const ImpostorGame = () => {
             .from("games")
             .update({ starting_player: selectedPlayer })
             .eq("id", gameData.id);
-          playNotificationSound();
-        }
-      } else {
-        setViews(viewsData || []);
-
-        if (viewsData && viewsData.length >= gameData.player_count) {
-          const { data: wordData } = await supabase
-            .from("game_words")
-            .select("word")
-            .eq("id", gameData.word_id)
-            .single();
-
-          setWord(wordData?.word || null);
-          setIsRevealed(true);
-          if (gameData.starting_player !== null) {
-            setStartingPlayer(gameData.starting_player);
-          } else {
-            const validPlayers = Array.from({ length: gameData.player_count }, (_, i) => i)
-              .filter(i => i !== gameData.impostor_index);
-            const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
-            setStartingPlayer(selectedPlayer);
-            await supabase
-              .from("games")
-              .update({ starting_player: selectedPlayer })
-              .eq("id", gameData.id);
-          }
         }
       }
+    }
 
-      // Fetch word for admin if not impostor
-      if (adminIdx !== gameData.impostor_index) {
-        const { data: wordData } = await supabase
-          .from("game_words")
-          .select("word")
-          .eq("id", gameData.word_id)
-          .single();
-        setWord(wordData?.word || null);
-      }
+    // Fetch word for admin if not impostor
+    if (adminIdx !== gameData.impostor_index) {
+      const { data: wordData } = await supabase
+        .from("game_words")
+        .select("word")
+        .eq("id", gameData.word_id)
+        .single();
+      setWord(wordData?.word || null);
+    }
 
-      setIsLoading(false);
-    };
+    setIsLoading(false);
+  }, [code, navigate, t]);
 
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `impostor-game-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`game-${code}`)
+      .channel(`game-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -186,7 +197,7 @@ const ImpostorGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, game?.player_count, game?.word_id, game?.impostor_index, game?.starting_player, t]);
+  }, [game?.id, game?.player_count, game?.word_id, game?.impostor_index, game?.starting_player]);
 
   const startNewRound = async () => {
     if (!game) return;
