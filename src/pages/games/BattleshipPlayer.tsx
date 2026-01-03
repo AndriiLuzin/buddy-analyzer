@@ -478,11 +478,13 @@ const BattleshipPlayer = () => {
             .update({ is_eliminated: true })
             .eq("id", targetPlayer.id);
 
+          // Count remaining active players (excluding the one just eliminated)
           const remainingPlayers = players.filter(
-            p => !p.is_eliminated && p.player_index !== targetIndex
+            p => !p.is_eliminated && p.id !== targetPlayer.id
           );
 
-          if (remainingPlayers.length === 1) {
+          // If only 1 player remains, game is finished
+          if (remainingPlayers.length <= 1) {
             await supabase
               .from("battleship_games")
               .update({ status: 'finished' })
@@ -746,17 +748,30 @@ const BattleshipPlayer = () => {
         )}
 
         {winner ? (
-          <div className="text-center mb-6 p-4 bg-primary/20 border border-primary/40 rounded-lg">
-            <p className="text-2xl font-bold text-primary">
+          <div className="text-center mb-6 p-6 bg-primary/20 border border-primary/40 rounded-lg">
+            <p className="text-3xl font-bold text-primary mb-4">
               🏆 {winner.player_index === playerIndex
                 ? t("games.battleship.you_won")
-                : `${t("games.player")} #${winner.player_index + 1} ${t("games.battleship.won")}`}!
+                : `${winner.player_name || `${t("games.player")} #${winner.player_index + 1}`} ${t("games.battleship.won")}`}!
             </p>
+            <Button
+              onClick={() => {
+                // Navigate to same game link without player param to start fresh
+                setSearchParams({});
+                window.location.reload();
+              }}
+              className="mt-2"
+            >
+              {t("games.play_again")}
+            </Button>
           </div>
         ) : isEliminated ? (
           <div className="text-center mb-6 p-4 bg-destructive/20 border border-destructive/40 rounded-lg">
             <p className="text-xl font-bold text-destructive">
               {t("games.battleship.you_eliminated")}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {t("games.battleship.watch_game")}
             </p>
           </div>
         ) : isMyTurn ? (
