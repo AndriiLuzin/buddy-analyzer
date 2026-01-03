@@ -426,8 +426,8 @@ const Index = ({ initialRoute }: IndexProps) => {
     return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
 
-  // Render loading screen while initializing
-  if (isInitializing || screen === 'loading' || isLoading) {
+  // Show loading only during AI classification
+  if (isLoading) {
     return <LoadingScreen />;
   }
 
