@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Settings, User } from "lucide-react";
+import { Home, Settings, User, Share2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface Ship {
   x: number;
@@ -52,6 +53,7 @@ const BattleshipGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/battleship-play/${code}`;
   const adminIndex = game ? game.player_count - 1 : 0;
@@ -405,12 +407,22 @@ const BattleshipGame = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/games")}>
           <Home className="w-5 h-5" />
         </Button>
+        <Button variant="outline" size="icon" onClick={() => setShowShareModal(true)}>
+          <Share2 className="w-5 h-5" />
+        </Button>
         {gameStarted && !isAdminEliminated && (
           <Button variant="outline" size="icon" onClick={() => setViewMode('player')}>
             <User className="w-5 h-5" />
           </Button>
         )}
       </div>
+      
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.battleship.title")}
+      />
 
       <div className="w-full max-w-sm animate-fade-in">
         <div className="text-center mb-8">
