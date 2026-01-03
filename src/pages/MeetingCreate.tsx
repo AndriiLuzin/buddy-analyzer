@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, addDays } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, ru as ruLocale } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Friend {
   id: string;
@@ -25,28 +26,36 @@ interface Friend {
 
 type Step = 'type' | 'datetime' | 'friends' | 'location';
 
-const meetingTypes = [
-  { id: 'coffee', label: 'Кофе', emoji: '☕' },
-  { id: 'lunch', label: 'Обед', emoji: '🍽️' },
-  { id: 'movie', label: 'Кино', emoji: '🎬' },
-  { id: 'sport', label: 'Спорт', emoji: '🏃' },
-  { id: 'shopping', label: 'Шоппинг', emoji: '🛍️' },
-  { id: 'party', label: 'Вечеринка', emoji: '🎉' },
-  { id: 'work', label: 'Работа', emoji: '💼' },
-  { id: 'walk', label: 'Прогулка', emoji: '🚶' },
-  { id: 'bar', label: 'Бар', emoji: '🍺' },
-  { id: 'restaurant', label: 'Ресторан', emoji: '🍴' },
-  { id: 'concert', label: 'Концерт', emoji: '🎵' },
-  { id: 'game', label: 'Игры', emoji: '🎮' },
-  { id: 'travel', label: 'Поездка', emoji: '✈️' },
-  { id: 'study', label: 'Учёба', emoji: '📚' },
-  { id: 'other', label: 'Другое', emoji: '📌' },
+const meetingTypeIds = [
+  'coffee', 'lunch', 'movie', 'sport', 'shopping', 'party',
+  'work', 'walk', 'bar', 'restaurant', 'concert', 'game', 'travel', 'study', 'other'
 ];
+
+const meetingTypeEmojis: Record<string, string> = {
+  coffee: '☕',
+  lunch: '🍽️',
+  movie: '🎬',
+  sport: '🏃',
+  shopping: '🛍️',
+  party: '🎉',
+  work: '💼',
+  walk: '🚶',
+  bar: '🍺',
+  restaurant: '🍴',
+  concert: '🎵',
+  game: '🎮',
+  travel: '✈️',
+  study: '📚',
+  other: '📌',
+};
 
 export default function MeetingCreate() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { t, language } = useLanguage();
+  
+  const dateLocale = language === 'ru' || language === 'uk' ? ruLocale : enUS;
   
   const preselectedFriendId = location.state?.friendId || null;
   const preselectedFriendName = location.state?.friendName || null;
@@ -73,7 +82,10 @@ export default function MeetingCreate() {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startDayOfWeek = monthStart.getDay();
   const paddingDays = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
-  const weekDays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+  
+  const weekDays = language === 'ru' || language === 'uk' 
+    ? ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const today = new Date();
   const tomorrow = addDays(today, 1);
@@ -107,6 +119,10 @@ export default function MeetingCreate() {
     );
   };
 
+  const getMeetingTypeLabel = (typeId: string) => {
+    return t(`meeting_type.${typeId}`);
+  };
+
   const handleSubmit = async () => {
     if (!selectedDate || !selectedType || selectedFriends.length === 0) return;
 
@@ -127,10 +143,11 @@ export default function MeetingCreate() {
 
     const userName = userProfile 
       ? `${userProfile.first_name} ${userProfile.last_name}`.trim() 
-      : 'Друг';
+      : 'Friend';
 
-    const typeInfo = meetingTypes.find(t => t.id === selectedType);
-    const title = typeInfo ? `${typeInfo.emoji} ${typeInfo.label}` : 'Встреча';
+    const emoji = meetingTypeEmojis[selectedType] || '📅';
+    const label = getMeetingTypeLabel(selectedType);
+    const title = `${emoji} ${label}`;
 
     const { data: meeting, error } = await supabase
       .from('meetings')
@@ -145,7 +162,7 @@ export default function MeetingCreate() {
       .single();
 
     if (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось создать встречу', variant: 'destructive' });
+      toast({ title: t('meeting_create.error'), description: t('meeting_create.error_desc'), variant: 'destructive' });
       setIsSubmitting(false);
       return;
     }
@@ -167,8 +184,8 @@ export default function MeetingCreate() {
 
       // Send notifications to friends who have accounts
       if (friendsWithAccounts && friendsWithAccounts.length > 0) {
-        const dateFormatted = format(selectedDate, 'd MMMM', { locale: ru });
-        const timeStr = selectedTime ? ` в ${selectedTime}` : '';
+        const dateFormatted = format(selectedDate, 'd MMMM', { locale: dateLocale });
+        const timeStr = selectedTime ? ` ${language === 'ru' ? 'в' : 'at'} ${selectedTime}` : '';
         const locationStr = meetingLocation.trim() ? ` • ${meetingLocation.trim()}` : '';
         
         const notifications = friendsWithAccounts
@@ -176,8 +193,8 @@ export default function MeetingCreate() {
           .map(friend => ({
             user_id: friend.friend_user_id,
             type: 'meeting_invite',
-            title: '📅 Приглашение на встречу',
-            message: `${userName} приглашает вас: ${title} — ${dateFormatted}${timeStr}${locationStr}`,
+            title: '📅 Meeting Invitation',
+            message: `${userName} invites you: ${title} — ${dateFormatted}${timeStr}${locationStr}`,
             data: {
               meeting_id: meeting.id,
               inviter_id: user.id,
@@ -195,16 +212,16 @@ export default function MeetingCreate() {
       }
     }
 
-    toast({ title: 'Готово', description: 'Встреча создана' });
+    toast({ title: t('meeting_create.success'), description: t('meeting_create.success_desc') });
     navigate('/meetings');
   };
 
   const getStepTitle = () => {
     switch (step) {
-      case 'type': return 'Что планируете?';
-      case 'datetime': return 'Когда?';
-      case 'friends': return 'С кем?';
-      case 'location': return 'Где?';
+      case 'type': return t('meeting_create.what');
+      case 'datetime': return t('meeting_create.when');
+      case 'friends': return t('meeting_create.who');
+      case 'location': return t('meeting_create.where');
     }
   };
 
@@ -246,6 +263,12 @@ export default function MeetingCreate() {
       .join(', ');
   };
 
+  const getDateLabel = (date: Date) => {
+    if (isSameDay(date, today)) return t('meeting_create.today');
+    if (isSameDay(date, tomorrow)) return t('meeting_create.tomorrow');
+    return format(date, 'd MMM', { locale: dateLocale });
+  };
+
   return (
     <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -258,7 +281,7 @@ export default function MeetingCreate() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-foreground">Новая встреча</h2>
+            <h2 className="text-xl font-bold text-foreground">{t('meeting_create.title')}</h2>
             <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
           </div>
           <div className="flex gap-1.5">
@@ -283,19 +306,19 @@ export default function MeetingCreate() {
         {step === 'type' && (
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-3 gap-3">
-              {meetingTypes.map(type => (
+              {meetingTypeIds.map(typeId => (
                 <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
+                  key={typeId}
+                  onClick={() => setSelectedType(typeId)}
                   className={cn(
                     "aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
-                    selectedType === type.id 
+                    selectedType === typeId 
                       ? "bg-primary text-primary-foreground scale-105" 
                       : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                   )}
                 >
-                  <span className="text-3xl">{type.emoji}</span>
-                  <span className="text-sm font-medium">{type.label}</span>
+                  <span className="text-3xl">{meetingTypeEmojis[typeId]}</span>
+                  <span className="text-sm font-medium">{getMeetingTypeLabel(typeId)}</span>
                 </button>
               ))}
             </div>
@@ -320,7 +343,7 @@ export default function MeetingCreate() {
                       : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                   )}
                 >
-                  Сегодня
+                  {t('meeting_create.today')}
                 </button>
                 <button
                   onClick={() => {
@@ -334,7 +357,7 @@ export default function MeetingCreate() {
                       : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
                   )}
                 >
-                  Завтра
+                  {t('meeting_create.tomorrow')}
                 </button>
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
@@ -346,14 +369,14 @@ export default function MeetingCreate() {
                   )}
                 >
                   <CalendarIcon className="w-4 h-4" />
-                  <span>Календарь</span>
+                  <span>{t('meeting_create.calendar')}</span>
                 </button>
               </div>
               
               {/* Show selected date if from calendar */}
               {selectedDate && !isSameDay(selectedDate, today) && !isSameDay(selectedDate, tomorrow) && !showCalendar && (
                 <div className="p-3 rounded-xl bg-primary/10 text-center">
-                  <span className="font-medium">{format(selectedDate, 'd MMMM yyyy', { locale: ru })}</span>
+                  <span className="font-medium">{format(selectedDate, 'd MMMM yyyy', { locale: dateLocale })}</span>
                 </div>
               )}
             </div>
@@ -370,7 +393,7 @@ export default function MeetingCreate() {
                     <ArrowLeft className="w-4 h-4" />
                   </button>
                   <h3 className="text-base font-semibold capitalize">
-                    {format(currentMonth, 'LLLL yyyy', { locale: ru })}
+                    {format(currentMonth, 'LLLL yyyy', { locale: dateLocale })}
                   </h3>
                   <button
                     onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
@@ -430,7 +453,7 @@ export default function MeetingCreate() {
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Время
+                {t('meeting_create.time')}
               </p>
               <TimeWheelPicker
                 value={selectedTime ? { 
@@ -448,11 +471,11 @@ export default function MeetingCreate() {
           <div className="space-y-6 animate-fade-in">
             {/* Summary */}
             <div className="p-4 rounded-2xl glass flex items-center gap-3 flex-wrap">
-              <span className="text-xl">{meetingTypes.find(t => t.id === selectedType)?.emoji}</span>
-              <span className="font-medium">{meetingTypes.find(t => t.id === selectedType)?.label}</span>
+              <span className="text-xl">{meetingTypeEmojis[selectedType]}</span>
+              <span className="font-medium">{getMeetingTypeLabel(selectedType)}</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-sm">
-                {selectedDate && (isSameDay(selectedDate, today) ? 'Сегодня' : isSameDay(selectedDate, tomorrow) ? 'Завтра' : format(selectedDate, 'd MMM', { locale: ru }))}
+                {selectedDate && getDateLabel(selectedDate)}
               </span>
               {selectedTime && (
                 <>
@@ -464,7 +487,7 @@ export default function MeetingCreate() {
 
             <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Выберите друзей
+              {t('meeting_create.who')}
             </p>
             
             {preselectedFriendName && (
@@ -479,7 +502,7 @@ export default function MeetingCreate() {
                 <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3">
                   <Users className="w-8 h-8 opacity-50" />
                 </div>
-                <p className="font-medium">Нет добавленных друзей</p>
+                <p className="font-medium">{t('friends.not_found')}</p>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -516,11 +539,11 @@ export default function MeetingCreate() {
             {/* Summary */}
             <div className="p-4 rounded-2xl glass space-y-2">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xl">{meetingTypes.find(t => t.id === selectedType)?.emoji}</span>
-                <span className="font-medium">{meetingTypes.find(t => t.id === selectedType)?.label}</span>
+                <span className="text-xl">{meetingTypeEmojis[selectedType]}</span>
+                <span className="font-medium">{getMeetingTypeLabel(selectedType)}</span>
                 <span className="text-muted-foreground">•</span>
                 <span className="text-sm">
-                  {selectedDate && (isSameDay(selectedDate, today) ? 'Сегодня' : isSameDay(selectedDate, tomorrow) ? 'Завтра' : format(selectedDate, 'd MMM', { locale: ru }))}
+                  {selectedDate && getDateLabel(selectedDate)}
                 </span>
                 {selectedTime && (
                   <>
@@ -531,25 +554,22 @@ export default function MeetingCreate() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
-                <span>с {getSelectedFriendsNames()}</span>
+                <span>{getSelectedFriendsNames()}</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Место (необязательно)
+                {t('meeting_create.where')}
               </p>
               <Input
-                placeholder="Где встречаемся?"
+                placeholder={t('meeting_create.location_placeholder')}
                 value={meetingLocation}
                 onChange={(e) => setMeetingLocation(e.target.value)}
                 className="h-14 rounded-2xl text-base"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground text-center">
-                Можете пропустить и добавить позже
-              </p>
             </div>
           </div>
         )}
@@ -563,9 +583,9 @@ export default function MeetingCreate() {
           className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg"
         >
           {step === 'location' ? (
-            isSubmitting ? 'Создание...' : 'Создать встречу'
+            isSubmitting ? t('auth.loading') : t('meeting_create.create')
           ) : (
-            'Далее'
+            t('meeting_create.next')
           )}
         </Button>
       </div>

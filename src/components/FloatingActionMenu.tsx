@@ -11,6 +11,7 @@ import {
   LayoutGrid
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface FloatingActionMenuProps {
   onAnalyzeClick?: () => void;
@@ -20,6 +21,7 @@ interface FloatingActionMenuProps {
 export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingActionMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   
@@ -64,26 +66,26 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
   const menuItems = [
     {
       icon: Home,
-      label: 'Главная',
+      labelKey: 'nav.home',
       onClick: () => navigate('/'),
       active: isActive('/')
     },
     {
       icon: MessageCircle,
-      label: 'Чаты',
+      labelKey: 'nav.chats',
       onClick: () => navigate('/chats'),
       active: isActive('/chats'),
       badge: unreadCount > 0
     },
     {
       icon: Calendar,
-      label: 'Встречи',
+      labelKey: 'nav.meetings',
       onClick: () => navigate('/meetings'),
       active: isActive('/meetings')
     },
     {
       icon: Share2,
-      label: 'Анализ',
+      labelKey: 'nav.analysis',
       onClick: () => {
         navigate('/share');
         setIsOpen(false);
@@ -92,7 +94,7 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
     },
     {
       icon: PartyPopper,
-      label: 'Parties',
+      labelKey: 'nav.parties',
       onClick: () => {
         navigate('/parties');
         setIsOpen(false);
@@ -101,7 +103,7 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
     },
     {
       icon: Gamepad2,
-      label: 'Игры',
+      labelKey: 'nav.games',
       onClick: () => {
         navigate('/games');
         setIsOpen(false);
@@ -169,7 +171,7 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
                       <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                     )}
                   </div>
-                  <span className="text-xs font-medium text-foreground">{item.label}</span>
+                  <span className="text-xs font-medium text-foreground">{t(item.labelKey)}</span>
                 </button>
               ))}
             </div>

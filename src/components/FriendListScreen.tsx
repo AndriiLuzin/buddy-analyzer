@@ -11,6 +11,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { CATEGORY_INFO } from '../constants';
 import { Search, UserPlus, X, Bell, Shield, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface FriendListScreenProps {
   friends: Friend[];
@@ -19,17 +20,18 @@ interface FriendListScreenProps {
   userId?: string;
 }
 
-// Разрешённые email адреса для доступа в админку
+// Allowed email addresses for admin access
 const ADMIN_EMAILS = ['andrii@luzin.ca'];
 
 export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<FriendCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Проверяем админ доступ
+  // Check admin access
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -118,7 +120,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Поиск друзей..."
+              placeholder={t('friends.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -174,9 +176,9 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
               <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
                 <UserPlus className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-medium text-foreground mb-2">Друзья не найдены</h3>
+              <h3 className="font-medium text-foreground mb-2">{t('friends.not_found')}</h3>
               <p className="text-sm text-muted-foreground">
-                {searchQuery ? 'Попробуйте изменить запрос' : 'Пригласите друзей пройти тест'}
+                {searchQuery ? t('friends.not_found_search') : t('friends.invite')}
               </p>
             </div>
           )}

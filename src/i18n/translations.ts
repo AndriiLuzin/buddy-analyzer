@@ -152,10 +152,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'Birthday',
     'notifications.contact': 'Time to Connect',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Friends',
     'nav.share': 'Share',
     'nav.profile': 'Profile',
+    'nav.home': 'Home',
+    'nav.chats': 'Chats',
+    'nav.meetings': 'Meetings',
+    'nav.analysis': 'Analysis',
+    'nav.parties': 'Parties',
+    'nav.games': 'Games',
+
+    // Themes
+    'theme.light': 'Light',
+    'theme.dark': 'Dark',
+    'theme.business': 'Business',
+    'theme.business_dark': 'Business Dark',
+    'theme.toggle': 'Toggle theme',
+
+    // Meeting types
+    'meeting_type.coffee': 'Coffee',
+    'meeting_type.lunch': 'Lunch',
+    'meeting_type.movie': 'Movie',
+    'meeting_type.sport': 'Sport',
+    'meeting_type.shopping': 'Shopping',
+    'meeting_type.party': 'Party',
+    'meeting_type.work': 'Work',
+    'meeting_type.walk': 'Walk',
+    'meeting_type.bar': 'Bar',
+    'meeting_type.restaurant': 'Restaurant',
+    'meeting_type.concert': 'Concert',
+    'meeting_type.game': 'Games',
+    'meeting_type.travel': 'Travel',
+    'meeting_type.study': 'Study',
+    'meeting_type.other': 'Other',
+
+    // Meeting create
+    'meeting_create.title': 'New Meeting',
+    'meeting_create.what': 'What are you planning?',
+    'meeting_create.when': 'When?',
+    'meeting_create.who': 'With whom?',
+    'meeting_create.where': 'Where?',
+    'meeting_create.today': 'Today',
+    'meeting_create.tomorrow': 'Tomorrow',
+    'meeting_create.calendar': 'Calendar',
+    'meeting_create.time': 'Time',
+    'meeting_create.next': 'Next',
+    'meeting_create.create': 'Create',
+    'meeting_create.location_placeholder': 'Enter location',
+    'meeting_create.success': 'Done',
+    'meeting_create.success_desc': 'Meeting created',
+    'meeting_create.error': 'Error',
+    'meeting_create.error_desc': 'Could not create meeting',
 
     // Friend Registration
     'friend_reg.invited_you': 'invited you',
@@ -585,10 +633,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'Anniversaire',
     'notifications.contact': 'Temps de se connecter',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Amis',
     'nav.share': 'Partager',
     'nav.profile': 'Profil',
+    'nav.home': 'Accueil',
+    'nav.chats': 'Discussions',
+    'nav.meetings': 'Réunions',
+    'nav.analysis': 'Analyse',
+    'nav.parties': 'Fêtes',
+    'nav.games': 'Jeux',
+
+    // Themes
+    'theme.light': 'Clair',
+    'theme.dark': 'Sombre',
+    'theme.business': 'Business',
+    'theme.business_dark': 'Business sombre',
+    'theme.toggle': 'Changer de thème',
+
+    // Meeting types
+    'meeting_type.coffee': 'Café',
+    'meeting_type.lunch': 'Déjeuner',
+    'meeting_type.movie': 'Cinéma',
+    'meeting_type.sport': 'Sport',
+    'meeting_type.shopping': 'Shopping',
+    'meeting_type.party': 'Fête',
+    'meeting_type.work': 'Travail',
+    'meeting_type.walk': 'Promenade',
+    'meeting_type.bar': 'Bar',
+    'meeting_type.restaurant': 'Restaurant',
+    'meeting_type.concert': 'Concert',
+    'meeting_type.game': 'Jeux',
+    'meeting_type.travel': 'Voyage',
+    'meeting_type.study': 'Études',
+    'meeting_type.other': 'Autre',
+
+    // Meeting create
+    'meeting_create.title': 'Nouvelle réunion',
+    'meeting_create.what': 'Que prévoyez-vous?',
+    'meeting_create.when': 'Quand?',
+    'meeting_create.who': 'Avec qui?',
+    'meeting_create.where': 'Où?',
+    'meeting_create.today': "Aujourd'hui",
+    'meeting_create.tomorrow': 'Demain',
+    'meeting_create.calendar': 'Calendrier',
+    'meeting_create.time': 'Heure',
+    'meeting_create.next': 'Suivant',
+    'meeting_create.create': 'Créer',
+    'meeting_create.location_placeholder': 'Entrez le lieu',
+    'meeting_create.success': 'Terminé',
+    'meeting_create.success_desc': 'Réunion créée',
+    'meeting_create.error': 'Erreur',
+    'meeting_create.error_desc': 'Impossible de créer la réunion',
 
     // Account Prompt
     'account_prompt.title': 'Quiz terminé!',
@@ -993,10 +1089,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'Cumpleaños',
     'notifications.contact': 'Hora de conectar',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Amigos',
     'nav.share': 'Compartir',
     'nav.profile': 'Perfil',
+    'nav.home': 'Inicio',
+    'nav.chats': 'Chats',
+    'nav.meetings': 'Reuniones',
+    'nav.analysis': 'Análisis',
+    'nav.parties': 'Fiestas',
+    'nav.games': 'Juegos',
+
+    // Themes
+    'theme.light': 'Claro',
+    'theme.dark': 'Oscuro',
+    'theme.business': 'Business',
+    'theme.business_dark': 'Business oscuro',
+    'theme.toggle': 'Cambiar tema',
+
+    // Meeting types
+    'meeting_type.coffee': 'Café',
+    'meeting_type.lunch': 'Almuerzo',
+    'meeting_type.movie': 'Cine',
+    'meeting_type.sport': 'Deporte',
+    'meeting_type.shopping': 'Compras',
+    'meeting_type.party': 'Fiesta',
+    'meeting_type.work': 'Trabajo',
+    'meeting_type.walk': 'Paseo',
+    'meeting_type.bar': 'Bar',
+    'meeting_type.restaurant': 'Restaurante',
+    'meeting_type.concert': 'Concierto',
+    'meeting_type.game': 'Juegos',
+    'meeting_type.travel': 'Viaje',
+    'meeting_type.study': 'Estudio',
+    'meeting_type.other': 'Otro',
+
+    // Meeting create
+    'meeting_create.title': 'Nueva reunión',
+    'meeting_create.what': '¿Qué planeas?',
+    'meeting_create.when': '¿Cuándo?',
+    'meeting_create.who': '¿Con quién?',
+    'meeting_create.where': '¿Dónde?',
+    'meeting_create.today': 'Hoy',
+    'meeting_create.tomorrow': 'Mañana',
+    'meeting_create.calendar': 'Calendario',
+    'meeting_create.time': 'Hora',
+    'meeting_create.next': 'Siguiente',
+    'meeting_create.create': 'Crear',
+    'meeting_create.location_placeholder': 'Ingresa el lugar',
+    'meeting_create.success': 'Listo',
+    'meeting_create.success_desc': 'Reunión creada',
+    'meeting_create.error': 'Error',
+    'meeting_create.error_desc': 'No se pudo crear la reunión',
 
     // Account Prompt
     'account_prompt.title': '¡Cuestionario completado!',
@@ -1401,10 +1545,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'День рождения',
     'notifications.contact': 'Пора связаться',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Друзья',
     'nav.share': 'Поделиться',
     'nav.profile': 'Профиль',
+    'nav.home': 'Главная',
+    'nav.chats': 'Чаты',
+    'nav.meetings': 'Встречи',
+    'nav.analysis': 'Анализ',
+    'nav.parties': 'Вечеринки',
+    'nav.games': 'Игры',
+
+    // Themes
+    'theme.light': 'Светлая',
+    'theme.dark': 'Тёмная',
+    'theme.business': 'Бизнес',
+    'theme.business_dark': 'Бизнес тёмная',
+    'theme.toggle': 'Сменить тему',
+
+    // Meeting types
+    'meeting_type.coffee': 'Кофе',
+    'meeting_type.lunch': 'Обед',
+    'meeting_type.movie': 'Кино',
+    'meeting_type.sport': 'Спорт',
+    'meeting_type.shopping': 'Шоппинг',
+    'meeting_type.party': 'Вечеринка',
+    'meeting_type.work': 'Работа',
+    'meeting_type.walk': 'Прогулка',
+    'meeting_type.bar': 'Бар',
+    'meeting_type.restaurant': 'Ресторан',
+    'meeting_type.concert': 'Концерт',
+    'meeting_type.game': 'Игры',
+    'meeting_type.travel': 'Поездка',
+    'meeting_type.study': 'Учёба',
+    'meeting_type.other': 'Другое',
+
+    // Meeting create
+    'meeting_create.title': 'Новая встреча',
+    'meeting_create.what': 'Что планируете?',
+    'meeting_create.when': 'Когда?',
+    'meeting_create.who': 'С кем?',
+    'meeting_create.where': 'Где?',
+    'meeting_create.today': 'Сегодня',
+    'meeting_create.tomorrow': 'Завтра',
+    'meeting_create.calendar': 'Календарь',
+    'meeting_create.time': 'Время',
+    'meeting_create.next': 'Далее',
+    'meeting_create.create': 'Создать',
+    'meeting_create.location_placeholder': 'Введите место',
+    'meeting_create.success': 'Готово',
+    'meeting_create.success_desc': 'Встреча создана',
+    'meeting_create.error': 'Ошибка',
+    'meeting_create.error_desc': 'Не удалось создать встречу',
 
     // Friend Registration
     'friend_reg.invited_you': 'пригласил(а) вас',
@@ -1824,10 +2016,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'Aniversário',
     'notifications.contact': 'Hora de conectar',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Amigos',
     'nav.share': 'Compartilhar',
     'nav.profile': 'Perfil',
+    'nav.home': 'Início',
+    'nav.chats': 'Conversas',
+    'nav.meetings': 'Reuniões',
+    'nav.analysis': 'Análise',
+    'nav.parties': 'Festas',
+    'nav.games': 'Jogos',
+
+    // Themes
+    'theme.light': 'Claro',
+    'theme.dark': 'Escuro',
+    'theme.business': 'Business',
+    'theme.business_dark': 'Business escuro',
+    'theme.toggle': 'Mudar tema',
+
+    // Meeting types
+    'meeting_type.coffee': 'Café',
+    'meeting_type.lunch': 'Almoço',
+    'meeting_type.movie': 'Cinema',
+    'meeting_type.sport': 'Esporte',
+    'meeting_type.shopping': 'Compras',
+    'meeting_type.party': 'Festa',
+    'meeting_type.work': 'Trabalho',
+    'meeting_type.walk': 'Passeio',
+    'meeting_type.bar': 'Bar',
+    'meeting_type.restaurant': 'Restaurante',
+    'meeting_type.concert': 'Show',
+    'meeting_type.game': 'Jogos',
+    'meeting_type.travel': 'Viagem',
+    'meeting_type.study': 'Estudo',
+    'meeting_type.other': 'Outro',
+
+    // Meeting create
+    'meeting_create.title': 'Nova reunião',
+    'meeting_create.what': 'O que você planeja?',
+    'meeting_create.when': 'Quando?',
+    'meeting_create.who': 'Com quem?',
+    'meeting_create.where': 'Onde?',
+    'meeting_create.today': 'Hoje',
+    'meeting_create.tomorrow': 'Amanhã',
+    'meeting_create.calendar': 'Calendário',
+    'meeting_create.time': 'Horário',
+    'meeting_create.next': 'Próximo',
+    'meeting_create.create': 'Criar',
+    'meeting_create.location_placeholder': 'Digite o local',
+    'meeting_create.success': 'Pronto',
+    'meeting_create.success_desc': 'Reunião criada',
+    'meeting_create.error': 'Erro',
+    'meeting_create.error_desc': 'Não foi possível criar a reunião',
 
     // Account Prompt
     'account_prompt.title': 'Quiz concluído!',
@@ -2232,10 +2472,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': 'День народження',
     'notifications.contact': 'Час зв\'язатися',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': 'Друзі',
     'nav.share': 'Поділитися',
     'nav.profile': 'Профіль',
+    'nav.home': 'Головна',
+    'nav.chats': 'Чати',
+    'nav.meetings': 'Зустрічі',
+    'nav.analysis': 'Аналіз',
+    'nav.parties': 'Вечірки',
+    'nav.games': 'Ігри',
+
+    // Themes
+    'theme.light': 'Світла',
+    'theme.dark': 'Темна',
+    'theme.business': 'Бізнес',
+    'theme.business_dark': 'Бізнес темна',
+    'theme.toggle': 'Змінити тему',
+
+    // Meeting types
+    'meeting_type.coffee': 'Кава',
+    'meeting_type.lunch': 'Обід',
+    'meeting_type.movie': 'Кіно',
+    'meeting_type.sport': 'Спорт',
+    'meeting_type.shopping': 'Шопінг',
+    'meeting_type.party': 'Вечірка',
+    'meeting_type.work': 'Робота',
+    'meeting_type.walk': 'Прогулянка',
+    'meeting_type.bar': 'Бар',
+    'meeting_type.restaurant': 'Ресторан',
+    'meeting_type.concert': 'Концерт',
+    'meeting_type.game': 'Ігри',
+    'meeting_type.travel': 'Подорож',
+    'meeting_type.study': 'Навчання',
+    'meeting_type.other': 'Інше',
+
+    // Meeting create
+    'meeting_create.title': 'Нова зустріч',
+    'meeting_create.what': 'Що плануєте?',
+    'meeting_create.when': 'Коли?',
+    'meeting_create.who': 'З ким?',
+    'meeting_create.where': 'Де?',
+    'meeting_create.today': 'Сьогодні',
+    'meeting_create.tomorrow': 'Завтра',
+    'meeting_create.calendar': 'Календар',
+    'meeting_create.time': 'Час',
+    'meeting_create.next': 'Далі',
+    'meeting_create.create': 'Створити',
+    'meeting_create.location_placeholder': 'Введіть місце',
+    'meeting_create.success': 'Готово',
+    'meeting_create.success_desc': 'Зустріч створено',
+    'meeting_create.error': 'Помилка',
+    'meeting_create.error_desc': 'Не вдалося створити зустріч',
 
     // Account Prompt
     'account_prompt.title': 'Анкету завершено!',
@@ -2640,10 +2928,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': '생일',
     'notifications.contact': '연락할 시간',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': '친구',
     'nav.share': '공유',
     'nav.profile': '프로필',
+    'nav.home': '홈',
+    'nav.chats': '채팅',
+    'nav.meetings': '미팅',
+    'nav.analysis': '분석',
+    'nav.parties': '파티',
+    'nav.games': '게임',
+
+    // Themes
+    'theme.light': '라이트',
+    'theme.dark': '다크',
+    'theme.business': '비즈니스',
+    'theme.business_dark': '비즈니스 다크',
+    'theme.toggle': '테마 변경',
+
+    // Meeting types
+    'meeting_type.coffee': '커피',
+    'meeting_type.lunch': '점심',
+    'meeting_type.movie': '영화',
+    'meeting_type.sport': '스포츠',
+    'meeting_type.shopping': '쇼핑',
+    'meeting_type.party': '파티',
+    'meeting_type.work': '업무',
+    'meeting_type.walk': '산책',
+    'meeting_type.bar': '바',
+    'meeting_type.restaurant': '레스토랑',
+    'meeting_type.concert': '콘서트',
+    'meeting_type.game': '게임',
+    'meeting_type.travel': '여행',
+    'meeting_type.study': '공부',
+    'meeting_type.other': '기타',
+
+    // Meeting create
+    'meeting_create.title': '새 미팅',
+    'meeting_create.what': '무엇을 계획하시나요?',
+    'meeting_create.when': '언제?',
+    'meeting_create.who': '누구와?',
+    'meeting_create.where': '어디서?',
+    'meeting_create.today': '오늘',
+    'meeting_create.tomorrow': '내일',
+    'meeting_create.calendar': '캘린더',
+    'meeting_create.time': '시간',
+    'meeting_create.next': '다음',
+    'meeting_create.create': '만들기',
+    'meeting_create.location_placeholder': '장소 입력',
+    'meeting_create.success': '완료',
+    'meeting_create.success_desc': '미팅이 생성되었습니다',
+    'meeting_create.error': '오류',
+    'meeting_create.error_desc': '미팅을 생성할 수 없습니다',
 
     // Account Prompt
     'account_prompt.title': '퀴즈 완료!',
@@ -3048,10 +3384,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'notifications.birthday': '生日',
     'notifications.contact': '联系时间',
 
-    // Bottom nav
+    // Bottom nav / Menu
     'nav.friends': '朋友',
     'nav.share': '分享',
     'nav.profile': '个人资料',
+    'nav.home': '首页',
+    'nav.chats': '聊天',
+    'nav.meetings': '会议',
+    'nav.analysis': '分析',
+    'nav.parties': '派对',
+    'nav.games': '游戏',
+
+    // Themes
+    'theme.light': '浅色',
+    'theme.dark': '深色',
+    'theme.business': '商务',
+    'theme.business_dark': '商务深色',
+    'theme.toggle': '切换主题',
+
+    // Meeting types
+    'meeting_type.coffee': '咖啡',
+    'meeting_type.lunch': '午餐',
+    'meeting_type.movie': '电影',
+    'meeting_type.sport': '运动',
+    'meeting_type.shopping': '购物',
+    'meeting_type.party': '派对',
+    'meeting_type.work': '工作',
+    'meeting_type.walk': '散步',
+    'meeting_type.bar': '酒吧',
+    'meeting_type.restaurant': '餐厅',
+    'meeting_type.concert': '演唱会',
+    'meeting_type.game': '游戏',
+    'meeting_type.travel': '旅行',
+    'meeting_type.study': '学习',
+    'meeting_type.other': '其他',
+
+    // Meeting create
+    'meeting_create.title': '新会议',
+    'meeting_create.what': '您计划做什么?',
+    'meeting_create.when': '什么时候?',
+    'meeting_create.who': '和谁?',
+    'meeting_create.where': '在哪里?',
+    'meeting_create.today': '今天',
+    'meeting_create.tomorrow': '明天',
+    'meeting_create.calendar': '日历',
+    'meeting_create.time': '时间',
+    'meeting_create.next': '下一步',
+    'meeting_create.create': '创建',
+    'meeting_create.location_placeholder': '输入地点',
+    'meeting_create.success': '完成',
+    'meeting_create.success_desc': '会议已创建',
+    'meeting_create.error': '错误',
+    'meeting_create.error_desc': '无法创建会议',
 
     // Account Prompt
     'account_prompt.title': '问卷完成！',
