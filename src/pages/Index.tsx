@@ -187,7 +187,9 @@ const Index = ({ initialRoute }: IndexProps) => {
         description: f.friend_description || undefined,
         lastInteraction: f.last_interaction || undefined,
         quizAnswers: f.friend_quiz_answers || undefined,
-        friendUserId: f.friend_user_id
+        friendUserId: f.friend_user_id,
+        matchScore: f.match_score || undefined,
+        isVerified: f.is_verified || false
       }));
       setFriends(mappedFriends);
     } else {

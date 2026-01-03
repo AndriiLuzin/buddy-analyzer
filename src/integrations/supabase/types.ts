@@ -344,6 +344,7 @@ export type Database = {
           friend_quiz_answers: number[] | null
           friend_user_id: string
           id: string
+          is_verified: boolean | null
           last_interaction: string | null
           match_score: number | null
           owner_id: string
@@ -359,6 +360,7 @@ export type Database = {
           friend_quiz_answers?: number[] | null
           friend_user_id: string
           id?: string
+          is_verified?: boolean | null
           last_interaction?: string | null
           match_score?: number | null
           owner_id: string
@@ -374,6 +376,7 @@ export type Database = {
           friend_quiz_answers?: number[] | null
           friend_user_id?: string
           id?: string
+          is_verified?: boolean | null
           last_interaction?: string | null
           match_score?: number | null
           owner_id?: string

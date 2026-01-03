@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.reset-password]
 verify_jwt = false
+
+[functions.link-friend-account]
+verify_jwt = false

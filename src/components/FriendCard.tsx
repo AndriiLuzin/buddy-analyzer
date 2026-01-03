@@ -1,6 +1,7 @@
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
 
 interface FriendCardProps {
   friend: Friend;
@@ -40,12 +41,27 @@ export const FriendCard = ({ friend, onClick, isMatch }: FriendCardProps) => {
             initials
           )}
         </div>
+        {/* Verification badge */}
+        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${
+          friend.isVerified ? 'bg-green-500' : 'bg-amber-500'
+        }`}>
+          {friend.isVerified ? (
+            <ShieldCheck className="w-3 h-3 text-white" />
+          ) : (
+            <ShieldAlert className="w-3 h-3 text-white" />
+          )}
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 text-left min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="font-semibold text-foreground truncate">{friend.name}</h3>
+          {!friend.isVerified && (
+            <span className="text-xs text-amber-600 dark:text-amber-400 shrink-0">
+              {t('friends.unverified') || 'Unverified'}
+            </span>
+          )}
         </div>
         <p className="text-sm text-muted-foreground truncate">
           {friend.description || (friend.category ? getCategoryLabel(friend.category) : t('friends.awaiting_analysis'))}

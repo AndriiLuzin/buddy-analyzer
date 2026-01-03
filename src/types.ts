@@ -34,6 +34,7 @@ export interface Friend {
   matchScore?: number;
   friendUserId?: string;
   personality?: PersonalityProfile;
+  isVerified?: boolean;
 }
 
 export interface UserProfile {
