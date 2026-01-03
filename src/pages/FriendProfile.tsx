@@ -27,6 +27,7 @@ export default function FriendProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isEditingBirthday, setIsEditingBirthday] = useState(false);
   const { toast } = useToast();
 
@@ -170,8 +171,8 @@ export default function FriendProfile() {
           <h1 className="text-white text-lg font-semibold">{friend.name}</h1>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate(`/friend/${friendId}/settings`)}
-              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors ${isEditMode ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30'}`}
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -236,45 +237,57 @@ export default function FriendProfile() {
               <p className="font-medium text-foreground text-base">{formatDate(friend.lastInteraction)}</p>
             </div>
           )}
-          {/* Birthday - editable */}
-          <Popover open={isEditingBirthday} onOpenChange={setIsEditingBirthday}>
-            <PopoverTrigger asChild>
-              <button className="w-full bg-secondary/50 rounded-xl p-4 flex items-center gap-3 hover:bg-secondary/70 transition-colors text-left group">
+          {/* Birthday - editable only in edit mode */}
+          {isEditMode ? (
+            <Popover open={isEditingBirthday} onOpenChange={setIsEditingBirthday}>
+              <PopoverTrigger asChild>
+                <button className="w-full bg-pink-50 dark:bg-pink-950/30 rounded-xl p-4 flex items-center gap-3 hover:bg-pink-100 dark:hover:bg-pink-950/50 transition-colors text-left border-2 border-dashed border-pink-300 dark:border-pink-700">
+                  <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center shrink-0">
+                    <span className="text-2xl">🎂</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground">{friend.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {friend.birthday 
+                        ? getBirthdayInfo(friend.birthday)?.formattedDate 
+                        : 'Нажмите чтобы добавить дату'}
+                    </p>
+                  </div>
+                  <Pencil className="w-5 h-5 text-pink-500 shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="single"
+                  selected={friend.birthday ? new Date(friend.birthday) : undefined}
+                  onSelect={handleBirthdayChange}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                  captionLayout="dropdown-buttons"
+                  fromYear={1920}
+                  toYear={new Date().getFullYear()}
+                />
+              </PopoverContent>
+            </Popover>
+          ) : (
+            friend.birthday && getBirthdayInfo(friend.birthday) && (
+              <div className="bg-secondary/50 rounded-xl p-4 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center shrink-0">
                   <span className="text-2xl">🎂</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground">{friend.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {friend.birthday 
-                      ? getBirthdayInfo(friend.birthday)?.formattedDate 
-                      : 'Дата не указана — нажмите чтобы добавить'}
+                  <p className="text-sm text-muted-foreground">{getBirthdayInfo(friend.birthday)?.formattedDate}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xl font-bold text-foreground">{getBirthdayInfo(friend.birthday)?.daysUntil}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getBirthdayInfo(friend.birthday)?.daysUntil === 0 ? 'сегодня' : getBirthdayInfo(friend.birthday)?.daysUntil === 1 ? 'день' : 'дней'}
                   </p>
                 </div>
-                {friend.birthday && getBirthdayInfo(friend.birthday) && (
-                  <div className="text-right shrink-0">
-                    <p className="text-xl font-bold text-foreground">{getBirthdayInfo(friend.birthday)?.daysUntil}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {getBirthdayInfo(friend.birthday)?.daysUntil === 0 ? 'сегодня' : getBirthdayInfo(friend.birthday)?.daysUntil === 1 ? 'день' : 'дней'}
-                    </p>
-                  </div>
-                )}
-                <Pencil className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              <Calendar
-                mode="single"
-                selected={friend.birthday ? new Date(friend.birthday) : undefined}
-                onSelect={handleBirthdayChange}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-                captionLayout="dropdown-buttons"
-                fromYear={1920}
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
+              </div>
+            )
+          )}
           
           {/* Important dates section */}
           {currentUserId && (
