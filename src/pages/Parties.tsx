@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Plus, Calendar, Users, Check, Clock } from 'lucide-react';
+import { Plus, Calendar, Users, Check, Clock, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { FloatingActionMenu } from '@/components/FloatingActionMenu';
 import { PartyIcon } from '@/components/icons/PartyIcon';
 import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
 
@@ -98,19 +97,25 @@ export default function Parties() {
 
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-32">
+    <div className="min-h-[100dvh] bg-background pb-8">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="px-5 py-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Parties</h1>
-              <p className="text-sm text-muted-foreground">Ваши мероприятия</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-foreground">Мероприятия</h1>
+              <p className="text-sm text-muted-foreground">Ваши праздники и события</p>
             </div>
             <Button
               onClick={() => navigate('/parties/create')}
               size="icon"
-              className="rounded-full w-12 h-12"
+              className="rounded-full w-10 h-10"
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -203,8 +208,6 @@ export default function Parties() {
           })
         )}
       </div>
-
-      <FloatingActionMenu />
     </div>
   );
 }
