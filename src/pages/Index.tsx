@@ -338,7 +338,8 @@ const Index = ({ initialRoute }: IndexProps) => {
     setFriends(updatedFriends);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setUserProfile(null);
