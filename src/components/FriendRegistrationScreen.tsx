@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Users, Heart, Sparkles, User, ArrowRight, Phone } from 'lucide-react';
+import { Users, Heart, Sparkles, User, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
 import { DateWheelPicker } from './DateWheelPicker';
@@ -11,7 +11,6 @@ interface FriendInfo {
   firstName: string;
   lastName: string;
   birthday: Date | undefined;
-  phone: string;
 }
 
 interface FriendRegistrationScreenProps {
@@ -22,7 +21,6 @@ interface FriendRegistrationScreenProps {
 export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendRegistrationScreenProps) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
   const [dateValue, setDateValue] = useState<{ month: number; day: number; year?: number }>({
     month: new Date().getMonth(),
     day: new Date().getDate(),
@@ -38,16 +36,10 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
     ? new Date(dateValue.year, dateValue.month, dateValue.day)
     : undefined;
 
-  // Format phone number as user types
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d+\-\s()]/g, '');
-    setPhone(value);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (firstName && lastName && birthday && phone.length >= 7) {
-      onComplete({ firstName, lastName, birthday, phone });
+    if (firstName && lastName && birthday) {
+      onComplete({ firstName, lastName, birthday });
     }
   };
 
@@ -139,27 +131,9 @@ export const FriendRegistrationScreen = ({ onComplete, referrerName }: FriendReg
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-foreground font-medium">
-              {t('friend_reg.phone') || 'Phone Number'} <span className="text-destructive">*</span>
-            </Label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                id="phone"
-                type="tel"
-                placeholder={t('friend_reg.phone_placeholder') || '+1 (555) 123-4567'}
-                value={phone}
-                onChange={handlePhoneChange}
-                className="pl-12 h-12 rounded-xl bg-card/50 border-border focus:border-primary"
-                required
-              />
-            </div>
-          </div>
-
           <Button
             type="submit"
-            disabled={!firstName || !lastName || !birthday || phone.length < 7}
+            disabled={!firstName || !lastName || !birthday}
             className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
           >
             <span>{t('friend_reg.continue') || 'Continue to Quiz'}</span>

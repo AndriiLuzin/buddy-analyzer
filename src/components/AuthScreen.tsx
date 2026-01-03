@@ -276,6 +276,27 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         }
       }
 
+      // Link existing friend records to this new account
+      const userId = signUpData?.user?.id;
+      if (userId) {
+        const [firstName, ...lastParts] = name.trim().split(' ');
+        const lastName = lastParts.join(' ') || '';
+        
+        try {
+          await supabase.functions.invoke('link-friend-account', {
+            body: {
+              userId,
+              firstName,
+              lastName,
+              birthday: birthday ? birthday.toISOString().split('T')[0] : null,
+              phone: normalizedPhone
+            }
+          });
+        } catch (linkError) {
+          console.error('Error linking friend account:', linkError);
+        }
+      }
+
       setShowWelcome(true);
     } catch (error) {
       toast({
