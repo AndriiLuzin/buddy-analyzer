@@ -218,9 +218,30 @@ const BattleshipPlayer = () => {
   }, [code, searchParams, t]);
 
   const handleJoinGame = async () => {
-    if (!game || pendingIndex === null || !playerName.trim()) return;
+    if (!game || !playerName.trim()) return;
     
     setIsJoining(true);
+    
+    // Re-check available slots before inserting (another player may have taken the slot)
+    const { data: latestPlayers } = await supabase
+      .from("battleship_players")
+      .select("*")
+      .eq("game_id", game.id);
+    
+    const usedIndices = (latestPlayers || []).map(p => p.player_index);
+    let availableIndex = -1;
+    for (let i = 0; i < game.player_count - 1; i++) {
+      if (!usedIndices.includes(i)) {
+        availableIndex = i;
+        break;
+      }
+    }
+    
+    if (availableIndex === -1) {
+      setError(t("games.all_slots_taken"));
+      setIsJoining(false);
+      return;
+    }
     
     // Generate unique ships for this player - each player gets their own random placement
     const ships = generateShips(game.grid_size);
@@ -229,7 +250,7 @@ const BattleshipPlayer = () => {
       .from("battleship_players")
       .insert({
         game_id: game.id,
-        player_index: pendingIndex,
+        player_index: availableIndex,
         player_name: playerName.trim(),
         ships: ships as unknown as any,
       })
@@ -237,14 +258,21 @@ const BattleshipPlayer = () => {
       .single();
 
     if (insertError) {
+      // If insert failed due to conflict, retry with new slot
+      if (insertError.code === '23505') {
+        // Unique constraint violation - slot was taken, retry
+        setIsJoining(false);
+        handleJoinGame();
+        return;
+      }
       console.error(insertError);
       setError(t("games.registration_error"));
       setIsJoining(false);
       return;
     }
 
-    setSearchParams({ p: String(pendingIndex) });
-    setPlayerIndex(pendingIndex);
+    setSearchParams({ p: String(availableIndex) });
+    setPlayerIndex(availableIndex);
     setMyPlayer({
       ...newPlayer,
       ships,
