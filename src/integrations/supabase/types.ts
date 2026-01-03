@@ -608,6 +608,50 @@ export type Database = {
           },
         ]
       }
+      meeting_external_invites: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          invite_code: string
+          last_name: string | null
+          meeting_id: string
+          phone: string | null
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          invite_code: string
+          last_name?: string | null
+          meeting_id: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          invite_code?: string
+          last_name?: string | null
+          meeting_id?: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_external_invites_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_participants: {
         Row: {
           added_at: string
