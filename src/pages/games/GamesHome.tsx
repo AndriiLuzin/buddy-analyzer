@@ -60,7 +60,7 @@ const GamesHome = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+    <div className="h-[100dvh] flex flex-col items-center overflow-y-auto p-6 pb-24 bg-background">
       <button
         onClick={() => navigate("/")}
         className="absolute top-4 left-4 p-2 hover:opacity-70 transition-opacity"
