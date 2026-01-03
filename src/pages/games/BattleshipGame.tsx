@@ -30,6 +30,7 @@ interface BattleshipPlayer {
   id: string;
   game_id: string;
   player_index: number;
+  player_name: string | null;
   ships: Ship[];
   hits_received: { x: number; y: number }[];
   is_eliminated: boolean;
@@ -486,25 +487,46 @@ const BattleshipGame = () => {
           </>
         )}
 
-        <div className="grid grid-cols-5 gap-2 mb-8">
+        <div className="space-y-2 mb-8">
           {Array.from({ length: game.player_count }).map((_, i) => {
             const player = players.find(p => p.player_index === i);
             const hasJoined = !!player;
             const isEliminated = player?.is_eliminated;
+            const isAdmin = i === adminIndex;
+            const displayName = isAdmin 
+              ? t("games.you") 
+              : player?.player_name || `${t("games.player")} #${i + 1}`;
+            
             return (
               <div
                 key={i}
-                className={`aspect-square flex items-center justify-center text-sm font-bold transition-colors ${
+                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                   isEliminated
-                    ? "bg-destructive/30 text-destructive line-through"
+                    ? "bg-destructive/20 text-destructive line-through"
                     : hasJoined
-                    ? i === adminIndex
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-foreground text-background"
+                    ? isAdmin
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : "bg-foreground/10 text-foreground border border-foreground/20"
                     : "bg-secondary text-muted-foreground"
                 }`}
               >
-                {i + 1}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  isEliminated
+                    ? "bg-destructive/30"
+                    : hasJoined
+                    ? isAdmin
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-foreground text-background"
+                    : "bg-muted"
+                }`}>
+                  {i + 1}
+                </div>
+                <span className="font-medium truncate">
+                  {hasJoined ? displayName : t("games.waiting_player")}
+                </span>
+                {hasJoined && !isAdmin && (
+                  <span className="ml-auto text-xs text-muted-foreground">✓</span>
+                )}
               </div>
             );
           })}
