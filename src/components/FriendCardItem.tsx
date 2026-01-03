@@ -1,5 +1,7 @@
 import { Friend, FriendCategory } from '../types';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { formatDistanceToNow } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface FriendCardItemProps {
   friend: Friend;
@@ -17,10 +19,25 @@ const categoryBgStyles: Record<FriendCategory, string> = {
 };
 
 export const FriendCardItem = ({ friend, onClick, isMatch, animationDelay = 0 }: FriendCardItemProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const initials = friend.name.split(' ').map(n => n[0]).join('').toUpperCase();
   
   const getCategoryLabel = (category: FriendCategory) => t(`category.${category}`);
+
+  const getLastContactText = () => {
+    if (!friend.lastInteraction) {
+      return t('friends.no_contact_yet') || 'Ещё не общались';
+    }
+    try {
+      const date = new Date(friend.lastInteraction);
+      return formatDistanceToNow(date, { 
+        addSuffix: true, 
+        locale: language === 'ru' ? ru : undefined 
+      });
+    } catch {
+      return t('friends.no_contact_yet') || 'Ещё не общались';
+    }
+  };
 
   return (
     <button
@@ -47,7 +64,7 @@ export const FriendCardItem = ({ friend, onClick, isMatch, animationDelay = 0 }:
           <h3 className="font-semibold text-foreground truncate">{friend.name}</h3>
         </div>
         <p className="text-sm text-muted-foreground truncate">
-          {friend.description || (friend.category ? getCategoryLabel(friend.category) : t('friends.awaiting_analysis'))}
+          {getLastContactText()}
         </p>
       </div>
 
