@@ -419,6 +419,7 @@ const BattleshipGame = () => {
         onClose={() => setShowShareModal(false)}
         gameCode={code || ''}
         gameName={t("games.battleship.title")}
+        gamePath="/games/battleship"
       />
 
       <div className="w-full max-w-sm animate-fade-in">
