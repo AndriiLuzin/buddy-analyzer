@@ -1,5 +1,6 @@
 export type FriendCategory = 
   | 'soul_mate'      // Душа в душу
+  | 'family'         // Семья
   | 'close_friend'   // Близкий друг
   | 'good_buddy'     // Хороший приятель
   | 'situational'    // Ситуативный знакомый

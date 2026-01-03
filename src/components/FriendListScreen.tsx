@@ -46,7 +46,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   });
 
   // Group friends by category for display
-  const categoryOrder: FriendCategory[] = ['soul_mate', 'close_friend', 'good_buddy', 'situational', 'distant'];
+  const categoryOrder: FriendCategory[] = ['soul_mate', 'family', 'close_friend', 'good_buddy', 'situational', 'distant'];
   
   const groupedFriends = categoryOrder.reduce((acc, category) => {
     const friendsInCategory = filteredFriends.filter(f => f.category === category);

@@ -8,6 +8,7 @@ interface ContactReminderProps {
 // Интервалы напоминаний в днях для каждой категории
 const REMINDER_INTERVALS: Record<FriendCategory, number> = {
   soul_mate: 3,        // Каждые 3 дня
+  family: 5,           // Каждые 5 дней
   close_friend: 7,     // Раз в неделю
   good_buddy: 14,      // Раз в 2 недели
   situational: 30,     // Раз в месяц
@@ -19,6 +20,11 @@ const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
     'Пора созвониться!',
     'Напишите что-нибудь тёплое',
     'Поделитесь новостями'
+  ],
+  family: [
+    'Позвоните родным!',
+    'Узнайте как дела у семьи',
+    'Запланируйте встречу'
   ],
   close_friend: [
     'Давно не общались!',
@@ -85,10 +91,11 @@ export const ContactReminder = ({ friends }: ContactReminderProps) => {
       const urgencyOrder = { high: 0, medium: 1, low: 2 };
       const categoryOrder: Record<FriendCategory, number> = {
         soul_mate: 0,
-        close_friend: 1,
-        good_buddy: 2,
-        situational: 3,
-        distant: 4
+        family: 1,
+        close_friend: 2,
+        good_buddy: 3,
+        situational: 4,
+        distant: 5
       };
       
       if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {

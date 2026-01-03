@@ -16,6 +16,7 @@ interface NotificationsPageProps {
 // Интервалы напоминаний в днях для каждой категории
 const REMINDER_INTERVALS: Record<FriendCategory, number> = {
   soul_mate: 3,
+  family: 5,
   close_friend: 7,
   good_buddy: 14,
   situational: 30,
@@ -27,6 +28,11 @@ const CATEGORY_MESSAGES: Record<FriendCategory, string[]> = {
     'Пора созвониться!',
     'Напишите что-нибудь тёплое',
     'Поделитесь новостями'
+  ],
+  family: [
+    'Позвоните родным!',
+    'Узнайте как дела у семьи',
+    'Запланируйте встречу'
   ],
   close_friend: [
     'Давно не общались!',
@@ -398,6 +404,7 @@ interface NotificationCardProps {
 
 const categoryBgStyles: Record<FriendCategory, string> = {
   soul_mate: 'bg-amber-500',
+  family: 'bg-rose-500',
   close_friend: 'bg-orange-500',
   good_buddy: 'bg-teal-500',
   situational: 'bg-blue-500',
