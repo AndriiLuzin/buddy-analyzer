@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Plus, Calendar, MapPin, Users, Check, X, Clock } from 'lucide-react';
+import { Plus, Calendar, Users, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { FloatingActionMenu } from '@/components/FloatingActionMenu';
@@ -96,21 +96,6 @@ export default function Parties() {
     setIsLoading(false);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'accepted': return 'text-green-500';
-      case 'declined': return 'text-red-500';
-      default: return 'text-yellow-500';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'accepted': return <Check className="w-3 h-3" />;
-      case 'declined': return <X className="w-3 h-3" />;
-      default: return <Clock className="w-3 h-3" />;
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] bg-background pb-32">
@@ -155,87 +140,65 @@ export default function Parties() {
           parties.map((party) => {
             const acceptedCount = party.participants.filter(p => p.status === 'accepted').length;
             const pendingCount = party.participants.filter(p => p.status === 'pending').length;
-            const declinedCount = party.participants.filter(p => p.status === 'declined').length;
 
             return (
-              <div
+              <button
                 key={party.id}
-                className="bg-card rounded-2xl border border-border/50 p-4 space-y-3"
+                onClick={() => navigate(`/parties/${party.id}`)}
+                className="w-full bg-card rounded-2xl border border-border/50 p-4 text-left transition-all hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
               >
-                {/* Header */}
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  {/* Icon */}
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                     {(() => {
                       const IconComponent = partyTypeIcons[party.party_type];
-                      return IconComponent ? <IconComponent size={40} /> : <span className="text-2xl">{partyTypeEmojis[party.party_type] || '🎊'}</span>;
+                      return IconComponent ? <IconComponent size={44} /> : <span className="text-2xl">{partyTypeEmojis[party.party_type] || '🎊'}</span>;
                     })()}
                   </div>
+                  
+                  {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">{party.title}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
+                    <h3 className="font-semibold text-foreground text-lg truncate">{party.title}</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                      <Calendar className="w-4 h-4 shrink-0" />
                       <span>{format(new Date(party.party_date), 'd MMMM yyyy', { locale: ru })}</span>
                       {party.party_time && (
                         <>
-                          <span>•</span>
+                          <span className="text-muted-foreground/50">•</span>
                           <span>{party.party_time.slice(0, 5)}</span>
                         </>
                       )}
                     </div>
-                    {party.location && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span className="truncate">{party.location}</span>
+                    
+                    {/* Stats row */}
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        <span className="text-sm">{party.participants.length}</span>
                       </div>
-                    )}
+                      {acceptedCount > 0 && (
+                        <div className="flex items-center gap-1 text-green-500">
+                          <Check className="w-3.5 h-3.5" />
+                          <span className="text-sm">{acceptedCount}</span>
+                        </div>
+                      )}
+                      {pendingCount > 0 && (
+                        <div className="flex items-center gap-1 text-yellow-500">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="text-sm">{pendingCount}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <div className="text-muted-foreground/50">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
-
-                {/* Participants status */}
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{party.participants.length}</span>
-                  </div>
-                  {acceptedCount > 0 && (
-                    <div className="flex items-center gap-1 text-green-500">
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{acceptedCount}</span>
-                    </div>
-                  )}
-                  {pendingCount > 0 && (
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{pendingCount}</span>
-                    </div>
-                  )}
-                  {declinedCount > 0 && (
-                    <div className="flex items-center gap-1 text-red-500">
-                      <X className="w-3.5 h-3.5" />
-                      <span>{declinedCount}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Participant avatars */}
-                {party.participants.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {party.participants.map((p) => (
-                      <div
-                        key={p.id}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-                          p.status === 'accepted' ? 'bg-green-500/10 text-green-600' :
-                          p.status === 'declined' ? 'bg-red-500/10 text-red-600' :
-                          'bg-yellow-500/10 text-yellow-600'
-                        }`}
-                      >
-                        {getStatusIcon(p.status)}
-                        <span>{p.friend_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              </button>
             );
           })
         )}
