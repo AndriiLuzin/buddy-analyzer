@@ -470,7 +470,14 @@ const BattleshipGame = () => {
             </div>
 
             <div className="text-center mb-8">
-              <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
+              <Button 
+                onClick={() => setShowShareModal(true)}
+                variant="outline"
+                className="w-full"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                {t("games.share.title")}
+              </Button>
             </div>
 
             <div className="text-center mb-8">
