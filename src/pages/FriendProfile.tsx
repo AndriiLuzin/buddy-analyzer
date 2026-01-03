@@ -141,8 +141,14 @@ export default function FriendProfile() {
   };
 
   const handleChatClick = () => {
-    if (friend.friendUserId) {
+    if (friend.isVerified && friend.friendUserId) {
       navigate('/chat', { state: { friend, friendUserId: friend.friendUserId } });
+    } else if (!friend.isVerified) {
+      toast({
+        title: "Друг не верифицирован",
+        description: "Чат доступен только с верифицированными друзьями. Дождитесь, пока друг создаст аккаунт.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -526,10 +532,16 @@ export default function FriendProfile() {
           {friend.friendUserId && (
             <button 
               onClick={handleChatClick}
-              className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
+              disabled={!friend.isVerified}
+              className={cn(
+                "flex-1 h-14 rounded-2xl font-semibold flex items-center justify-center gap-2 transition-colors",
+                friend.isVerified 
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              )}
             >
               <Send className="w-5 h-5" />
-              Написать
+              {friend.isVerified ? 'Написать' : 'Не верифицирован'}
             </button>
           )}
         </div>

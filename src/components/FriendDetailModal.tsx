@@ -88,8 +88,14 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
   };
 
   const handleChatClick = () => {
-    if (friend.friendUserId) {
+    if (friend.isVerified && friend.friendUserId) {
       setIsChatOpen(true);
+    } else if (!friend.isVerified) {
+      toast({
+        title: "Друг не верифицирован",
+        description: "Чат доступен только с верифицированными друзьями. Дождитесь, пока друг создаст аккаунт.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -225,10 +231,11 @@ export const FriendDetailModal = ({ friend, isOpen, onClose, isMatch, currentUse
               {friend.friendUserId && (
                 <Button 
                   onClick={handleChatClick}
-                  className="flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm sm:text-base"
+                  disabled={!friend.isVerified}
+                  className="flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm sm:text-base disabled:opacity-50"
                 >
                   <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-                  Написать
+                  {friend.isVerified ? 'Написать' : 'Не верифицирован'}
                 </Button>
               )}
             </div>
