@@ -407,9 +407,6 @@ const BattleshipGame = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/games")}>
           <Home className="w-5 h-5" />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setShowShareModal(true)}>
-          <Share2 className="w-5 h-5" />
-        </Button>
         {gameStarted && !isAdminEliminated && (
           <Button variant="outline" size="icon" onClick={() => setViewMode('player')}>
             <User className="w-5 h-5" />
