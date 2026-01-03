@@ -94,10 +94,10 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       icon: PartyPopper,
       label: 'Parties',
       onClick: () => {
-        navigate('/games');
+        navigate('/parties');
         setIsOpen(false);
       },
-      active: isActive('/games')
+      active: isActive('/parties')
     }
   ];
 

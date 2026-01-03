@@ -26,7 +26,7 @@ import { supabase } from '../integrations/supabase/client';
 
 interface Notification {
   id: string;
-  type: 'contact' | 'birthday' | 'new_friend';
+  type: 'contact' | 'birthday' | 'new_friend' | 'party_invite' | 'meeting_invite';
   friend?: Friend;
   message: string;
   urgency: 'low' | 'medium' | 'high';

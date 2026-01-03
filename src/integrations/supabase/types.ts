@@ -737,6 +737,84 @@ export type Database = {
         }
         Relationships: []
       }
+      parties: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          owner_id: string
+          party_date: string
+          party_time: string | null
+          party_type: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          owner_id: string
+          party_date: string
+          party_time?: string | null
+          party_type?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          owner_id?: string
+          party_date?: string
+          party_time?: string | null
+          party_type?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      party_participants: {
+        Row: {
+          added_at: string
+          friend_id: string
+          id: string
+          party_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          added_at?: string
+          friend_id: string
+          id?: string
+          party_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          added_at?: string
+          friend_id?: string
+          id?: string
+          party_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_participants_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_participants_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_views: {
         Row: {
           created_at: string
