@@ -30,6 +30,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
 
 export const CATEGORY_INFO: Record<FriendCategory, { label: string; emoji: string; color: string }> = {
   soul_mate: { label: 'Душа в душу', emoji: '💫', color: 'amber' },
+  family: { label: 'Семья', emoji: '👨‍👩‍👧‍👦', color: 'rose' },
   close_friend: { label: 'Близкий друг', emoji: '❤️', color: 'coral' },
   good_buddy: { label: 'Хороший приятель', emoji: '🤝', color: 'teal' },
   situational: { label: 'Ситуативный знакомый', emoji: '👋', color: 'blue' },

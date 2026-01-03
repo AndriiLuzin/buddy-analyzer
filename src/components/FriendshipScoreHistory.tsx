@@ -8,6 +8,7 @@ interface FriendshipScoreHistoryProps {
 
 const REMINDER_INTERVALS: Record<FriendCategory, number> = {
   soul_mate: 3,
+  family: 5,
   close_friend: 7,
   good_buddy: 14,
   situational: 30,

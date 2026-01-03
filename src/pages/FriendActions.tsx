@@ -77,6 +77,7 @@ const CONTACT_ACTIONS: ActionOption[] = [
 
 const categoryGradients: Record<FriendCategory, string> = {
   soul_mate: 'from-amber-400 to-orange-500',
+  family: 'from-rose-400 to-pink-500',
   close_friend: 'from-orange-400 to-rose-500',
   good_buddy: 'from-teal-400 to-cyan-500',
   situational: 'from-blue-400 to-indigo-500',

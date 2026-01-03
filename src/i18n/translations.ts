@@ -101,6 +101,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Soul Mate',
+    'category.family': 'Family',
     'category.close_friend': 'Close Friend',
     'category.good_buddy': 'Good Buddy',
     'category.situational': 'Situational',
@@ -515,6 +516,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Âme sœur',
+    'category.family': 'Famille',
     'category.close_friend': 'Ami proche',
     'category.good_buddy': 'Bon copain',
     'category.situational': 'Situationnel',
@@ -904,6 +906,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Alma gemela',
+    'category.family': 'Familia',
     'category.close_friend': 'Amigo cercano',
     'category.good_buddy': 'Buen compañero',
     'category.situational': 'Situacional',
@@ -1293,6 +1296,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Душа в душу',
+    'category.family': 'Семья',
     'category.close_friend': 'Близкий друг',
     'category.good_buddy': 'Хороший приятель',
     'category.situational': 'Ситуативный',
@@ -1697,6 +1701,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Alma gêmea',
+    'category.family': 'Família',
     'category.close_friend': 'Amigo próximo',
     'category.good_buddy': 'Bom colega',
     'category.situational': 'Situacional',
@@ -2086,6 +2091,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': 'Споріднена душа',
+    'category.family': 'Сім\'я',
     'category.close_friend': 'Близький друг',
     'category.good_buddy': 'Хороший приятель',
     'category.situational': 'Ситуативний',
@@ -2475,6 +2481,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': '소울메이트',
+    'category.family': '가족',
     'category.close_friend': '친한 친구',
     'category.good_buddy': '좋은 친구',
     'category.situational': '상황적',
@@ -2864,6 +2871,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Categories
     'category.soul_mate': '灵魂伴侣',
+    'category.family': '家人',
     'category.close_friend': '亲密朋友',
     'category.good_buddy': '好伙伴',
     'category.situational': '情境性',
