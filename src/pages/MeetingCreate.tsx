@@ -118,6 +118,17 @@ export default function MeetingCreate() {
       return;
     }
 
+    // Get user's profile for the invitation message
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const userName = userProfile 
+      ? `${userProfile.first_name} ${userProfile.last_name}`.trim() 
+      : 'Друг';
+
     const typeInfo = meetingTypes.find(t => t.id === selectedType);
     const title = typeInfo ? `${typeInfo.emoji} ${typeInfo.label}` : 'Встреча';
 
@@ -140,12 +151,48 @@ export default function MeetingCreate() {
     }
 
     if (selectedFriends.length > 0 && meeting) {
+      // Add participants
       await supabase.from('meeting_participants').insert(
         selectedFriends.map(friendId => ({
           meeting_id: meeting.id,
           friend_id: friendId,
         }))
       );
+
+      // Get friend details to find those with user accounts
+      const { data: friendsWithAccounts } = await supabase
+        .from('friends')
+        .select('id, friend_user_id, friend_name')
+        .in('id', selectedFriends);
+
+      // Send notifications to friends who have accounts
+      if (friendsWithAccounts && friendsWithAccounts.length > 0) {
+        const dateFormatted = format(selectedDate, 'd MMMM', { locale: ru });
+        const timeStr = selectedTime ? ` в ${selectedTime}` : '';
+        const locationStr = meetingLocation.trim() ? ` • ${meetingLocation.trim()}` : '';
+        
+        const notifications = friendsWithAccounts
+          .filter(f => f.friend_user_id && f.friend_user_id !== user.id)
+          .map(friend => ({
+            user_id: friend.friend_user_id,
+            type: 'meeting_invite',
+            title: '📅 Приглашение на встречу',
+            message: `${userName} приглашает вас: ${title} — ${dateFormatted}${timeStr}${locationStr}`,
+            data: {
+              meeting_id: meeting.id,
+              inviter_id: user.id,
+              inviter_name: userName,
+              meeting_title: title,
+              meeting_date: format(selectedDate, 'yyyy-MM-dd'),
+              meeting_time: selectedTime || null,
+              location: meetingLocation.trim() || null,
+            },
+          }));
+
+        if (notifications.length > 0) {
+          await supabase.from('notifications').insert(notifications);
+        }
+      }
     }
 
     toast({ title: 'Готово', description: 'Встреча создана' });
