@@ -175,6 +175,7 @@ const Index = ({ initialRoute }: IndexProps) => {
       const mappedFriends: Friend[] = dbFriends.map(f => ({
         id: f.id,
         name: `${f.friend_name} ${f.friend_last_name}`,
+        avatar: f.avatar_url || undefined,
         birthday: f.friend_birthday || undefined,
         category: f.friend_category as any,
         description: f.friend_description || undefined,
