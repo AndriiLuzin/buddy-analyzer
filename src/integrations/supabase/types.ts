@@ -773,6 +773,50 @@ export type Database = {
         }
         Relationships: []
       }
+      party_external_invites: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          invite_code: string
+          last_name: string | null
+          party_id: string
+          phone: string | null
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          invite_code: string
+          last_name?: string | null
+          party_id: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          invite_code?: string
+          last_name?: string | null
+          party_id?: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_external_invites_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       party_participants: {
         Row: {
           added_at: string
