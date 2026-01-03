@@ -1,20 +1,22 @@
 import { Moon, Sun, Briefcase, Building2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type ThemeOption = 'light' | 'dark' | 'business' | 'business-dark';
 
-const themes: { value: ThemeOption; icon: typeof Sun; label: string }[] = [
-  { value: 'light', icon: Sun, label: 'Светлая' },
-  { value: 'dark', icon: Moon, label: 'Тёмная' },
-  { value: 'business', icon: Briefcase, label: 'Бизнес' },
-  { value: 'business-dark', icon: Building2, label: 'Бизнес тёмная' },
-];
-
 export const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const themes: { value: ThemeOption; icon: typeof Sun; labelKey: string }[] = [
+    { value: 'light', icon: Sun, labelKey: 'theme.light' },
+    { value: 'dark', icon: Moon, labelKey: 'theme.dark' },
+    { value: 'business', icon: Briefcase, labelKey: 'theme.business' },
+    { value: 'business-dark', icon: Building2, labelKey: 'theme.business_dark' },
+  ];
 
   const currentTheme = themes.find(t => t.value === theme) || themes[0];
   const CurrentIcon = currentTheme.icon;
@@ -42,7 +44,7 @@ export const ThemeToggle = () => {
         className="p-2 hover:opacity-70 transition-opacity relative"
       >
         <CurrentIcon className="h-5 w-5 text-muted-foreground" />
-        <span className="sr-only">Переключить тему</span>
+        <span className="sr-only">{t('theme.toggle')}</span>
       </button>
 
       {isOpen && (
@@ -61,7 +63,7 @@ export const ThemeToggle = () => {
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                <span>{themeOption.label}</span>
+                <span>{t(themeOption.labelKey)}</span>
               </button>
             );
           })}
