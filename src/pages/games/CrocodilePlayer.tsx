@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -27,73 +28,83 @@ const CrocodilePlayer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showWord, setShowWord] = useState(false);
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("crocodile_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("crocodile_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const { data: players } = await supabase
+    const { data: players } = await supabase
+      .from("crocodile_players")
+      .select("player_index")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
+
+    const existingIndices = new Set(players?.map((p) => p.player_index) || []);
+    let nextIndex = 0;
+    while (existingIndices.has(nextIndex) && nextIndex < gameData.player_count) {
+      nextIndex++;
+    }
+
+    if (nextIndex >= gameData.player_count) {
+      nextIndex = players?.length || 0;
+    }
+
+    const storedIndex = localStorage.getItem(`crocodile-${gameData.id}`);
+    if (storedIndex) {
+      setPlayerIndex(parseInt(storedIndex));
+    } else {
+      const { error: joinError } = await supabase
         .from("crocodile_players")
-        .select("player_index")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+        .insert({
+          game_id: gameData.id,
+          player_index: nextIndex,
+        });
 
-      const existingIndices = new Set(players?.map((p) => p.player_index) || []);
-      let nextIndex = 0;
-      while (existingIndices.has(nextIndex) && nextIndex < gameData.player_count) {
-        nextIndex++;
+      if (!joinError) {
+        localStorage.setItem(`crocodile-${gameData.id}`, nextIndex.toString());
+        setPlayerIndex(nextIndex);
       }
+    }
 
-      if (nextIndex >= gameData.player_count) {
-        nextIndex = players?.length || 0;
-      }
+    if (gameData.current_word_id) {
+      const { data: wordData } = await supabase
+        .from("crocodile_words")
+        .select("word")
+        .eq("id", gameData.current_word_id)
+        .single();
+      setWord(wordData?.word || null);
+    }
 
-      const storedIndex = localStorage.getItem(`crocodile-${gameData.id}`);
-      if (storedIndex) {
-        setPlayerIndex(parseInt(storedIndex));
-      } else {
-        const { error: joinError } = await supabase
-          .from("crocodile_players")
-          .insert({
-            game_id: gameData.id,
-            player_index: nextIndex,
-          });
+    setIsLoading(false);
+  }, [code, navigate, t]);
 
-        if (!joinError) {
-          localStorage.setItem(`crocodile-${gameData.id}`, nextIndex.toString());
-          setPlayerIndex(nextIndex);
-        }
-      }
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `crocodile-player-${code}`,
+    onReconnect: fetchGame,
+  });
 
-      if (gameData.current_word_id) {
-        const { data: wordData } = await supabase
-          .from("crocodile_words")
-          .select("word")
-          .eq("id", gameData.current_word_id)
-          .single();
-        setWord(wordData?.word || null);
-      }
-
-      setIsLoading(false);
-    };
-
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`crocodile-player-${code}`)
+      .channel(`crocodile-player-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -125,7 +136,7 @@ const CrocodilePlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, t]);
+  }, [code, game?.id]);
 
   if (isLoading) {
     return (

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -93,49 +94,55 @@ const ImpostorPlayer = () => {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
+  const initGame = useCallback(async () => {
     if (!code) return;
 
-    const init = async () => {
-      const { data: gameData, error: gameError } = await supabase
-        .from("games")
-        .select("*")
-        .eq("code", code)
+    const { data: gameData, error: gameError } = await supabase
+      .from("games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (gameError || !gameData) {
+      setError(t("games.not_found"));
+      setIsLoading(false);
+      return;
+    }
+
+    setGame(gameData);
+
+    const existingIndex = searchParams.get("p");
+
+    if (existingIndex !== null) {
+      const idx = parseInt(existingIndex);
+      const { data: view } = await supabase
+        .from("player_views")
+        .select("player_index")
+        .eq("game_id", gameData.id)
+        .eq("player_index", idx)
         .maybeSingle();
 
-      if (gameError || !gameData) {
-        setError(t("games.not_found"));
-        setIsLoading(false);
+      if (view) {
+        await fetchRole(gameData, idx);
         return;
       }
+    }
 
-      setGame(gameData);
-
-      const existingIndex = searchParams.get("p");
-
-      if (existingIndex !== null) {
-        const idx = parseInt(existingIndex);
-        const { data: view } = await supabase
-          .from("player_views")
-          .select("player_index")
-          .eq("game_id", gameData.id)
-          .eq("player_index", idx)
-          .maybeSingle();
-
-        if (view) {
-          await fetchRole(gameData, idx);
-          return;
-        }
-      }
-
-      const newIndex = await assignRole(gameData);
-      if (newIndex !== null) {
-        await fetchRole(gameData, newIndex);
-      }
-    };
-
-    init();
+    const newIndex = await assignRole(gameData);
+    if (newIndex !== null) {
+      await fetchRole(gameData, newIndex);
+    }
   }, [code, searchParams, assignRole, fetchRole, t]);
+
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `impostor-player-${code}`,
+    onReconnect: initGame,
+  });
+
+  useEffect(() => {
+    initGame();
+  }, [initGame]);
 
   useEffect(() => {
     if (!game) return;

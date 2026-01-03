@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Home, Settings, User } from "lucide-react";
 import { playNotificationSound } from "@/lib/audio";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface MafiaGame {
   id: string;
@@ -41,70 +42,76 @@ const MafiaGame = () => {
   const viewedCount = players.filter((p) => p.viewed_at).length;
   const allViewed = game ? viewedCount >= game.player_count : false;
 
-  useEffect(() => {
-    const fetchGame = async () => {
-      if (!code) return;
+  const fetchGame = useCallback(async () => {
+    if (!code) return;
 
-      const { data: gameData, error: gameError } = await supabase
-        .from("mafia_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error: gameError } = await supabase
+      .from("mafia_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (gameError || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (gameError || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const { data: playersData } = await supabase
-        .from("mafia_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+    const { data: playersData } = await supabase
+      .from("mafia_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
 
-      if (playersData) {
-        setPlayers(playersData);
+    if (playersData) {
+      setPlayers(playersData);
 
-        const adminIdx = gameData.player_count - 1;
-        const adminP = playersData.find((p) => p.player_index === adminIdx);
+      const adminIdx = gameData.player_count - 1;
+      const adminP = playersData.find((p) => p.player_index === adminIdx);
 
-        if (adminP && !adminP.viewed_at) {
-          await supabase
-            .from("mafia_players")
-            .update({ viewed_at: new Date().toISOString() })
-            .eq("id", adminP.id);
+      if (adminP && !adminP.viewed_at) {
+        await supabase
+          .from("mafia_players")
+          .update({ viewed_at: new Date().toISOString() })
+          .eq("id", adminP.id);
 
-          const { data: updatedPlayers } = await supabase
-            .from("mafia_players")
-            .select("*")
-            .eq("game_id", gameData.id)
-            .order("player_index", { ascending: true });
+        const { data: updatedPlayers } = await supabase
+          .from("mafia_players")
+          .select("*")
+          .eq("game_id", gameData.id)
+          .order("player_index", { ascending: true });
 
-          if (updatedPlayers) {
-            setPlayers(updatedPlayers);
+        if (updatedPlayers) {
+          setPlayers(updatedPlayers);
 
-            const viewedCnt = updatedPlayers.filter((p) => p.viewed_at).length;
-            if (viewedCnt >= gameData.player_count) {
-              setIsRevealed(true);
-              playNotificationSound();
-            }
-          }
-        } else {
-          const viewedCnt = playersData.filter((p) => p.viewed_at).length;
+          const viewedCnt = updatedPlayers.filter((p) => p.viewed_at).length;
           if (viewedCnt >= gameData.player_count) {
             setIsRevealed(true);
+            playNotificationSound();
           }
         }
+      } else {
+        const viewedCnt = playersData.filter((p) => p.viewed_at).length;
+        if (viewedCnt >= gameData.player_count) {
+          setIsRevealed(true);
+        }
       }
+    }
 
-      setLoading(false);
-    };
-
-    fetchGame();
+    setLoading(false);
   }, [code, navigate, t]);
+
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `mafia-game-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
+    fetchGame();
+  }, [fetchGame]);
 
   useEffect(() => {
     if (!game) return;

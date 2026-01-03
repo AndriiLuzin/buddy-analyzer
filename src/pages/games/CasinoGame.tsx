@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, RotateCcw, Eye, EyeOff, Settings, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -46,38 +47,48 @@ const CasinoGame = () => {
   const isAdminGuessing = game ? game.guesser_index === adminIndex : false;
   const otherPlayers = players.filter(p => p.player_index !== adminIndex);
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("casino_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("casino_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const { data: playersData } = await supabase
-        .from("casino_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+    const { data: playersData } = await supabase
+      .from("casino_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
 
-      setPlayers(playersData || []);
-      setIsLoading(false);
-    };
+    setPlayers(playersData || []);
+    setIsLoading(false);
+  }, [code, navigate, t]);
 
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `casino-game-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`casino-${code}`)
+      .channel(`casino-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -115,7 +126,7 @@ const CasinoGame = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, t]);
+  }, [code, game?.id]);
 
   const nextGuesser = async () => {
     if (!game) return;

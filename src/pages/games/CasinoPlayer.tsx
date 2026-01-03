@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Eye, EyeOff } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -35,63 +36,73 @@ const CasinoPlayer = () => {
   const [showSymbol, setShowSymbol] = useState(false);
   const [showOthers, setShowOthers] = useState(false);
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("casino_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("casino_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const storedIndex = localStorage.getItem(`casino-${gameData.id}`);
-      let myIndex: number;
+    const storedIndex = localStorage.getItem(`casino-${gameData.id}`);
+    let myIndex: number;
 
-      if (storedIndex) {
-        myIndex = parseInt(storedIndex);
-      } else {
-        const { data: existingPlayers } = await supabase
-          .from("casino_players")
-          .select("player_index")
-          .eq("game_id", gameData.id);
-
-        const takenIndices = new Set(existingPlayers?.map((p) => p.player_index) || []);
-        myIndex = 0;
-        while (takenIndices.has(myIndex) && myIndex < gameData.player_count) {
-          myIndex++;
-        }
-
-        localStorage.setItem(`casino-${gameData.id}`, myIndex.toString());
-      }
-
-      setPlayerIndex(myIndex);
-
-      const { data: playersData } = await supabase
+    if (storedIndex) {
+      myIndex = parseInt(storedIndex);
+    } else {
+      const { data: existingPlayers } = await supabase
         .from("casino_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+        .select("player_index")
+        .eq("game_id", gameData.id);
 
-      const myPlayer = playersData?.find((p) => p.player_index === myIndex);
-      setMySymbol(myPlayer?.symbol || null);
-      setOtherPlayers(playersData?.filter((p) => p.player_index !== myIndex) || []);
+      const takenIndices = new Set(existingPlayers?.map((p) => p.player_index) || []);
+      myIndex = 0;
+      while (takenIndices.has(myIndex) && myIndex < gameData.player_count) {
+        myIndex++;
+      }
 
-      setIsLoading(false);
-    };
+      localStorage.setItem(`casino-${gameData.id}`, myIndex.toString());
+    }
 
+    setPlayerIndex(myIndex);
+
+    const { data: playersData } = await supabase
+      .from("casino_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
+
+    const myPlayer = playersData?.find((p) => p.player_index === myIndex);
+    setMySymbol(myPlayer?.symbol || null);
+    setOtherPlayers(playersData?.filter((p) => p.player_index !== myIndex) || []);
+
+    setIsLoading(false);
+  }, [code, navigate, t]);
+
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `casino-player-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game || playerIndex === null) return;
 
     const channel = supabase
-      .channel(`casino-player-${code}`)
+      .channel(`casino-player-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -132,7 +143,7 @@ const CasinoPlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, playerIndex, t]);
+  }, [code, game?.id, playerIndex]);
 
   if (isLoading) {
     return (

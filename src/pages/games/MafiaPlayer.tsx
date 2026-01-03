@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface MafiaGame {
   id: string;
@@ -30,44 +31,50 @@ const MafiaPlayer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchGame = async () => {
-      if (!code) return;
+  const fetchGame = useCallback(async () => {
+    if (!code) return;
 
-      const { data: gameData, error: gameError } = await supabase
-        .from("mafia_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error: gameError } = await supabase
+      .from("mafia_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (gameError || !gameData) {
-        setError(t('games.not_found'));
-        setLoading(false);
-        return;
-      }
-
-      setGame(gameData);
-
-      const { data: playersData } = await supabase
-        .from("mafia_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
-
-      if (playersData) {
-        setPlayers(playersData);
-
-        const unviewedPlayer = playersData.find((p) => !p.viewed_at);
-        if (unviewedPlayer) {
-          setCurrentPlayer(unviewedPlayer);
-        }
-      }
-
+    if (gameError || !gameData) {
+      setError(t('games.not_found'));
       setLoading(false);
-    };
+      return;
+    }
 
-    fetchGame();
+    setGame(gameData);
+
+    const { data: playersData } = await supabase
+      .from("mafia_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
+
+    if (playersData) {
+      setPlayers(playersData);
+
+      const unviewedPlayer = playersData.find((p) => !p.viewed_at);
+      if (unviewedPlayer) {
+        setCurrentPlayer(unviewedPlayer);
+      }
+    }
+
+    setLoading(false);
   }, [code, t]);
+
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `mafia-player-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
+    fetchGame();
+  }, [fetchGame]);
 
   const revealRole = async () => {
     if (!currentPlayer) return;

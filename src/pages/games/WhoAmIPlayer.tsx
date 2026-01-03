@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
 import { Home, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useStableConnection } from "@/hooks/useStableConnection";
 
 interface Game {
   id: string;
@@ -34,83 +35,93 @@ const WhoAmIPlayer = () => {
   const [showCharacter, setShowCharacter] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
 
-  useEffect(() => {
+  const fetchGame = useCallback(async () => {
     if (!code) return;
 
-    const fetchGame = async () => {
-      const { data: gameData, error } = await supabase
-        .from("whoami_games")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+    const { data: gameData, error } = await supabase
+      .from("whoami_games")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
 
-      if (error || !gameData) {
-        toast.error(t('games.not_found'));
-        navigate("/games");
-        return;
-      }
+    if (error || !gameData) {
+      toast.error(t('games.not_found'));
+      navigate("/games");
+      return;
+    }
 
-      setGame(gameData);
+    setGame(gameData);
 
-      const storedIndex = localStorage.getItem(`whoami-${gameData.id}`);
-      let myIndex: number;
+    const storedIndex = localStorage.getItem(`whoami-${gameData.id}`);
+    let myIndex: number;
 
-      if (storedIndex) {
-        myIndex = parseInt(storedIndex);
-        setPlayerIndex(myIndex);
-      } else {
-        const { data: existingPlayers } = await supabase
-          .from("whoami_players")
-          .select("player_index")
-          .eq("game_id", gameData.id);
-
-        const takenIndices = new Set(existingPlayers?.map((p) => p.player_index) || []);
-        myIndex = 0;
-        while (takenIndices.has(myIndex) && myIndex < gameData.player_count) {
-          myIndex++;
-        }
-
-        localStorage.setItem(`whoami-${gameData.id}`, myIndex.toString());
-        setPlayerIndex(myIndex);
-      }
-
-      const { data: playersData } = await supabase
+    if (storedIndex) {
+      myIndex = parseInt(storedIndex);
+      setPlayerIndex(myIndex);
+    } else {
+      const { data: existingPlayers } = await supabase
         .from("whoami_players")
-        .select("*")
-        .eq("game_id", gameData.id)
-        .order("player_index", { ascending: true });
+        .select("player_index")
+        .eq("game_id", gameData.id);
 
-      setPlayers(playersData || []);
-
-      const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
-      if (charIds.length > 0) {
-        const { data: charsData } = await supabase
-          .from("whoami_characters")
-          .select("id, name")
-          .in("id", charIds);
-
-        const charMap: Record<string, string> = {};
-        charsData?.forEach((c) => {
-          charMap[c.id] = c.name;
-        });
-        setCharacters(charMap);
+      const takenIndices = new Set(existingPlayers?.map((p) => p.player_index) || []);
+      myIndex = 0;
+      while (takenIndices.has(myIndex) && myIndex < gameData.player_count) {
+        myIndex++;
       }
 
-      const { data: viewData } = await supabase
-        .from("whoami_views")
-        .select("id")
-        .eq("game_id", gameData.id)
-        .eq("player_index", myIndex)
-        .maybeSingle();
+      localStorage.setItem(`whoami-${gameData.id}`, myIndex.toString());
+      setPlayerIndex(myIndex);
+    }
 
-      setHasViewed(!!viewData);
-      setIsLoading(false);
-    };
+    const { data: playersData } = await supabase
+      .from("whoami_players")
+      .select("*")
+      .eq("game_id", gameData.id)
+      .order("player_index", { ascending: true });
 
+    setPlayers(playersData || []);
+
+    const charIds = playersData?.map((p) => p.character_id).filter(Boolean) || [];
+    if (charIds.length > 0) {
+      const { data: charsData } = await supabase
+        .from("whoami_characters")
+        .select("id, name")
+        .in("id", charIds);
+
+      const charMap: Record<string, string> = {};
+      charsData?.forEach((c) => {
+        charMap[c.id] = c.name;
+      });
+      setCharacters(charMap);
+    }
+
+    const { data: viewData } = await supabase
+      .from("whoami_views")
+      .select("id")
+      .eq("game_id", gameData.id)
+      .eq("player_index", myIndex)
+      .maybeSingle();
+
+    setHasViewed(!!viewData);
+    setIsLoading(false);
+  }, [code, navigate, t]);
+
+  // Stable connection with auto-reconnect
+  useStableConnection({
+    channelName: `whoami-player-${code}`,
+    onReconnect: fetchGame,
+  });
+
+  useEffect(() => {
     fetchGame();
+  }, [fetchGame]);
+
+  useEffect(() => {
+    if (!game) return;
 
     const channel = supabase
-      .channel(`whoami-player-${code}`)
+      .channel(`whoami-player-updates-${code}`)
       .on(
         "postgres_changes",
         {
@@ -164,7 +175,7 @@ const WhoAmIPlayer = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [code, navigate, game?.id, t]);
+  }, [code, game?.id]);
 
   const handleView = async () => {
     if (!game || playerIndex === null || hasViewed) return;
