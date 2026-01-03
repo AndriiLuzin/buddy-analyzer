@@ -386,7 +386,13 @@ export default function Meetings() {
                       onClick={() => setShowMeetingDetail(meeting)}
                       className="w-full p-4 rounded-xl glass text-left transition-all hover:shadow-card"
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        {/* Icon */}
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <MeetingIcon size={44} />
+                        </div>
+                        
+                        {/* Content */}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium truncate">{meeting.title}</h4>
                           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -403,9 +409,17 @@ export default function Meetings() {
                               </>
                             )}
                           </div>
+                          {meeting.participants.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                              <Users className="w-3.5 h-3.5" />
+                              <span>{meeting.participants.length}</span>
+                            </div>
+                          )}
                         </div>
+                        
+                        {/* Avatars */}
                         {meeting.participants.length > 0 && (
-                          <div className="flex -space-x-2">
+                          <div className="flex -space-x-2 shrink-0">
                             {meeting.participants.slice(0, 3).map((p, i) => (
                               <div
                                 key={p.friend_id}
