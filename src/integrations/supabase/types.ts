@@ -334,6 +334,7 @@ export type Database = {
       }
       friends: {
         Row: {
+          avatar_url: string | null
           created_at: string
           friend_birthday: string | null
           friend_category: string | null
@@ -348,6 +349,7 @@ export type Database = {
           owner_id: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           friend_birthday?: string | null
           friend_category?: string | null
@@ -362,6 +364,7 @@ export type Database = {
           owner_id: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           friend_birthday?: string | null
           friend_category?: string | null
