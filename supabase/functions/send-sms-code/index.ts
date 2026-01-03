@@ -69,7 +69,7 @@ serve(async (req) => {
 
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
     
-    const messageBody = `Ваш код подтверждения BuddyBe: ${code}`;
+    const messageBody = `Your BuddyBe verification code: ${code}`;
 
     const twilioResponse = await fetch(twilioUrl, {
       method: 'POST',
