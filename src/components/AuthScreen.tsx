@@ -110,26 +110,36 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
         return;
       }
 
-      const { isNewUser: newUser, userId } = response.data;
+      const { isNewUser: newUser, userId, accessToken, refreshToken } = response.data;
       setIsNewUser(newUser);
 
       if (newUser) {
         // New user - need to get name
         setStep('name');
+        // Still set the session if we have tokens
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+        }
       } else {
-        // Existing user - sign in with phone
-        // For now, we'll use a workaround with email-based auth
-        const fakeEmail = `${normalizedPhone.replace('+', '')}@phone.buddybe.app`;
-        
-        // Try to sign in - we'll need to refresh the session
-        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: fakeEmail,
-          password: userId, // Using userId as password for existing users
-        });
+        // Existing user - set session using returned tokens
+        if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
 
-        if (signInError) {
-          // If sign in fails, try to update password and sign in
-          console.log("Sign in failed, user might need password update");
+          if (sessionError) {
+            console.error("Error setting session:", sessionError);
+            toast({
+              title: t('common.error'),
+              description: t('auth.error_generic'),
+              variant: "destructive",
+            });
+            return;
+          }
         }
 
         toast({

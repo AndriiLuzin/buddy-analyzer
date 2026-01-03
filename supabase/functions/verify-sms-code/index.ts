@@ -30,7 +30,7 @@ serve(async (req) => {
 
     console.log(`Verifying code for: ${normalizedPhone}`);
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -67,63 +67,78 @@ serve(async (req) => {
       .update({ verified: true })
       .eq('id', verification.id);
 
-    // Create or sign in user with phone
-    // Generate a random password for the user (they'll use SMS for auth)
-    const randomPassword = crypto.randomUUID();
+    const fakeEmail = `${normalizedPhone.replace('+', '')}@phone.buddybe.app`;
+    // Use a consistent password based on phone
+    const consistentPassword = `phone_${normalizedPhone.replace('+', '')}_auth_2024`;
     
-    // Try to sign up first
-    const { data: signUpData, error: signUpError } = await supabase.auth.admin.createUser({
-      phone: normalizedPhone,
-      phone_confirm: true,
-      password: randomPassword,
-      user_metadata: {
-        name: name || '',
-        phone: normalizedPhone,
-      },
-    });
-
     let userId: string;
     let isNewUser = false;
+    let accessToken: string | null = null;
+    let refreshToken: string | null = null;
 
-    if (signUpError && signUpError.message?.includes('already been registered')) {
-      // User exists, find them
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(u => u.phone === normalizedPhone);
+    // First check if user already exists
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(u => u.phone === normalizedPhone || u.email === fakeEmail);
+    
+    if (existingUser) {
+      // User exists
+      userId = existingUser.id;
+      isNewUser = false;
+      console.log("Existing user found:", userId);
       
-      if (existingUser) {
-        userId = existingUser.id;
-        console.log("Existing user found:", userId);
-      } else {
-        console.error("Could not find existing user");
+      // Update password to consistent one so we can sign in
+      const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+        password: consistentPassword,
+      });
+      
+      if (updateError) {
+        console.error("Error updating user password:", updateError);
+      }
+    } else {
+      // Create new user
+      const { data: signUpData, error: signUpError } = await supabase.auth.admin.createUser({
+        email: fakeEmail,
+        phone: normalizedPhone,
+        phone_confirm: true,
+        email_confirm: true,
+        password: consistentPassword,
+        user_metadata: {
+          name: name || '',
+          phone: normalizedPhone,
+        },
+      });
+
+      if (signUpError) {
+        console.error("Error creating user:", signUpError);
         return new Response(
-          JSON.stringify({ error: "User not found" }),
+          JSON.stringify({ error: "Failed to create user" }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-    } else if (signUpError) {
-      console.error("Error creating user:", signUpError);
-      return new Response(
-        JSON.stringify({ error: "Failed to create user" }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
+      
       userId = signUpData.user!.id;
       isNewUser = true;
       console.log("New user created:", userId);
     }
 
-    // Generate a session token using signInWithPassword with admin
-    // We need to use a different approach - generate a magic link or custom token
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: `${normalizedPhone.replace('+', '')}@phone.buddybe.app`,
+    // Now sign in the user to get tokens
+    // Create a new client with anon key for signing in
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const anonClient = createClient(supabaseUrl, anonKey);
+    
+    const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
+      email: fakeEmail,
+      password: consistentPassword,
     });
 
-    // As a workaround, we'll generate a one-time token
-    const { data: tokenData, error: tokenError } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email: `${normalizedPhone.replace('+', '')}@phone.buddybe.app`,
-    });
+    if (signInError) {
+      console.error("Error signing in user:", signInError);
+      // Still return success but without tokens - client will handle
+    } else if (signInData.session) {
+      accessToken = signInData.session.access_token;
+      refreshToken = signInData.session.refresh_token;
+      console.log("Session created successfully");
+    }
 
     // Delete the verification record
     await supabase
@@ -138,6 +153,8 @@ serve(async (req) => {
         success: true, 
         userId,
         isNewUser,
+        accessToken,
+        refreshToken,
         message: "Phone verified successfully" 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
