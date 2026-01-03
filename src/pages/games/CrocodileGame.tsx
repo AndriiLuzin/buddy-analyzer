@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Check, RotateCcw, Settings, User } from "lucide-react";
+import { Home, Check, RotateCcw, Settings, User, Share2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface Game {
   id: string;
@@ -31,6 +32,7 @@ const CrocodileGame = () => {
   const [showWord, setShowWord] = useState(false);
   const [playersJoined, setPlayersJoined] = useState(0);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/crocodile-play/${code}`;
   const adminIndex = game ? game.player_count - 1 : 0;
@@ -418,7 +420,13 @@ const CrocodileGame = () => {
         </div>
 
         <div className="text-center mb-6">
-          <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            className="h-12 px-6 font-bold mb-2"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('games.share.invite')}
+          </Button>
           <p className="text-sm text-muted-foreground mt-2">
             {t('games.players')}: {playersJoined} / {game.player_count}
           </p>
@@ -432,6 +440,14 @@ const CrocodileGame = () => {
           {t('games.crocodile.start_over')}
         </Button>
       </div>
+
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.crocodile.title")}
+        gamePath="/games/crocodile-play"
+      />
     </div>
   );
 };

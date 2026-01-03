@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { Home, Settings, User } from "lucide-react";
+import { Home, Settings, User, Share2 } from "lucide-react";
 import { playNotificationSound } from "@/lib/audio";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface MafiaGame {
   id: string;
@@ -34,6 +35,7 @@ const MafiaGame = () => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [showMyRole, setShowMyRole] = useState(false);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const adminIndex = game ? game.player_count - 1 : 0;
   const adminPlayer = players.find((p) => p.player_index === adminIndex);
@@ -358,7 +360,13 @@ const MafiaGame = () => {
         </div>
 
         <div className="text-center mb-8">
-          <p className="text-xs text-muted-foreground break-all">{playerUrl}</p>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            className="h-12 px-6 font-bold"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('games.share.invite')}
+          </Button>
         </div>
 
         {!allViewed && (
@@ -402,6 +410,14 @@ const MafiaGame = () => {
           {t('games.new_game')}
         </Button>
       </div>
+
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.mafia.title")}
+        gamePath="/games/mafia-play"
+      />
     </div>
   );
 };

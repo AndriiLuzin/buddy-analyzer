@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Settings, User } from "lucide-react";
+import { Home, Settings, User, Share2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface Game {
   id: string;
@@ -36,6 +37,7 @@ const ImpostorGame = () => {
   const [startingPlayer, setStartingPlayer] = useState<number | null>(null);
   const [showMyRole, setShowMyRole] = useState(false);
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/impostor-play/${code}`;
   const adminIndex = game ? game.player_count - 1 : 0;
@@ -386,7 +388,13 @@ const ImpostorGame = () => {
         </div>
 
         <div className="text-center mb-8">
-          <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            className="h-12 px-6 font-bold"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('games.share.invite')}
+          </Button>
         </div>
 
         {!allViewed && (
@@ -433,6 +441,14 @@ const ImpostorGame = () => {
           {t("games.new_game")}
         </Button>
       </div>
+
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.impostor.title")}
+        gamePath="/games/impostor-play"
+      />
     </div>
   );
 };

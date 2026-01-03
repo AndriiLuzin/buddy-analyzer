@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, RotateCcw, Eye, EyeOff, Settings, User } from "lucide-react";
+import { Home, RotateCcw, Eye, EyeOff, Settings, User, Share2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { GameShareModal } from "@/components/GameShareModal";
 
 interface Game {
   id: string;
@@ -40,6 +41,7 @@ const CasinoGame = () => {
   const [viewMode, setViewMode] = useState<'admin' | 'player'>('admin');
   const [showMySymbol, setShowMySymbol] = useState(false);
   const [showOthers, setShowOthers] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const gameUrl = `${window.location.origin}/games/casino-play/${code}`;
   const adminIndex = game ? game.player_count - 1 : 0;
@@ -414,7 +416,13 @@ const CasinoGame = () => {
         </div>
 
         <div className="text-center mb-6">
-          <p className="text-xs text-muted-foreground break-all">{gameUrl}</p>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            className="h-12 px-6 font-bold mb-2"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            {t('games.share.invite')}
+          </Button>
           <p className="text-sm text-muted-foreground mt-2">
             {t('games.players')}: {players.length} / {game.player_count}
           </p>
@@ -438,6 +446,14 @@ const CasinoGame = () => {
           {t('games.new_game')}
         </Button>
       </div>
+
+      <GameShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        gameCode={code || ''}
+        gameName={t("games.casino.title")}
+        gamePath="/games/casino-play"
+      />
     </div>
   );
 };
