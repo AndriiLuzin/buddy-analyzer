@@ -10,13 +10,13 @@ import {
   Calendar as CalendarIcon, 
   Users, 
   Check,
-  MapPin,
-  PartyPopper
+  MapPin
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
+import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
 
 interface Friend {
   id: string;
@@ -281,21 +281,24 @@ export default function PartyCreate() {
         {step === 'type' && (
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-2 gap-3">
-              {partyTypes.map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={cn(
-                    "aspect-[4/3] rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
-                    selectedType === type.id 
-                      ? "bg-primary text-primary-foreground scale-105" 
-                      : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
-                  )}
-                >
-                  <span className="text-4xl">{type.emoji}</span>
-                  <span className="text-sm font-medium">{type.label}</span>
-                </button>
-              ))}
+              {partyTypes.map(type => {
+                const IconComponent = partyTypeIcons[type.id];
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedType(type.id)}
+                    className={cn(
+                      "aspect-[4/3] rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
+                      selectedType === type.id 
+                        ? "bg-primary/20 ring-2 ring-primary scale-105" 
+                        : "bg-secondary/50 hover:bg-secondary hover:scale-[1.02]"
+                    )}
+                  >
+                    {IconComponent && <IconComponent size={48} />}
+                    <span className="text-sm font-medium">{type.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -550,7 +553,7 @@ export default function PartyCreate() {
             </div>
           ) : step === 'friends' ? (
             <div className="flex items-center gap-2">
-              <PartyPopper className="w-5 h-5" />
+              <Check className="w-5 h-5" />
               <span>Отправить приглашения</span>
             </div>
           ) : (
