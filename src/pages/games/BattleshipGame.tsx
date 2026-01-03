@@ -496,7 +496,7 @@ const BattleshipGame = () => {
 
   // Admin panel view
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+    <div className="min-h-screen flex flex-col items-center p-6 bg-background relative overflow-y-auto pb-20">
       <div className="absolute top-4 left-4 flex gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate("/games")}>
           <Home className="w-5 h-5" />
