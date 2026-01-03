@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Home } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useStableConnection } from "@/hooks/useStableConnection";
+import { useBattleshipPresence } from "@/hooks/useBattleshipPresence";
 import { playNotificationSound } from "@/lib/audio";
 
 interface Ship {
@@ -289,9 +290,67 @@ const BattleshipPlayer = () => {
     setIsJoining(false);
   };
 
+  // Handle player disconnection - eliminate them
+  const handlePlayerDisconnect = useCallback(async (disconnectedPlayerIndex: number, disconnectedPlayerId: string) => {
+    if (!game || game.status !== 'playing') return;
+    
+    // Find the player
+    const disconnectedPlayer = players.find(p => p.id === disconnectedPlayerId);
+    if (!disconnectedPlayer || disconnectedPlayer.is_eliminated) return;
+    
+    console.log(`[Battleship] Player ${disconnectedPlayerIndex} disconnected, eliminating...`);
+    
+    // Mark all their ships as hit and eliminate them
+    const allShipCells = disconnectedPlayer.ships.flatMap(s => s.cells);
+    const newHits = allShipCells.map(cell => ({ x: cell.x, y: cell.y }));
+    
+    await supabase
+      .from("battleship_players")
+      .update({ 
+        hits_received: newHits as unknown as any,
+        is_eliminated: true 
+      })
+      .eq("id", disconnectedPlayerId);
+    
+    // Check if only one player remains
+    const remainingPlayers = players.filter(
+      p => !p.is_eliminated && p.id !== disconnectedPlayerId
+    );
+    
+    if (remainingPlayers.length === 1) {
+      await supabase
+        .from("battleship_games")
+        .update({ status: 'finished' })
+        .eq("id", game.id);
+    } else if (game.current_player_index === disconnectedPlayerIndex) {
+      // If it was the disconnected player's turn, skip to next
+      let nextPlayer = (disconnectedPlayerIndex + 1) % game.player_count;
+      while (true) {
+        const np = players.find(p => p.player_index === nextPlayer);
+        if (np && !np.is_eliminated && np.id !== disconnectedPlayerId) break;
+        nextPlayer = (nextPlayer + 1) % game.player_count;
+        if (nextPlayer === disconnectedPlayerIndex) break;
+      }
+      
+      await supabase
+        .from("battleship_games")
+        .update({ current_player_index: nextPlayer })
+        .eq("id", game.id);
+    }
+  }, [game, players]);
+
   useStableConnection({
     channelName: `battleship-player-${code}`,
     onReconnect: initGame,
+  });
+
+  // Track presence for disconnection detection
+  useBattleshipPresence({
+    gameId: game?.id,
+    playerIndex: playerIndex,
+    playerId: myPlayer?.id || null,
+    isGameActive: gameStarted && !gameEnded,
+    onPlayerDisconnect: handlePlayerDisconnect,
   });
 
   useEffect(() => {
