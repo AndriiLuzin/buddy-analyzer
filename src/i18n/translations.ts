@@ -420,6 +420,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Hit',
     'games.battleship.miss': 'Miss',
     'games.battleship.select_target': 'Select a target to attack',
+    'games.battleship.watch_game': 'Watch the game continue',
+    'games.play_again': 'Play Again',
   },
 
   fr: {
@@ -807,6 +809,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Touché',
     'games.battleship.miss': 'Raté',
     'games.battleship.select_target': 'Choisissez une cible',
+    'games.battleship.watch_game': 'Regardez la suite',
+    'games.play_again': 'Rejouer',
   },
 
   es: {
@@ -1194,6 +1198,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Impacto',
     'games.battleship.miss': 'Fallido',
     'games.battleship.select_target': 'Selecciona un objetivo',
+    'games.battleship.watch_game': 'Mira el juego continuar',
+    'games.play_again': 'Jugar de nuevo',
   },
 
   ru: {
@@ -1594,6 +1600,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Попадание',
     'games.battleship.miss': 'Промах',
     'games.battleship.select_target': 'Выбери цель для атаки',
+    'games.battleship.watch_game': 'Наблюдай за игрой',
+    'games.play_again': 'Играть снова',
   },
 
   pt: {
@@ -1981,6 +1989,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Acertou',
     'games.battleship.miss': 'Errou',
     'games.battleship.select_target': 'Selecione um alvo',
+    'games.battleship.watch_game': 'Assista ao jogo',
+    'games.play_again': 'Jogar novamente',
   },
 
   uk: {
@@ -2368,6 +2378,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': 'Влучення',
     'games.battleship.miss': 'Промах',
     'games.battleship.select_target': 'Обери ціль для атаки',
+    'games.battleship.watch_game': 'Спостерігай за грою',
+    'games.play_again': 'Грати знову',
   },
 
   ko: {
@@ -2755,6 +2767,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': '명중',
     'games.battleship.miss': '빗나감',
     'games.battleship.select_target': '공격할 대상을 선택하세요',
+    'games.battleship.watch_game': '게임 관전',
+    'games.play_again': '다시 플레이',
   },
 
   zh: {
@@ -3142,5 +3156,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'games.battleship.hit': '命中',
     'games.battleship.miss': '未命中',
     'games.battleship.select_target': '选择攻击目标',
+    'games.battleship.watch_game': '观看游戏继续',
+    'games.play_again': '再玩一次',
   },
 };
