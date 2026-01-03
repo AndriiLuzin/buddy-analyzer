@@ -6,6 +6,7 @@ interface PlayerPresence {
   playerIndex: number;
   lastSeen: number;
   playerId: string;
+  wasOnline: boolean; // Only trigger disconnect for players who were online
 }
 
 interface UseBattleshipPresenceOptions {
@@ -16,8 +17,9 @@ interface UseBattleshipPresenceOptions {
   onPlayerDisconnect?: (playerIndex: number, playerId: string) => void;
 }
 
-const PRESENCE_TIMEOUT = 30000; // 30 seconds without heartbeat = disconnected
+const PRESENCE_TIMEOUT = 45000; // 45 seconds without heartbeat = disconnected
 const HEARTBEAT_INTERVAL = 10000; // 10 seconds
+const GRACE_PERIOD = 60000; // 60 seconds grace period after game starts
 
 export const useBattleshipPresence = ({
   gameId,
@@ -30,6 +32,7 @@ export const useBattleshipPresence = ({
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const presenceMapRef = useRef<Map<number, PlayerPresence>>(new Map());
+  const gameStartTimeRef = useRef<number>(0);
 
   // Send heartbeat to track presence
   const sendHeartbeat = useCallback(() => {
@@ -42,11 +45,20 @@ export const useBattleshipPresence = ({
     }
   }, [playerIndex, playerId]);
 
-  // Check for disconnected players (only admin/host should do this)
+  // Check for disconnected players - only for those who were online and now gone
   const checkDisconnectedPlayers = useCallback(() => {
     const now = Date.now();
     
+    // Don't check during grace period
+    if (now - gameStartTimeRef.current < GRACE_PERIOD) {
+      console.log('[BattleshipPresence] Still in grace period, skipping disconnect check');
+      return;
+    }
+    
     presenceMapRef.current.forEach((presence, idx) => {
+      // Only check players who were actually online at some point
+      if (!presence.wasOnline) return;
+      
       const timeSinceLastSeen = now - presence.lastSeen;
       
       if (timeSinceLastSeen > PRESENCE_TIMEOUT) {
@@ -59,6 +71,10 @@ export const useBattleshipPresence = ({
 
   useEffect(() => {
     if (!gameId || !isGameActive) return;
+
+    // Record game start time for grace period
+    gameStartTimeRef.current = Date.now();
+    console.log('[BattleshipPresence] Game started, grace period active');
 
     const channel = supabase.channel(`battleship-presence-${gameId}`, {
       config: {
@@ -76,22 +92,36 @@ export const useBattleshipPresence = ({
         Object.values(state).forEach((presences: any) => {
           presences.forEach((presence: any) => {
             if (presence.playerIndex !== undefined && presence.playerId) {
+              const existing = presenceMapRef.current.get(presence.playerIndex);
               presenceMapRef.current.set(presence.playerIndex, {
                 playerIndex: presence.playerIndex,
                 playerId: presence.playerId,
                 lastSeen: presence.lastSeen || Date.now(),
+                wasOnline: true, // Mark as was online since we see them now
               });
             }
           });
         });
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        const now = Date.now();
+        
+        // Don't trigger disconnects during grace period
+        if (now - gameStartTimeRef.current < GRACE_PERIOD) {
+          console.log('[BattleshipPresence] Player left during grace period, ignoring:', leftPresences);
+          return;
+        }
+        
         console.log('[BattleshipPresence] Player left:', leftPresences);
         
         leftPresences.forEach((presence: any) => {
           if (presence.playerIndex !== undefined && presence.playerId) {
-            // Player explicitly left - trigger disconnect
-            onPlayerDisconnect?.(presence.playerIndex, presence.playerId);
+            const trackedPlayer = presenceMapRef.current.get(presence.playerIndex);
+            
+            // Only trigger disconnect if this player was tracked and was online
+            if (trackedPlayer && trackedPlayer.wasOnline) {
+              onPlayerDisconnect?.(presence.playerIndex, presence.playerId);
+            }
             presenceMapRef.current.delete(presence.playerIndex);
           }
         });
@@ -103,7 +133,7 @@ export const useBattleshipPresence = ({
           // Start heartbeat interval
           heartbeatRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
           
-          // Start checking for disconnected players
+          // Start checking for disconnected players after grace period
           checkIntervalRef.current = setInterval(checkDisconnectedPlayers, PRESENCE_TIMEOUT / 2);
         }
       });
