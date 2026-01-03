@@ -20,9 +20,6 @@ interface FriendListScreenProps {
   userId?: string;
 }
 
-// Allowed email addresses for admin access
-const ADMIN_EMAILS = ['andrii@luzin.ca'];
-
 export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }: FriendListScreenProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -32,12 +29,20 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Check admin access and load unread notifications count
+  // Check admin access from database and load unread notifications count
   useEffect(() => {
     const checkAdminAndNotifications = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        if (ADMIN_EMAILS.includes(session.user.email || '')) {
+        // Check admin role from user_roles table
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        if (roleData) {
           setIsAdmin(true);
         }
         
