@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory, UserProfile } from '../types';
 import { FriendCardItem } from './FriendCardItem';
 import { BirthdayReminder } from './BirthdayReminder';
+import { FocusWidget } from './FocusWidget';
 
 import { CategoryFilter } from './CategoryFilter';
 import { FloatingActionMenu } from './FloatingActionMenu';
@@ -135,6 +136,9 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto min-h-0 px-4 pt-4 pb-24">
+        {/* Focus Widget - only show on 'all' tab */}
+        {selectedCategory === 'all' && <FocusWidget friends={friends} />}
+
         {/* Birthday Reminder - only show on 'all' tab */}
         {selectedCategory === 'all' && <BirthdayReminder friends={friends} />}
 

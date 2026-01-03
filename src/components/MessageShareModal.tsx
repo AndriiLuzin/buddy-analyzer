@@ -55,7 +55,7 @@ export const MessageShareModal = ({
     setCopied(true);
     toast({
       title: "Скопировано!",
-      description: "Сообщение скопировано в буфер обмена",
+      description: "Отличный шаг. Вы поддержали важную связь",
     });
     setTimeout(() => setCopied(false), 2000);
   };

@@ -243,7 +243,7 @@ export default function FriendActions() {
           <div className="space-y-3">
             <h3 className="font-semibold text-foreground">Что хотите сделать?</h3>
             <div className="grid gap-2">
-              {CONTACT_ACTIONS.map((action) => (
+              {CONTACT_ACTIONS.map((action, index) => (
                 <button
                   key={action.id}
                   onClick={() => {
@@ -256,13 +256,18 @@ export default function FriendActions() {
                       setTimeout(() => handleGenerateMessage(), 100);
                     }
                   }}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-all text-left relative"
                 >
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     {action.icon}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-foreground">{action.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground">{action.label}</p>
+                      {index === 0 && (
+                        <span className="text-xs text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full">Рекомендуем</span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{action.description}</p>
                   </div>
                 </button>
@@ -297,6 +302,7 @@ export default function FriendActions() {
                   </div>
                 ) : generatedMessage ? (
                   <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground/70 text-center">Сообщение с учётом вашего типа дружбы</p>
                     <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="w-5 h-5 text-primary" />
