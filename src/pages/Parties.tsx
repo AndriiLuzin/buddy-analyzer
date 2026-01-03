@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Plus, PartyPopper, Calendar, MapPin, Users, Check, X, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, Check, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { FloatingActionMenu } from '@/components/FloatingActionMenu';
+import { PartyIcon } from '@/components/icons/PartyIcon';
 
 interface Party {
   id: string;
@@ -138,8 +139,8 @@ export default function Parties() {
           </div>
         ) : parties.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
-              <PartyPopper className="w-10 h-10 text-muted-foreground" />
+            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-4">
+              <PartyIcon size={80} />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">Нет мероприятий</h3>
             <p className="text-muted-foreground mb-6">Создайте своё первое мероприятие!</p>
