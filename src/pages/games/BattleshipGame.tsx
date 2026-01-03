@@ -520,36 +520,31 @@ const BattleshipGame = () => {
             const displayName = isAdmin 
               ? t("games.you") 
               : player?.player_name || `${t("games.player")} #${i + 1}`;
+            const colorIndex = i % PLAYER_COLORS.length;
             
             return (
               <div
                 key={i}
                 className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                   isEliminated
-                    ? "bg-destructive/20 text-destructive line-through"
+                    ? "opacity-50 line-through"
                     : hasJoined
-                    ? isAdmin
-                      ? "bg-primary/20 text-primary border border-primary/30"
-                      : "bg-foreground/10 text-foreground border border-foreground/20"
+                    ? ""
                     : "bg-secondary text-muted-foreground"
-                }`}
+                } ${hasJoined ? PLAYER_COLORS[colorIndex].bg : ""}`}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  isEliminated
-                    ? "bg-destructive/30"
-                    : hasJoined
-                    ? isAdmin
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-foreground text-background"
+                  hasJoined 
+                    ? `${PLAYER_COLORS[colorIndex].bg} ${PLAYER_COLORS[colorIndex].text} border-2 border-white/30`
                     : "bg-muted"
                 }`}>
                   {i + 1}
                 </div>
-                <span className="font-medium truncate">
+                <span className={`font-medium truncate ${hasJoined ? PLAYER_COLORS[colorIndex].text : ""}`}>
                   {hasJoined ? displayName : t("games.waiting_player")}
                 </span>
                 {hasJoined && !isAdmin && (
-                  <span className="ml-auto text-xs text-muted-foreground">✓</span>
+                  <span className={`ml-auto text-xs ${PLAYER_COLORS[colorIndex].text} opacity-70`}>✓</span>
                 )}
               </div>
             );
@@ -778,27 +773,28 @@ const BattleshipPlayerView = ({
           {t("games.player")} #{adminIndex + 1}
         </p>
 
-        {/* Active players display */}
-        {!isAdminEliminated && !gameEnded && (
+        {/* Players display with colors */}
+        {!gameEnded && (
           <div className="flex flex-wrap gap-2 justify-center mb-4">
-            <span className="text-xs text-muted-foreground self-center mr-2">
-              {t("games.battleship.active_players")}:
-            </span>
             {players
-              .filter(p => !p.is_eliminated)
-              .map(p => (
-                <div
-                  key={p.player_index}
-                  className={`text-xs px-2 py-1 rounded ${
-                    p.player_index === adminIndex 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
-                  {p.player_index === adminIndex && " (Вы)"}
-                </div>
-              ))}
+              .sort((a, b) => a.player_index - b.player_index)
+              .map(p => {
+                const colorIndex = p.player_index % PLAYER_COLORS.length;
+                const isMe = p.player_index === adminIndex;
+                const isElim = p.is_eliminated;
+                
+                return (
+                  <div
+                    key={p.player_index}
+                    className={`text-xs px-2 py-1 rounded ${PLAYER_COLORS[colorIndex].bg} ${PLAYER_COLORS[colorIndex].text} ${
+                      isElim ? "opacity-50 line-through" : ""
+                    }`}
+                  >
+                    {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
+                    {isMe && " (Вы)"}
+                  </div>
+                );
+              })}
           </div>
         )}
 

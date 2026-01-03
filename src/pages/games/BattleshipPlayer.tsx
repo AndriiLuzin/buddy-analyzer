@@ -718,27 +718,28 @@ const BattleshipPlayer = () => {
           {t("games.player")} #{playerIndex + 1}
         </p>
 
-        {/* Active players display */}
-        {!isEliminated && !gameEnded && (
+        {/* Players display with colors */}
+        {!gameEnded && (
           <div className="flex flex-wrap gap-2 justify-center mb-4">
-            <span className="text-xs text-muted-foreground self-center mr-2">
-              {t("games.battleship.active_players")}:
-            </span>
             {players
-              .filter(p => !p.is_eliminated)
-              .map(p => (
-                <div
-                  key={p.player_index}
-                  className={`text-xs px-2 py-1 rounded ${
-                    p.player_index === playerIndex 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
-                  {p.player_index === playerIndex && " (Вы)"}
-                </div>
-              ))}
+              .sort((a, b) => a.player_index - b.player_index)
+              .map(p => {
+                const colorIndex = p.player_index % PLAYER_COLORS.length;
+                const isMe = p.player_index === playerIndex;
+                const isElim = p.is_eliminated;
+                
+                return (
+                  <div
+                    key={p.player_index}
+                    className={`text-xs px-2 py-1 rounded ${PLAYER_COLORS[colorIndex].bg} ${PLAYER_COLORS[colorIndex].text} ${
+                      isElim ? "opacity-50 line-through" : ""
+                    }`}
+                  >
+                    {p.player_name || `${t("games.player")} #${p.player_index + 1}`}
+                    {isMe && " (Вы)"}
+                  </div>
+                );
+              })}
           </div>
         )}
 
