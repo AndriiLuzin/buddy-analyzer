@@ -121,13 +121,10 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-6 w-[70px] h-[70px] rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 overflow-hidden"
+          className="fixed right-6 w-[56px] h-[56px] rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 overflow-hidden"
           style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
         >
           <img src={menuIcon} alt="Menu" className="w-full h-full object-cover" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-background" />
-          )}
         </button>
       )}
 
