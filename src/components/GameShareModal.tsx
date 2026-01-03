@@ -11,15 +11,16 @@ interface GameShareModalProps {
   onClose: () => void;
   gameCode: string;
   gameName: string;
+  gamePath: string;
 }
 
-export const GameShareModal = ({ isOpen, onClose, gameCode, gameName }: GameShareModalProps) => {
+export const GameShareModal = ({ isOpen, onClose, gameCode, gameName, gamePath }: GameShareModalProps) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const shareUrl = `${baseUrl}/games/battleship/${gameCode}`;
+  const shareUrl = `${baseUrl}${gamePath}/${gameCode}`;
 
   const shareMessage = t('games.share.message').replace('{game}', gameName).replace('{code}', gameCode);
 
