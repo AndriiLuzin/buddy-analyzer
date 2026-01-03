@@ -3,8 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { 
   MessageCircle, 
-  Gamepad2, 
-  Users, 
+  PartyPopper,
   Calendar, 
   Menu,
   X,
@@ -77,12 +76,6 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       badge: unreadCount > 0
     },
     {
-      icon: Users,
-      label: 'Группы',
-      onClick: () => navigate('/groups'),
-      active: isActive('/groups')
-    },
-    {
       icon: Calendar,
       label: 'Встречи',
       onClick: () => navigate('/meetings'),
@@ -98,8 +91,8 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       active: isActive('/share')
     },
     {
-      icon: Gamepad2,
-      label: 'Игры',
+      icon: PartyPopper,
+      label: 'Parties',
       onClick: () => {
         navigate('/games');
         setIsOpen(false);

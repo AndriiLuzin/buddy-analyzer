@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Sparkles, Gamepad2, Users, Calendar } from 'lucide-react';
+import { MessageCircle, Sparkles, Gamepad2, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -71,11 +71,11 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border/50 px-2 sm:px-4 py-2 sm:py-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
       <div className="flex items-center justify-around max-w-md mx-auto">
-        {/* Chats */}
+        {/* Chats & Groups combined */}
         <button
           onClick={handleChatsClick}
           className={`p-2 sm:p-3 rounded-full transition-all ${
-            isActive('/chats') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+            isActive('/chats') || isActive('/groups') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <div className="relative">
@@ -84,16 +84,6 @@ export const BottomNavBar = ({ onFriendsClick, onAnalyzeClick, onProfileClick }:
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
             )}
           </div>
-        </button>
-
-        {/* Groups */}
-        <button
-          onClick={() => navigate('/groups')}
-          className={`p-2 sm:p-3 rounded-full transition-all ${
-            isActive('/groups') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Users className="w-5 h-5 sm:w-5 sm:h-5" strokeWidth={1.5} />
         </button>
 
         {/* Analyze - Main action */}
