@@ -8,7 +8,8 @@ import {
   Menu,
   X,
   Home,
-  Share2
+  Share2,
+  Gamepad2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -98,6 +99,15 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
         setIsOpen(false);
       },
       active: isActive('/parties')
+    },
+    {
+      icon: Gamepad2,
+      label: 'Игры',
+      onClick: () => {
+        navigate('/games');
+        setIsOpen(false);
+      },
+      active: isActive('/games')
     }
   ];
 
