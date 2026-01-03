@@ -95,55 +95,58 @@ const BattleshipPlayer = () => {
   }, [isMyTurn, gameStarted, gameEnded, isEliminated]);
 
   // Generate ships with unique random placement for each player
-  // Uses timestamp + random seed to ensure different placements even with same link
+  // All players get the same ships: sizes 1, 2, and 3 (6 cells total)
   const generateShips = (gridHeight: number): Ship[] => {
-    const ships: Ship[] = [];
-    const myOccupied = new Set<string>();
-    const sizes = [1, 2, 3];
+    const REQUIRED_SIZES = [1, 2, 3]; // Must place all 3 ships
     
-    // Use current timestamp + Math.random for unique seed
-    const seed = Date.now() + Math.random() * 1000000;
-    const seededRandom = () => {
-      const x = Math.sin(seed + ships.length * 100 + myOccupied.size) * 10000;
-      return x - Math.floor(x);
-    };
+    const tryGenerateShips = (): Ship[] => {
+      const ships: Ship[] = [];
+      const occupied = new Set<string>();
 
-    for (const size of sizes) {
-      let placed = false;
-      let attempts = 0;
+      for (const size of REQUIRED_SIZES) {
+        let placed = false;
+        let attempts = 0;
 
-      while (!placed && attempts < 100) {
-        attempts++;
-        const horizontal = Math.random() > 0.5;
-        const maxX = horizontal ? GRID_WIDTH - size : GRID_WIDTH - 1;
-        const maxY = horizontal ? gridHeight - 1 : gridHeight - size;
-        const x = Math.floor(Math.random() * (maxX + 1));
-        const y = Math.floor(Math.random() * (maxY + 1));
+        while (!placed && attempts < 500) {
+          attempts++;
+          const horizontal = Math.random() > 0.5;
+          const maxX = horizontal ? GRID_WIDTH - size : GRID_WIDTH - 1;
+          const maxY = horizontal ? gridHeight - 1 : gridHeight - size;
+          const x = Math.floor(Math.random() * (maxX + 1));
+          const y = Math.floor(Math.random() * (maxY + 1));
 
-        const cells: { x: number; y: number }[] = [];
-        let valid = true;
+          const cells: { x: number; y: number }[] = [];
+          let valid = true;
 
-        for (let i = 0; i < size; i++) {
-          const cx = horizontal ? x + i : x;
-          const cy = horizontal ? y : y + i;
-          const key = `${cx},${cy}`;
+          for (let i = 0; i < size; i++) {
+            const cx = horizontal ? x + i : x;
+            const cy = horizontal ? y : y + i;
+            const key = `${cx},${cy}`;
 
-          if (myOccupied.has(key)) {
-            valid = false;
-            break;
+            if (occupied.has(key)) {
+              valid = false;
+              break;
+            }
+            cells.push({ x: cx, y: cy });
           }
-          cells.push({ x: cx, y: cy });
-        }
 
-        if (valid) {
-          cells.forEach(c => myOccupied.add(`${c.x},${c.y}`));
-          ships.push({ x, y, size, cells });
-          placed = true;
+          if (valid) {
+            cells.forEach(c => occupied.add(`${c.x},${c.y}`));
+            ships.push({ x, y, size, cells });
+            placed = true;
+          }
+        }
+        
+        // If couldn't place this ship, restart entire generation
+        if (!placed) {
+          return tryGenerateShips();
         }
       }
-    }
 
-    return ships;
+      return ships;
+    };
+
+    return tryGenerateShips();
   };
 
   const initGame = useCallback(async () => {
