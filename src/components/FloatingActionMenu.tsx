@@ -9,7 +9,7 @@ import {
   Share2,
   Gamepad2
 } from 'lucide-react';
-import menuIcon from '@/assets/menu-icon.jpeg';
+import menuIcon from '@/assets/menu-icon-new.png';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FloatingActionMenuProps {
