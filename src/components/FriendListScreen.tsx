@@ -117,7 +117,7 @@ export const FriendListScreen = ({ friends, userProfile, onViewProfile, userId }
   return (
     <div className="h-[100dvh] animate-fade-in flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-background px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
+      <header className="sticky top-0 z-20 bg-background px-4 pt-[env(safe-area-inset-top)] pb-4">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-foreground">BuddyBe</h1>
