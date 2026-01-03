@@ -121,7 +121,7 @@ export default function PartyInvite() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="h-[100dvh] bg-background flex items-center justify-center overflow-y-auto">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -129,7 +129,7 @@ export default function PartyInvite() {
 
   if (!invite) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6">
+      <div className="h-[100dvh] bg-background flex items-center justify-center p-6 overflow-y-auto">
         <div className="text-center">
           <PartyPopper className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h1 className="text-xl font-bold text-foreground mb-2">Приглашение не найдено</h1>
@@ -144,7 +144,7 @@ export default function PartyInvite() {
 
   if (responded) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6">
+      <div className="h-[100dvh] bg-background flex items-center justify-center p-6 overflow-y-auto">
         <div className="text-center max-w-md">
           <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
             responseStatus === 'accepted' ? 'bg-green-500/20' : 'bg-red-500/20'
@@ -181,7 +181,7 @@ export default function PartyInvite() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="h-[100dvh] bg-background overflow-y-auto">
       {/* Header */}
       <div className="bg-gradient-to-b from-primary/20 to-background pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 px-6">
         <div className="max-w-md mx-auto text-center">
