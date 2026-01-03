@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/audio";
-import { Home, Check, Eye, EyeOff } from "lucide-react";
+import { Home, Check, Eye, EyeOff, SkipForward } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Game {
@@ -38,6 +38,7 @@ const WhoAmIGame = () => {
   const [views, setViews] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [guessedOrder, setGuessedOrder] = useState<number[]>([]);
 
   const gameUrl = `${window.location.origin}/games/whoami-play/${code}`;
 
@@ -87,6 +88,11 @@ const WhoAmIGame = () => {
         .eq("game_id", gameData.id);
 
       setViews(viewsData?.map((v) => v.player_index) || []);
+      
+      // Initialize guessed order from players who have guessed
+      const guessed = playersData?.filter(p => p.guessed).map(p => p.player_index) || [];
+      setGuessedOrder(guessed);
+      
       setIsLoading(false);
     };
 
@@ -149,18 +155,47 @@ const WhoAmIGame = () => {
     };
   }, [code, navigate, game?.id, t]);
 
-  const markGuessed = async (playerIndex: number) => {
+  const markGuessedAndNextRound = async () => {
     if (!game) return;
 
-    const player = players.find((p) => p.player_index === playerIndex);
-    if (!player) return;
+    const currentGuesser = players.find((p) => p.player_index === game.guesser_index);
+    if (!currentGuesser) return;
 
+    // Mark current guesser as guessed
     await supabase
       .from("whoami_players")
-      .update({ guessed: !player.guessed })
-      .eq("id", player.id);
+      .update({ guessed: true })
+      .eq("id", currentGuesser.id);
 
-    toast.success(player.guessed ? t('games.whoami.canceled') : t('games.whoami.player_guessed'));
+    // Add to guessed order
+    const newGuessedOrder = [...guessedOrder, game.guesser_index];
+    setGuessedOrder(newGuessedOrder);
+
+    // Find next guesser (player who hasn't guessed yet)
+    const notGuessed = players
+      .filter(p => !p.guessed && p.player_index !== game.guesser_index)
+      .map(p => p.player_index);
+
+    if (notGuessed.length === 0) {
+      // All players have guessed - game complete
+      toast.success(t('games.whoami.game_complete'));
+      return;
+    }
+
+    // Pick the next guesser (in order)
+    const nextGuesser = Math.min(...notGuessed);
+
+    // Clear views for new round
+    await supabase.from("whoami_views").delete().eq("game_id", game.id);
+
+    // Update game with new guesser
+    await supabase
+      .from("whoami_games")
+      .update({ guesser_index: nextGuesser })
+      .eq("id", game.id);
+
+    setViews([]);
+    toast.success(t('games.whoami.next_round'));
   };
 
   const startNewGame = async () => {
@@ -174,7 +209,7 @@ const WhoAmIGame = () => {
       if (!characters?.length) throw new Error("No characters");
 
       const shuffled = [...characters].sort(() => Math.random() - 0.5);
-      const newGuesser = Math.floor(Math.random() * game.player_count);
+      const newGuesser = 0; // Start from player 1
 
       await supabase.from("whoami_views").delete().eq("game_id", game.id);
 
@@ -194,6 +229,7 @@ const WhoAmIGame = () => {
         .eq("id", game.id);
 
       setViews([]);
+      setGuessedOrder([]);
       toast.success(t('games.impostor.round_started'));
     } catch (error) {
       toast.error(t('games.error'));
@@ -210,7 +246,9 @@ const WhoAmIGame = () => {
 
   if (!game) return null;
 
-  const allViewed = views.length >= game.player_count;
+  const currentGuesser = players.find(p => p.player_index === game.guesser_index);
+  const currentGuesserCharacter = currentGuesser ? characters[currentGuesser.character_id] : null;
+  const allGuessed = players.every(p => p.guessed);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
@@ -230,14 +268,29 @@ const WhoAmIGame = () => {
           </h1>
           <p className="text-muted-foreground text-sm">{t('games.code')}: {code}</p>
           <p className="text-muted-foreground text-sm">
-            {views.length} / {game.player_count} {t('games.whoami.viewed')}
+            {views.length} / {game.player_count - 1} {t('games.whoami.viewed')}
           </p>
+        </div>
+
+        {/* Current guesser info */}
+        <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 mb-6 text-center">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+            {t('games.whoami.current_guesser')}
+          </p>
+          <p className="text-xl font-bold text-foreground">
+            {t('games.player')} #{game.guesser_index + 1}
+          </p>
+          {showAll && currentGuesserCharacter && (
+            <p className="text-sm text-primary mt-1">
+              {currentGuesserCharacter}
+            </p>
+          )}
         </div>
 
         <Button
           onClick={() => setShowAll(!showAll)}
           variant="outline"
-          className="w-full h-12 mb-6"
+          className="w-full h-12 mb-4"
         >
           {showAll ? <EyeOff className="w-5 h-5 mr-2" /> : <Eye className="w-5 h-5 mr-2" />}
           {showAll ? t('games.whoami.hide_characters') : t('games.whoami.show_all')}
@@ -249,24 +302,29 @@ const WhoAmIGame = () => {
               <div
                 key={player.id}
                 className={`flex items-center justify-between p-3 rounded-lg ${
-                  player.guessed ? "bg-primary/20" : "bg-secondary"
+                  player.guessed 
+                    ? "bg-primary/20" 
+                    : player.player_index === game.guesser_index
+                    ? "bg-yellow-500/20 border border-yellow-500/30"
+                    : "bg-secondary"
                 }`}
               >
                 <div>
                   <p className="font-bold text-foreground">
                     {t('games.player')} #{player.player_index + 1}
+                    {player.player_index === game.guesser_index && (
+                      <span className="ml-2 text-xs text-yellow-600">
+                        ({t('games.whoami.guessing')})
+                      </span>
+                    )}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {characters[player.character_id] || "—"}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant={player.guessed ? "default" : "outline"}
-                  onClick={() => markGuessed(player.player_index)}
-                >
-                  <Check className="w-4 h-4" />
-                </Button>
+                {player.guessed && (
+                  <Check className="w-5 h-5 text-primary" />
+                )}
               </div>
             ))}
           </div>
@@ -291,12 +349,15 @@ const WhoAmIGame = () => {
             const hasViewed = views.includes(i);
             const player = players.find((p) => p.player_index === i);
             const hasGuessed = player?.guessed;
+            const isCurrentGuesser = i === game.guesser_index;
             return (
               <div
                 key={i}
                 className={`aspect-square flex items-center justify-center text-sm font-bold transition-colors ${
                   hasGuessed
                     ? "bg-primary text-primary-foreground"
+                    : isCurrentGuesser
+                    ? "bg-yellow-500 text-yellow-950"
                     : hasViewed
                     ? "bg-foreground text-background"
                     : "bg-secondary text-muted-foreground"
@@ -307,6 +368,20 @@ const WhoAmIGame = () => {
             );
           })}
         </div>
+
+        {!allGuessed ? (
+          <Button
+            onClick={markGuessedAndNextRound}
+            className="w-full h-12 font-bold uppercase tracking-wider mb-3"
+          >
+            <SkipForward className="w-5 h-5 mr-2" />
+            {t('games.whoami.player_guessed_next')}
+          </Button>
+        ) : (
+          <div className="p-4 rounded-lg bg-primary/20 text-center mb-3">
+            <p className="font-bold text-foreground">{t('games.whoami.all_guessed')}</p>
+          </div>
+        )}
 
         <Button
           onClick={startNewGame}
