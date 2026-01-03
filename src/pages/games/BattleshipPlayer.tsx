@@ -42,6 +42,8 @@ interface BattleshipShot {
   is_hit: boolean;
 }
 
+const GRID_WIDTH = 8; // Grid width is always 8, height varies by player count
+
 const BattleshipPlayer = () => {
   const { code } = useParams<{ code: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -80,7 +82,8 @@ const BattleshipPlayer = () => {
   }, [isMyTurn, gameStarted, gameEnded, isEliminated]);
 
   // Generate ships avoiding cells already occupied by other players
-  const generateShips = (gridSize: number, occupiedCells: Set<string>): Ship[] => {
+  // gridHeight is from game.grid_size, width is always GRID_WIDTH
+  const generateShips = (gridHeight: number, occupiedCells: Set<string>): Ship[] => {
     const ships: Ship[] = [];
     const myOccupied = new Set<string>(occupiedCells);
     const sizes = [1, 2, 3];
@@ -92,8 +95,8 @@ const BattleshipPlayer = () => {
       while (!placed && attempts < 100) {
         attempts++;
         const horizontal = Math.random() > 0.5;
-        const maxX = horizontal ? gridSize - size : gridSize - 1;
-        const maxY = horizontal ? gridSize - 1 : gridSize - size;
+        const maxX = horizontal ? GRID_WIDTH - size : GRID_WIDTH - 1;
+        const maxY = horizontal ? gridHeight - 1 : gridHeight - size;
         const x = Math.floor(Math.random() * (maxX + 1));
         const y = Math.floor(Math.random() * (maxY + 1));
 
@@ -523,9 +526,10 @@ const BattleshipPlayer = () => {
 
   // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
   const renderUnifiedGrid = () => {
+    const gridHeight = game.grid_size;
     const cells = [];
-    for (let y = 0; y < game.grid_size; y++) {
-      for (let x = 0; x < game.grid_size; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
         const key = `${x},${y}`;
         const isMyShip = myShipCells.has(key);
         const isMyShipHit = myHits.has(key);
@@ -705,7 +709,7 @@ const BattleshipPlayer = () => {
           <div
             className="grid gap-0.5 mx-auto"
             style={{
-              gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
+              gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
               maxWidth: "320px",
             }}
           >

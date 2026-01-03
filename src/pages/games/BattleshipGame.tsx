@@ -44,6 +44,8 @@ interface BattleshipShot {
   is_hit: boolean;
 }
 
+const GRID_WIDTH = 8; // Grid width is always 8, height varies by player count
+
 const BattleshipGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
@@ -101,7 +103,17 @@ const BattleshipGame = () => {
     // Register admin as last player if not exists
     const adminExists = parsedPlayers.some(p => p.player_index === gameData.player_count - 1);
     if (!adminExists && parsedPlayers.length < gameData.player_count) {
-      const ships = generateShips(gameData.grid_size);
+      // Collect occupied cells from existing players
+      const occupiedCells = new Set<string>();
+      parsedPlayers.forEach(p => {
+        p.ships.forEach(ship => {
+          ship.cells.forEach(cell => {
+            occupiedCells.add(`${cell.x},${cell.y}`);
+          });
+        });
+      });
+      
+      const ships = generateShips(gameData.grid_size, occupiedCells);
       const { data: newPlayer, error: insertError } = await supabase
         .from("battleship_players")
         .insert({
@@ -210,9 +222,9 @@ const BattleshipGame = () => {
     };
   }, [game?.id, game?.player_count, game?.status, code]);
 
-  const generateShips = (gridSize: number): Ship[] => {
+  const generateShips = (gridHeight: number, occupiedCells: Set<string> = new Set()): Ship[] => {
     const ships: Ship[] = [];
-    const occupied = new Set<string>();
+    const occupied = new Set<string>(occupiedCells);
     const sizes = [1, 2, 3];
 
     for (const size of sizes) {
@@ -222,8 +234,8 @@ const BattleshipGame = () => {
       while (!placed && attempts < 100) {
         attempts++;
         const horizontal = Math.random() > 0.5;
-        const maxX = horizontal ? gridSize - size : gridSize - 1;
-        const maxY = horizontal ? gridSize - 1 : gridSize - size;
+        const maxX = horizontal ? GRID_WIDTH - size : GRID_WIDTH - 1;
+        const maxY = horizontal ? gridHeight - 1 : gridHeight - size;
         const x = Math.floor(Math.random() * (maxX + 1));
         const y = Math.floor(Math.random() * (maxY + 1));
 
@@ -350,7 +362,7 @@ const BattleshipGame = () => {
         .update({ status: 'waiting', current_player_index: 0 })
         .eq("id", game.id);
 
-      // Re-register admin
+      // Re-register admin with fresh ships
       const ships = generateShips(game.grid_size);
       await supabase.from("battleship_players").insert({
         game_id: game.id,
@@ -435,7 +447,7 @@ const BattleshipGame = () => {
             {t('games.you')}: {t('games.player')} #{adminIndex + 1}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {t('games.battleship.grid_size')}: {game.grid_size}x{game.grid_size}
+            {t('games.battleship.grid_size')}: {GRID_WIDTH}x{game.grid_size}
           </p>
         </div>
 
@@ -604,9 +616,10 @@ const BattleshipPlayerView = ({
   };
 
   const renderMyGrid = () => {
+    const gridHeight = game.grid_size;
     const cells = [];
-    for (let y = 0; y < game.grid_size; y++) {
-      for (let x = 0; x < game.grid_size; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
         const key = `${x},${y}`;
         const isShip = myShipCells.has(key);
         const isHit = myHits.has(key);
@@ -639,9 +652,10 @@ const BattleshipPlayerView = ({
     const myShots = getShotsAtTarget(selectedTarget);
     const shotMap = new Map(myShots.map(s => [`${s.x},${s.y}`, s.is_hit]));
 
+    const gridHeight = game.grid_size;
     const cells = [];
-    for (let y = 0; y < game.grid_size; y++) {
-      for (let x = 0; x < game.grid_size; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
         const key = `${x},${y}`;
         const hasShot = shotMap.has(key);
         const isHit = shotMap.get(key);
@@ -738,7 +752,7 @@ const BattleshipPlayerView = ({
             <div
               className="grid gap-0.5 mx-auto"
               style={{
-                gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
+                gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
                 maxWidth: "300px",
               }}
             >
@@ -762,7 +776,7 @@ const BattleshipPlayerView = ({
           <div
             className="grid gap-0.5 mx-auto"
             style={{
-              gridTemplateColumns: `repeat(${game.grid_size}, 1fr)`,
+              gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
               maxWidth: "250px",
             }}
           >

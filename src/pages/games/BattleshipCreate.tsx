@@ -22,11 +22,10 @@ const BattleshipCreate = () => {
     return code;
   };
 
-  const getGridSize = (players: number) => {
-    if (players <= 3) return 6;
-    if (players <= 5) return 8;
-    if (players <= 7) return 10;
-    return 12;
+  // Grid is 8 wide, height = 8 + (players - 2) * 3
+  // 2 players: 8x8, 3 players: 8x11, 4 players: 8x14, etc.
+  const getGridHeight = (players: number) => {
+    return 8 + (players - 2) * 3;
   };
 
   const createGame = async () => {
@@ -40,14 +39,14 @@ const BattleshipCreate = () => {
 
     try {
       const code = generateCode();
-      const gridSize = getGridSize(count);
+      const gridHeight = getGridHeight(count);
 
       const { error: gameError } = await supabase
         .from("battleship_games")
         .insert({
           code,
           player_count: count,
-          grid_size: gridSize,
+          grid_size: gridHeight, // This now represents height, width is always 8
           status: "waiting",
         });
 
