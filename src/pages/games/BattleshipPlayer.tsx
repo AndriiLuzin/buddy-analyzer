@@ -700,14 +700,19 @@ const BattleshipPlayer = () => {
           <p className="text-sm font-bold text-center mb-2">
             {isMyTurn ? t("games.battleship.tap_to_shoot") : t("games.battleship.wait_turn")}
           </p>
-          <div
-            className="grid gap-0.5 mx-auto"
-            style={{
-              gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
-              maxWidth: "368px",
-            }}
+          <div 
+            className="overflow-auto max-h-[60vh]"
+            style={{ maxWidth: "331px", margin: "0 auto" }}
           >
-            {renderUnifiedGrid()}
+            <div
+              className="grid gap-0.5"
+              style={{
+                gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
+                width: "100%",
+              }}
+            >
+              {renderUnifiedGrid()}
+            </div>
           </div>
         </div>
       </div>
