@@ -550,7 +550,7 @@ const BattleshipGame = () => {
               />
             </div>
 
-            <div className="text-center mb-8">
+            <div className="text-center mb-4">
               <Button 
                 onClick={() => setShowShareModal(true)}
                 variant="outline"
@@ -561,9 +561,32 @@ const BattleshipGame = () => {
               </Button>
             </div>
 
+            {/* Start early button - at least 2 players (including admin) */}
+            {players.length >= 2 && (
+              <Button
+                onClick={async () => {
+                  if (!game) return;
+                  await supabase
+                    .from("battleship_games")
+                    .update({ 
+                      status: 'playing',
+                      player_count: players.length // Update player count to actual joined
+                    })
+                    .eq("id", game.id);
+                  setGame({ ...game, status: 'playing', player_count: players.length });
+                  playNotificationSound();
+                }}
+                className="w-full h-14 text-lg font-bold uppercase tracking-wider mb-4"
+              >
+                {t("games.start_now")} ({players.length} {t("games.players_short")})
+              </Button>
+            )}
+
             <div className="text-center mb-8">
               <p className="text-sm text-muted-foreground">
-                {t("games.waiting_players")}
+                {players.length < 2 
+                  ? t("games.need_min_players")
+                  : t("games.waiting_players")}
               </p>
             </div>
           </>
