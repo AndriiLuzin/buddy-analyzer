@@ -149,17 +149,22 @@ const Index = ({ initialRoute }: IndexProps) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (profile && profile.category) {
-      setUserProfile({
-        category: profile.category as any,
-        description: profile.description || '',
-        completedAt: profile.created_at
-      });
-      
-      // Load friends from database
+    // User has a profile - check if they've completed quiz OR skipped it
+    // If profile exists with first_name, they've gone through auth flow
+    // Only show quiz if they have NO profile at all
+    if (profile) {
+      if (profile.category) {
+        setUserProfile({
+          category: profile.category as any,
+          description: profile.description || '',
+          completedAt: profile.created_at
+        });
+      }
+      // Load friends and go to list - profile exists means they've been through the flow
       await loadFriendsFromDB();
       setScreen('list');
     } else {
+      // No profile at all - show quiz
       setScreen('userQuiz');
     }
   };
