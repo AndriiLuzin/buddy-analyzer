@@ -47,7 +47,7 @@ const Index = ({ initialRoute }: IndexProps) => {
   const [pendingProfile, setPendingProfile] = useState<UserProfile | null>(null);
   const { classifyUser, isLoading } = useFriendClassifier();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Auth state listener
   useEffect(() => {
@@ -279,7 +279,7 @@ const Index = ({ initialRoute }: IndexProps) => {
     setScreen('loading');
     
     try {
-      const profile = await classifyUser(answers);
+      const profile = await classifyUser(answers, language);
       setUserProfile(profile);
 
       // If user is logged in, save immediately
