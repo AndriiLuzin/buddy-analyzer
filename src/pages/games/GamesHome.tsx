@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Skull, Hand, HelpCircle, Dice5, ArrowLeft } from "lucide-react";
+import { Users, Skull, Hand, HelpCircle, Dice5, Anchor, ArrowLeft } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
@@ -52,6 +52,14 @@ const games: Game[] = [
     icon: Dice5,
     path: "/games/casino",
     playersKey: "games.casino.players_range",
+  },
+  {
+    id: "battleship",
+    titleKey: "games.battleship.title",
+    descriptionKey: "games.battleship.description",
+    icon: Anchor,
+    path: "/games/battleship",
+    playersKey: "games.battleship.players_range",
   },
 ];
 
