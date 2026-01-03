@@ -36,6 +36,7 @@ const Index = ({ initialRoute }: IndexProps) => {
   const referrerId = searchParams.get('ref');
   
   const [screen, setScreen] = useState<Screen>('loading');
+  const [isInitializing, setIsInitializing] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -86,6 +87,8 @@ const Index = ({ initialRoute }: IndexProps) => {
   // Initialize app based on auth state
   useEffect(() => {
     const initApp = async () => {
+      setIsInitializing(true);
+      
       // First, check if there's an existing session
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
@@ -97,12 +100,13 @@ const Index = ({ initialRoute }: IndexProps) => {
         } else {
           setScreen('auth');
         }
+        setIsInitializing(false);
         return;
       }
 
-      // If session exists but user state not yet updated, wait
+      // Wait for user state to be updated
       if (!user) {
-        return;
+        return; // Will re-run when user is set
       }
 
       // User is logged in - check if they have a profile with quiz completed
@@ -114,18 +118,21 @@ const Index = ({ initialRoute }: IndexProps) => {
 
       // If user already has completed quiz, go directly to friend list
       if (profile && profile.category) {
-        loadUserProfile();
+        await loadUserProfile();
+        setIsInitializing(false);
         return;
       }
 
       // If coming from referral link and user hasn't completed quiz yet
       if (referrerId && !profile?.quiz_answers) {
         setScreen('friendRegistration');
+        setIsInitializing(false);
         return;
       }
 
       // Load user profile from DB
-      loadUserProfile();
+      await loadUserProfile();
+      setIsInitializing(false);
     };
 
     initApp();
@@ -404,8 +411,8 @@ const Index = ({ initialRoute }: IndexProps) => {
     return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
 
-  // Render loading screen
-  if (screen === 'loading' || isLoading) {
+  // Render loading screen while initializing
+  if (isInitializing || screen === 'loading' || isLoading) {
     return <LoadingScreen />;
   }
 
