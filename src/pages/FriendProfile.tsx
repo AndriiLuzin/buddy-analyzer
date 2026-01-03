@@ -60,7 +60,7 @@ export default function FriendProfile() {
         .from('profiles')
         .select('category')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileData?.category) {
         setUserCategory(profileData.category as FriendCategory);
@@ -72,7 +72,7 @@ export default function FriendProfile() {
         .select('*')
         .eq('id', friendId)
         .eq('owner_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         navigate('/');
