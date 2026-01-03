@@ -121,7 +121,7 @@ export const FloatingActionMenu = ({ onAnalyzeClick, onProfileClick }: FloatingA
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-6 w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center transition-all duration-300 z-50 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 hover:scale-105 active:scale-95"
+          className="fixed right-6 w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center transition-all duration-300 z-50 bg-primary hover:scale-105 active:scale-95"
           style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
         >
           <LayoutGrid className="w-7 h-7 text-white" strokeWidth={2} />
