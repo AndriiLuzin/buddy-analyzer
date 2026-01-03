@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
-import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings, Pencil, Trash2, Camera, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +41,8 @@ export default function FriendProfile() {
   const [userCategory, setUserCategory] = useState<FriendCategory | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isEditingBirthday, setIsEditingBirthday] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -86,6 +88,7 @@ export default function FriendProfile() {
         lastInteraction: data.last_interaction || undefined,
         matchScore: data.match_score || undefined,
         friendUserId: data.friend_user_id,
+        avatar: (data as any).avatar_url || undefined,
       });
       setIsLoading(false);
     };
@@ -215,6 +218,73 @@ export default function FriendProfile() {
     }
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !friend || !currentUserId) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пожалуйста, выберите изображение',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Ошибка',
+        description: 'Размер файла не должен превышать 5MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${currentUserId}/${friend.id}.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('friend-avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('friend-avatars')
+        .getPublicUrl(fileName);
+
+      // Update friend record
+      const { error: updateError } = await supabase
+        .from('friends')
+        .update({ avatar_url: publicUrl })
+        .eq('id', friend.id);
+
+      if (updateError) throw updateError;
+
+      setFriend({ ...friend, avatar: publicUrl });
+      toast({
+        title: 'Сохранено',
+        description: 'Фото обновлено'
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить фото',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   const categoryOrder: FriendCategory[] = ['soul_mate', 'family', 'close_friend', 'good_buddy', 'situational', 'distant'];
 
   return (
@@ -248,8 +318,38 @@ export default function FriendProfile() {
 
       {/* Avatar overlay */}
       <div className="flex justify-center -mt-12 sm:-mt-14 relative z-10">
-        <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background flex items-center justify-center text-white font-bold text-2xl sm:text-3xl bg-gradient-to-br ${gradient} shadow-lg`}>
-          {initials}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+        <div className="relative">
+          {friend.avatar ? (
+            <img 
+              src={friend.avatar} 
+              alt={friend.name}
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background object-cover shadow-lg"
+            />
+          ) : (
+            <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background flex items-center justify-center text-white font-bold text-2xl sm:text-3xl bg-gradient-to-br ${gradient} shadow-lg`}>
+              {initials}
+            </div>
+          )}
+          {isEditMode && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isUploadingAvatar ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
