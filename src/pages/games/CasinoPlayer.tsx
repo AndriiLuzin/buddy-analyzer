@@ -147,7 +147,7 @@ const CasinoPlayer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
@@ -158,7 +158,7 @@ const CasinoPlayer = () => {
   const isMyTurn = game.guesser_index === playerIndex;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background relative overflow-y-auto">
       <Button
         variant="ghost"
         size="icon"

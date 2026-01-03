@@ -521,7 +521,7 @@ const BattleshipPlayer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="text-muted-foreground animate-pulse">{t("games.loading")}</div>
       </div>
     );
@@ -529,7 +529,7 @@ const BattleshipPlayer = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="h-[100dvh] flex items-center justify-center bg-background p-6 overflow-y-auto">
         <div className="text-center">
           <p className="text-foreground font-bold mb-2">{error}</p>
           <p className="text-muted-foreground text-sm">{t("games.ask_link")}</p>
@@ -541,7 +541,7 @@ const BattleshipPlayer = () => {
   // Name input screen
   if (showNameInput && game) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative">
+      <div className="h-[100dvh] flex flex-col items-center justify-center bg-background p-6 relative overflow-y-auto">
         <Button
           variant="ghost"
           size="icon"
@@ -582,7 +582,7 @@ const BattleshipPlayer = () => {
 
   if (!gameStarted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative">
+      <div className="h-[100dvh] flex flex-col items-center justify-center bg-background p-6 relative overflow-y-auto">
         <Button
           variant="ghost"
           size="icon"
@@ -730,7 +730,7 @@ const BattleshipPlayer = () => {
   // No longer need separate grid - we use unified grid always
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 bg-background relative">
+    <div className="h-[100dvh] flex flex-col items-center p-4 bg-background relative overflow-y-auto">
       <Button
         variant="ghost"
         size="icon"

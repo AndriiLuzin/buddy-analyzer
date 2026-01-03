@@ -115,7 +115,7 @@ const MafiaPlayer = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <p className="text-muted-foreground">{t('games.loading')}</p>
       </div>
     );
@@ -123,7 +123,7 @@ const MafiaPlayer = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
         <p className="text-muted-foreground mb-4">{error}</p>
         <Link to="/games" className="text-sm text-foreground hover:underline">
           {t('games.mafia.to_main')}
@@ -139,7 +139,7 @@ const MafiaPlayer = () => {
 
   if (allViewed && !currentPlayer) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
         <div className="text-center animate-fade-in">
           <h1 className="text-3xl font-bold text-foreground mb-4">
             {t('games.mafia.all_received')}
@@ -154,7 +154,7 @@ const MafiaPlayer = () => {
 
   if (!currentPlayer) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
         <div className="text-center animate-fade-in">
           <h1 className="text-3xl font-bold text-foreground mb-4">
             {t('games.mafia.waiting')}
@@ -172,7 +172,7 @@ const MafiaPlayer = () => {
     const mafiaPlayers = players.filter((p) => p.role === "mafia");
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
         <div className="text-center animate-scale-in">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
             {t('games.player')} #{currentPlayer.player_index + 1}
@@ -219,7 +219,7 @@ const MafiaPlayer = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
       <div className="text-center animate-fade-in">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
           {t('games.player')} #{currentPlayer.player_index + 1}

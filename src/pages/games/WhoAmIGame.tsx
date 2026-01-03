@@ -254,7 +254,7 @@ const WhoAmIGame = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="text-muted-foreground">{t('games.loading')}</div>
       </div>
     );
@@ -265,7 +265,7 @@ const WhoAmIGame = () => {
   // Player view mode
   if (viewMode === 'player') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+      <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background relative overflow-y-auto">
         <div className="absolute top-4 left-4 flex gap-2">
           <Button
             variant="ghost"
@@ -350,7 +350,7 @@ const WhoAmIGame = () => {
 
   // Admin panel view
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background relative overflow-y-auto">
       <div className="absolute top-4 left-4 flex gap-2">
         <Button
           variant="ghost"

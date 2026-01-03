@@ -96,7 +96,7 @@ const MafiaCreate = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
       <div className="w-full max-w-sm animate-fade-in">
         <Link
           to="/games"

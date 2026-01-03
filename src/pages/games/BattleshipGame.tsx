@@ -466,7 +466,7 @@ const BattleshipGame = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="text-muted-foreground">{t("games.loading")}</div>
       </div>
     );
@@ -496,7 +496,7 @@ const BattleshipGame = () => {
 
   // Admin panel view
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 bg-background relative overflow-y-auto pb-20">
+    <div className="h-[100dvh] flex flex-col items-center p-6 bg-background relative overflow-y-auto pb-20">
       <div className="absolute top-4 left-4 flex gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate("/games")}>
           <Home className="w-5 h-5" />
@@ -813,7 +813,7 @@ const BattleshipPlayerView = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 bg-background relative">
+    <div className="h-[100dvh] flex flex-col items-center p-4 bg-background relative overflow-y-auto">
       <div className="absolute top-4 left-4 flex gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate("/games")}>
           <Home className="w-5 h-5" />

@@ -195,7 +195,7 @@ const ImpostorPlayer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-[100dvh] flex items-center justify-center bg-background overflow-hidden">
         <div className="text-muted-foreground animate-pulse">{t("games.loading")}</div>
       </div>
     );
@@ -203,7 +203,7 @@ const ImpostorPlayer = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="h-[100dvh] flex items-center justify-center bg-background p-6 overflow-y-auto">
         <div className="text-center">
           <p className="text-foreground font-bold mb-2">{error}</p>
           <p className="text-muted-foreground text-sm">{t("games.ask_link")}</p>
@@ -214,7 +214,7 @@ const ImpostorPlayer = () => {
 
   if (!isRevealed) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative">
+      <div className="h-[100dvh] flex flex-col items-center justify-center bg-background p-6 relative overflow-y-auto">
         <Button
           variant="ghost"
           size="icon"
@@ -244,7 +244,7 @@ const ImpostorPlayer = () => {
   const isStartingPlayer = game && playerIndex !== null && game.starting_player === playerIndex;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background relative overflow-y-auto">
       <Button
         variant="ghost"
         size="icon"

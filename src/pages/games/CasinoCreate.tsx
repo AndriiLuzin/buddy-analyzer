@@ -94,7 +94,7 @@ const CasinoCreate = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+    <div className="h-[100dvh] flex flex-col items-center justify-center p-6 bg-background overflow-y-auto">
       <Link
         to="/games"
         className="absolute top-4 left-4 p-2 hover:opacity-70 transition-opacity"
