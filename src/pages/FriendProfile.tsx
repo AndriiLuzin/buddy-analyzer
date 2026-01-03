@@ -2,7 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Friend, FriendCategory } from '../types';
 import { CATEGORY_INFO } from '../constants';
-import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings, Pencil } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Send, Plus, Settings, Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { FriendDatesSection } from '@/components/FriendDatesSection';
 import { supabase } from '@/integrations/supabase/client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -181,6 +192,29 @@ export default function FriendProfile() {
     }
   };
 
+  const handleDeleteFriend = async () => {
+    if (!friend) return;
+    
+    const { error } = await supabase
+      .from('friends')
+      .delete()
+      .eq('id', friend.id);
+    
+    if (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить друга',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Удалено',
+        description: 'Друг удален из списка'
+      });
+      navigate('/');
+    }
+  };
+
   const categoryOrder: FriendCategory[] = ['soul_mate', 'family', 'close_friend', 'good_buddy', 'situational', 'distant'];
 
   return (
@@ -348,6 +382,32 @@ export default function FriendProfile() {
               friendId={friend.id} 
               ownerId={currentUserId}
             />
+          )}
+
+          {/* Delete button in edit mode */}
+          {isEditMode && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="w-full bg-destructive/10 text-destructive rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors">
+                  <Trash2 className="w-5 h-5" />
+                  <span className="font-medium">Удалить друга</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Удалить друга?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Вы уверены, что хотите удалить {friend.name} из списка друзей? Это действие нельзя отменить.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteFriend} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Удалить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
 
