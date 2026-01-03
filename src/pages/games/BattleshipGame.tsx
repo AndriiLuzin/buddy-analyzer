@@ -46,6 +46,18 @@ interface BattleshipShot {
 
 const GRID_WIDTH = 8; // Grid width is always 8, height varies by player count
 
+// Player colors for destroyed ships
+const PLAYER_COLORS = [
+  { bg: "bg-blue-500", text: "text-white" },
+  { bg: "bg-green-500", text: "text-white" },
+  { bg: "bg-yellow-500", text: "text-black" },
+  { bg: "bg-purple-500", text: "text-white" },
+  { bg: "bg-orange-500", text: "text-white" },
+  { bg: "bg-pink-500", text: "text-white" },
+  { bg: "bg-cyan-500", text: "text-black" },
+  { bg: "bg-red-500", text: "text-white" },
+];
+
 const BattleshipGame = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
@@ -102,17 +114,8 @@ const BattleshipGame = () => {
     // Register admin as last player if not exists
     const adminExists = parsedPlayers.some(p => p.player_index === gameData.player_count - 1);
     if (!adminExists && parsedPlayers.length < gameData.player_count) {
-      // Collect occupied cells from existing players
-      const occupiedCells = new Set<string>();
-      parsedPlayers.forEach(p => {
-        p.ships.forEach(ship => {
-          ship.cells.forEach(cell => {
-            occupiedCells.add(`${cell.x},${cell.y}`);
-          });
-        });
-      });
-      
-      const ships = generateShips(gameData.grid_size, occupiedCells);
+      // Generate unique ships for admin
+      const ships = generateShips(gameData.grid_size);
       const { data: newPlayer, error: insertError } = await supabase
         .from("battleship_players")
         .insert({
@@ -221,9 +224,10 @@ const BattleshipGame = () => {
     };
   }, [game?.id, game?.player_count, game?.status, code]);
 
-  const generateShips = (gridHeight: number, occupiedCells: Set<string> = new Set()): Ship[] => {
+  // Generate ships with unique random placement for each player
+  const generateShips = (gridHeight: number): Ship[] => {
     const ships: Ship[] = [];
-    const occupied = new Set<string>(occupiedCells);
+    const occupied = new Set<string>();
     const sizes = [1, 2, 3];
 
     for (const size of sizes) {
@@ -628,6 +632,29 @@ const BattleshipPlayerView = ({
     allShotsMap.set(key, { shooter: s.shooter_index, isHit: s.is_hit });
   });
 
+  // Check if a ship is fully destroyed
+  const getDestroyedShips = () => {
+    const destroyedCells = new Map<string, number>(); // cell key -> owner player_index
+    
+    players.forEach(p => {
+      const hitsSet = new Set(p.hits_received.map(h => `${h.x},${h.y}`));
+      
+      p.ships.forEach(ship => {
+        const allCellsHit = ship.cells.every(cell => hitsSet.has(`${cell.x},${cell.y}`));
+        if (allCellsHit) {
+          // This ship is destroyed - mark all its cells
+          ship.cells.forEach(cell => {
+            destroyedCells.set(`${cell.x},${cell.y}`, p.player_index);
+          });
+        }
+      });
+    });
+    
+    return destroyedCells;
+  };
+
+  const destroyedShipCells = getDestroyedShips();
+
   // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
   const renderUnifiedGrid = () => {
     const gridHeight = game.grid_size;
@@ -644,16 +671,25 @@ const BattleshipPlayerView = ({
         const wasHit = cellWasShot && shotData.isHit;
         const wasMiss = cellWasShot && !shotData.isHit;
 
+        // Check if this cell belongs to a destroyed ship
+        const destroyedOwner = destroyedShipCells.get(key);
+        const isDestroyed = destroyedOwner !== undefined;
+
         let bgClass = "bg-background";
         let content = null;
 
-        // Priority: my ship hit > any hit > any miss > my ship > empty
-        if (isMyShip && isMyShipHit) {
-          // My ship was hit - red
+        // Priority: destroyed ship (player color) > hit > miss > my ship > empty
+        if (isDestroyed) {
+          // Destroyed ship - show in player's color
+          const colorIndex = destroyedOwner % PLAYER_COLORS.length;
+          bgClass = PLAYER_COLORS[colorIndex].bg;
+          content = <span className={`${PLAYER_COLORS[colorIndex].text} text-xs`}>✕</span>;
+        } else if (isMyShip && isMyShipHit) {
+          // My ship was hit but not destroyed yet - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
         } else if (wasHit) {
-          // Someone hit a ship here - red
+          // Someone hit a ship here but not destroyed yet - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
         } else if (wasMiss) {
@@ -787,14 +823,23 @@ const BattleshipPlayerView = ({
           <p className="text-sm font-bold text-center mb-2">
             {isAdminTurn ? t("games.battleship.tap_to_shoot") : t("games.battleship.wait_turn")}
           </p>
-          <div
-            className="grid gap-0.5 mx-auto"
-            style={{
-              gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
-              maxWidth: "368px",
+          <div 
+            className="overflow-y-auto overflow-x-hidden pb-8"
+            style={{ 
+              maxWidth: "298px", 
+              margin: "0 auto",
+              maxHeight: "calc(100vh - 280px)",
             }}
           >
-            {renderUnifiedGrid()}
+            <div
+              className="grid gap-0.5"
+              style={{
+                gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
+                width: "100%",
+              }}
+            >
+              {renderUnifiedGrid()}
+            </div>
           </div>
         </div>
       </div>
