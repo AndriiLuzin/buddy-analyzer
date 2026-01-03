@@ -36,11 +36,12 @@ export const ChatList = ({ friends, currentUserId, onSelectChat }: ChatListProps
     }
 
     const fetchChatPreviews = async () => {
-      // Get friend user IDs from friends table
+      // Get only VERIFIED friend user IDs from friends table
       const { data: friendsData } = await supabase
         .from('friends')
-        .select('id, friend_user_id, friend_name, friend_last_name')
-        .eq('owner_id', currentUserId);
+        .select('id, friend_user_id, friend_name, friend_last_name, is_verified')
+        .eq('owner_id', currentUserId)
+        .eq('is_verified', true); // Only verified friends can chat
 
       if (!friendsData || friendsData.length === 0) {
         setLoading(false);
