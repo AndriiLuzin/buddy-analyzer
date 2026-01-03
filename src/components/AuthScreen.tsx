@@ -1,29 +1,43 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Users, Heart, Sparkles, Phone, User, ArrowRight, UserPlus, LogIn, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Users, Heart, Sparkles, Phone, User, ArrowRight, UserPlus, ArrowLeft, CheckCircle, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
 import { WelcomeModal } from './WelcomeModal';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
+import { DateWheelPicker } from './DateWheelPicker';
 
 interface AuthScreenProps {
-  onAuthSuccess: () => void;
+  onAuthSuccess: (birthday?: Date) => void;
 }
 
 export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
-  const [step, setStep] = useState<'phone' | 'code' | 'name'>('phone');
+  const [step, setStep] = useState<'phone' | 'code' | 'name' | 'birthday'>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
+  const [dateValue, setDateValue] = useState<{ month: number; day: number; year?: number }>({
+    month: new Date().getMonth(),
+    day: new Date().getDate(),
+    year: undefined
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+
+  const handleDateChange = useCallback((value: { month: number; day: number; year?: number }) => {
+    setDateValue(value);
+  }, []);
+
+  const birthday = dateValue.year 
+    ? new Date(dateValue.year, dateValue.month, dateValue.day)
+    : undefined;
 
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits except +
@@ -136,9 +150,15 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
     }
   };
 
-  const handleCompleteRegistration = async (e: React.FormEvent) => {
+  const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    setStep('birthday');
+  };
+
+  const handleCompleteRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!birthday) return;
     
     setIsLoading(true);
 
@@ -156,6 +176,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
           data: {
             name: name,
             phone: normalizedPhone,
+            birthday: birthday.toISOString().split('T')[0],
           },
         },
       });
@@ -169,7 +190,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
             title: t('auth.welcome'),
             description: t('auth.welcome_login'),
           });
-          onAuthSuccess();
+          onAuthSuccess(birthday);
           return;
         }
         
@@ -229,7 +250,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
   const handleWelcomeClose = () => {
     setShowWelcome(false);
-    onAuthSuccess();
+    onAuthSuccess(birthday);
   };
 
   return (
@@ -386,7 +407,7 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
         {step === 'name' && (
           <div className="animate-fade-in">
-            <form onSubmit={handleCompleteRegistration} className="space-y-4">
+            <form onSubmit={handleNameSubmit} className="space-y-4">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   <UserPlus className="w-7 h-7 text-primary" />
@@ -415,7 +436,52 @@ export const AuthScreen = ({ onAuthSuccess }: AuthScreenProps) => {
 
               <Button
                 type="submit"
-                disabled={isLoading || !name.trim()}
+                disabled={!name.trim()}
+                className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
+              >
+                <div className="flex items-center gap-2">
+                  <span>{t('common.next') || 'Next'}</span>
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {step === 'birthday' && (
+          <div className="animate-fade-in">
+            <button
+              onClick={() => setStep('name')}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t('quiz.back')}
+            </button>
+
+            <form onSubmit={handleCompleteRegistration} className="space-y-4">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">{t('auth.enter_birthday') || 'When is your birthday?'}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{t('auth.birthday_desc') || 'We will adapt questions to your age'}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground font-medium">
+                  {t('friend_reg.birthday') || 'Birthday'} <span className="text-destructive">*</span>
+                </Label>
+                <DateWheelPicker
+                  value={dateValue}
+                  onChange={handleDateChange}
+                  showYear
+                  yearPlaceholder={t('friend_reg.year_placeholder') || 'When were you born?'}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading || !birthday}
                 className="w-full h-14 rounded-2xl text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground mt-6"
               >
                 {isLoading ? (
