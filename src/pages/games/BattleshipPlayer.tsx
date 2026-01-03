@@ -329,21 +329,36 @@ const BattleshipPlayer = () => {
     };
   }, [game?.id, code, playerIndex]);
 
-  const handleShoot = async (targetIndex: number, x: number, y: number) => {
-    if (!game || !isMyTurn || isEliminated || playerIndex === null || targetIndex === playerIndex) return;
+  const handleShoot = async (x: number, y: number) => {
+    if (!game || !isMyTurn || isEliminated || playerIndex === null || gameEnded) return;
 
-    const targetPlayer = players.find(p => p.player_index === targetIndex);
-    if (!targetPlayer || targetPlayer.is_eliminated) return;
+    // Check if it's my ship cell - can't shoot there
+    const key = `${x},${y}`;
+    if (myShipCells.has(key)) return;
 
+    // Check if already shot at this cell by me
     const alreadyShot = shots.some(
-      s => s.shooter_index === playerIndex && s.target_index === targetIndex && s.x === x && s.y === y
+      s => s.shooter_index === playerIndex && s.x === x && s.y === y
     );
     if (alreadyShot) return;
 
-    const isHit = targetPlayer.ships.some(ship =>
-      ship.cells.some(cell => cell.x === x && cell.y === y)
-    );
+    // Find which player (if any) has a ship at this cell
+    let targetIndex = -1;
+    let isHit = false;
+    
+    for (const p of players) {
+      if (p.player_index === playerIndex) continue;
+      const hasShipHere = p.ships.some(ship =>
+        ship.cells.some(cell => cell.x === x && cell.y === y)
+      );
+      if (hasShipHere) {
+        targetIndex = p.player_index;
+        isHit = true;
+        break;
+      }
+    }
 
+    // If no ship at this cell, it's a miss - target_index can be -1 for misses
     await supabase.from("battleship_shots").insert({
       game_id: game.id,
       shooter_index: playerIndex,
@@ -353,38 +368,42 @@ const BattleshipPlayer = () => {
       is_hit: isHit,
     });
 
-    if (isHit) {
-      const newHits = [...targetPlayer.hits_received, { x, y }];
-      await supabase
-        .from("battleship_players")
-        .update({ hits_received: newHits as unknown as any })
-        .eq("id", targetPlayer.id);
-
-      const allShipCells = targetPlayer.ships.flatMap(s => s.cells);
-      const allDestroyed = allShipCells.every(cell =>
-        newHits.some(h => h.x === cell.x && h.y === cell.y)
-      );
-
-      if (allDestroyed) {
+    if (isHit && targetIndex >= 0) {
+      const targetPlayer = players.find(p => p.player_index === targetIndex);
+      if (targetPlayer) {
+        const newHits = [...targetPlayer.hits_received, { x, y }];
         await supabase
           .from("battleship_players")
-          .update({ is_eliminated: true })
+          .update({ hits_received: newHits as unknown as any })
           .eq("id", targetPlayer.id);
 
-        const remainingPlayers = players.filter(
-          p => !p.is_eliminated && p.player_index !== targetIndex
+        const allShipCells = targetPlayer.ships.flatMap(s => s.cells);
+        const allDestroyed = allShipCells.every(cell =>
+          newHits.some(h => h.x === cell.x && h.y === cell.y)
         );
 
-        if (remainingPlayers.length === 1) {
+        if (allDestroyed) {
           await supabase
-            .from("battleship_games")
-            .update({ status: 'finished' })
-            .eq("id", game.id);
-          return;
+            .from("battleship_players")
+            .update({ is_eliminated: true })
+            .eq("id", targetPlayer.id);
+
+          const remainingPlayers = players.filter(
+            p => !p.is_eliminated && p.player_index !== targetIndex
+          );
+
+          if (remainingPlayers.length === 1) {
+            await supabase
+              .from("battleship_games")
+              .update({ status: 'finished' })
+              .eq("id", game.id);
+            return;
+          }
         }
       }
     }
 
+    // Move to next player
     let nextPlayer = (game.current_player_index + 1) % game.player_count;
     const currentPlayers = players.map(p =>
       p.player_index === targetIndex && isHit
@@ -512,19 +531,15 @@ const BattleshipPlayer = () => {
     });
   });
 
-  // All shots made by current player
-  const myAllShots = shots.filter(s => s.shooter_index === playerIndex);
-  const myShotsMap = new Map(myAllShots.map(s => [`${s.target_index}:${s.x},${s.y}`, s.is_hit]));
-
-  // Shots received by each player (all hits on the board)
-  const allHitsReceived = new Map<string, boolean>();
-  players.forEach(p => {
-    p.hits_received.forEach(h => {
-      allHitsReceived.set(`${p.player_index}:${h.x},${h.y}`, true);
-    });
+  // All shots on the board - key is just coordinates for all players to see
+  const allShotsMap = new Map<string, { shooter: number; isHit: boolean }>();
+  shots.forEach(s => {
+    const key = `${s.x},${s.y}`;
+    allShotsMap.set(key, { shooter: s.shooter_index, isHit: s.is_hit });
   });
 
   // Unified grid: shows ALL ships from ALL players, player shoots at cells WITHOUT their own ships
+  // All players see the same shots (hits and misses)
   const renderUnifiedGrid = () => {
     const gridHeight = game.grid_size;
     const cells = [];
@@ -533,40 +548,27 @@ const BattleshipPlayer = () => {
         const key = `${x},${y}`;
         const isMyShip = myShipCells.has(key);
         const isMyShipHit = myHits.has(key);
-        const shipOwner = allShipCells.get(key);
-        const hasEnemyShip = shipOwner !== undefined && shipOwner !== playerIndex;
         
-        // Check if this enemy ship cell was hit
-        const enemyShipHit = hasEnemyShip && allHitsReceived.has(`${shipOwner}:${x},${y}`);
-        
-        // Check if I shot at this cell (for any target that might have been there)
-        let iShotHere = false;
-        let myHitResult: boolean | undefined = undefined;
-        for (const p of players) {
-          if (p.player_index !== playerIndex) {
-            const shotKey = `${p.player_index}:${x},${y}`;
-            if (myShotsMap.has(shotKey)) {
-              iShotHere = true;
-              myHitResult = myShotsMap.get(shotKey);
-              break;
-            }
-          }
-        }
+        // Check if anyone shot at this cell
+        const shotData = allShotsMap.get(key);
+        const cellWasShot = shotData !== undefined;
+        const wasHit = cellWasShot && shotData.isHit;
+        const wasMiss = cellWasShot && !shotData.isHit;
 
         let bgClass = "bg-background";
         let content = null;
 
-        // Priority: my ship hit > enemy ship hit > my shot miss > my ship > enemy ship hidden > empty
+        // Priority: my ship hit > any hit > any miss > my ship > empty
         if (isMyShip && isMyShipHit) {
           // My ship was hit - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
-        } else if (iShotHere && myHitResult) {
-          // I hit an enemy ship - red
+        } else if (wasHit) {
+          // Someone hit a ship here - red
           bgClass = "bg-destructive";
           content = <span className="text-destructive-foreground text-xs">💥</span>;
-        } else if (iShotHere && !myHitResult) {
-          // I missed - gray dot
+        } else if (wasMiss) {
+          // Someone missed here - gray dot
           bgClass = "bg-muted";
           content = <span className="text-muted-foreground">•</span>;
         } else if (isMyShip) {
@@ -575,23 +577,15 @@ const BattleshipPlayer = () => {
         }
         // Enemy ships stay hidden (bg-background) until hit
 
-        // Can only shoot at cells that don't have my ships
-        const canShoot = isMyTurn && !iShotHere && !isMyShip && !isEliminated && !gameEnded;
+        // Can only shoot at cells that don't have my ships and weren't shot yet
+        const canShoot = isMyTurn && !cellWasShot && !isMyShip && !isEliminated && !gameEnded;
 
         cells.push(
           <div
             key={key}
             onClick={() => {
-              if (canShoot && hasEnemyShip) {
-                // Shooting at a cell with enemy ship
-                handleShoot(shipOwner!, x, y);
-              } else if (canShoot && !hasEnemyShip) {
-                // Shooting at empty cell - need to pick a random active enemy as target (it's a miss)
-                const activeEnemies = players.filter(p => p.player_index !== playerIndex && !p.is_eliminated);
-                if (activeEnemies.length > 0) {
-                  const randomEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
-                  handleShoot(randomEnemy.player_index, x, y);
-                }
+              if (canShoot) {
+                handleShoot(x, y);
               }
             }}
             className={`aspect-square border border-border/50 flex items-center justify-center transition-all ${bgClass} ${
