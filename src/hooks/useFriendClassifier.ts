@@ -1,42 +1,39 @@
 import { useState } from 'react';
-import { FriendCategory, UserProfile } from '../types';
+import { FriendCategory, UserProfile, PersonalityProfile } from '../types';
+import { classifyPersonality, getPersonalityDescription } from '@/lib/personalityClassifier';
 
 interface ClassificationResult {
   category: FriendCategory;
   description: string;
-  analysis?: string;
+  personality: PersonalityProfile;
 }
 
-// Simple local classification based on answers
-// In production, this would call an AI API
+// Classification based on answers with personality analysis
 const classifyFromAnswers = (answers: number[]): ClassificationResult => {
-  // Calculate average score (0-3 scale per question)
+  // Calculate personality profile
+  const personality = classifyPersonality(answers);
+  
+  // Calculate average score for friendship category (0-3 scale per question)
   const avgScore = answers.reduce((sum, a) => sum + a, 0) / answers.length;
   
-  // Lower scores indicate deeper, more committed friendship style
-  // Higher scores indicate more casual approach
-  
   let category: FriendCategory;
-  let description: string;
   
   if (avgScore < 0.8) {
     category = 'soul_mate';
-    description = 'Вы — настоящий друг "до конца". Ваша преданность и эмоциональная глубина создают связи, которые длятся всю жизнь. Вы готовы на всё ради близких людей и цените искренность превыше всего.';
   } else if (avgScore < 1.4) {
     category = 'close_friend';
-    description = 'Вы формируете крепкие, доверительные отношения. Ваши друзья знают, что могут на вас положиться в важные моменты. Вы балансируете между глубиной связи и уважением к личным границам.';
   } else if (avgScore < 2.0) {
     category = 'good_buddy';
-    description = 'Вы — отличный компаньон для совместных занятий и веселья. Ваш позитивный настрой и лёгкость в общении делают вас желанным гостем в любой компании. Вы цените качественно проведённое время.';
   } else if (avgScore < 2.6) {
     category = 'situational';
-    description = 'Вы предпочитаете контекстуальные связи — дружба для вас строится вокруг общих интересов или обстоятельств. Это практичный подход, который помогает поддерживать много полезных контактов.';
   } else {
     category = 'distant';
-    description = 'Вы цените независимость и предпочитаете поддерживать дистанцию. Это не значит, что вы не способны на глубокие связи — просто вы тщательно выбираете, кому открываться.';
   }
   
-  return { category, description };
+  // Generate description based on personality
+  const description = getPersonalityDescription(personality);
+  
+  return { category, description, personality };
 };
 
 export const useFriendClassifier = () => {
@@ -56,7 +53,8 @@ export const useFriendClassifier = () => {
       return {
         category: result.category,
         description: result.description,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        personality: result.personality
       };
     } catch (err) {
       setError('Не удалось проанализировать ответы');

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
+import { PERSONALITY_LABELS } from '@/lib/personalityClassifier';
 
 interface ProfileResultScreenProps {
   profile: UserProfile;
@@ -33,7 +34,7 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
   const categoryInfo = CATEGORY_INFO[profile.category];
   const gradientClass = categoryStyles[profile.category];
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showShareModal, setShowShareModal] = useState(false);
 
   // Get localized category label
@@ -59,6 +60,9 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
       });
     }
   };
+
+  const personality = profile.personality;
+  const langKey = language === 'ru' || language === 'uk' ? 'ru' : 'en';
 
   return (
     <div className="h-[100dvh] bg-background overflow-y-auto overscroll-y-contain">
@@ -109,54 +113,105 @@ export const ProfileResultScreen = ({ profile, onContinue, friends = [], user, o
 
         {/* Result Card */}
         <div className="space-y-3 sm:space-y-4">
-          <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
-            {/* Gradient Header */}
-            <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
-              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">{categoryInfo.emoji}</div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{getCategoryLabel(profile.category)}</h2>
-              <p className="text-white/80 text-xs sm:text-sm">{t('profile.your_type')}</p>
-            </div>
-
-            {/* Content */}
-            <div className="p-4 sm:p-6">
-              <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6">
-                <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">{t('profile.about_type')}</h3>
-                <p className="text-muted-foreground leading-relaxed text-sm">
-                  {profile.description}
-                </p>
+          {/* Personality Type Card */}
+          {personality && (
+            <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
+              {/* Gradient Header */}
+              <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
+                <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">✨</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{personality.personalityType}</h2>
+                <p className="text-white/80 text-xs sm:text-sm">{langKey === 'ru' ? 'Ваш тип личности' : 'Your personality type'}</p>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
-                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💫</div>
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.depth')}</div>
+              {/* Personality Dimensions */}
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
+                  {/* Social Style */}
+                  <div className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl mb-1">{PERSONALITY_LABELS.socialStyle[personality.socialStyle].emoji}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.socialStyle[personality.socialStyle][langKey]}</div>
+                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Социальность' : 'Social style'}</div>
+                  </div>
+                  
+                  {/* Decision Style */}
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl mb-1">{PERSONALITY_LABELS.decisionStyle[personality.decisionStyle].emoji}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.decisionStyle[personality.decisionStyle][langKey]}</div>
+                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Мышление' : 'Decision style'}</div>
+                  </div>
+                  
+                  {/* Energy Style */}
+                  <div className="bg-green-50 dark:bg-green-950/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl mb-1">{PERSONALITY_LABELS.energyStyle[personality.energyStyle].emoji}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.energyStyle[personality.energyStyle][langKey]}</div>
+                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Энергия' : 'Energy'}</div>
+                  </div>
+                  
+                  {/* Leadership Style */}
+                  <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl mb-1">{PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle].emoji}</div>
+                    <div className="text-sm font-medium text-foreground">{PERSONALITY_LABELS.leadershipStyle[personality.leadershipStyle][langKey]}</div>
+                    <div className="text-[10px] text-muted-foreground">{langKey === 'ru' ? 'Роль в группе' : 'Leadership'}</div>
+                  </div>
                 </div>
-                <div className="bg-teal-50 dark:bg-teal-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">🤝</div>
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.loyalty')}</div>
+
+                {/* Traits */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {personality.traits.map((trait, index) => (
+                    <span 
+                      key={index}
+                      className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary"
+                    >
+                      {trait}
+                    </span>
+                  ))}
                 </div>
-                <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
-                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">❤️</div>
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t('profile.openness')}</div>
+
+                {/* Description */}
+                <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+                  <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">
+                    {langKey === 'ru' ? 'О вашем типе' : 'About your type'}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    {profile.description}
+                  </p>
                 </div>
               </div>
-
-              {/* Share hint */}
-              <button 
-                onClick={() => setShowShareModal(true)}
-                className="w-full flex items-center gap-2.5 sm:gap-3 h-14 sm:h-16 px-3 sm:px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors"
-              >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-foreground truncate">{t('profile.share')}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t('profile.share_desc')}</p>
-                </div>
-              </button>
             </div>
-          </div>
+          )}
+
+          {/* Fallback if no personality */}
+          {!personality && (
+            <div className="glass rounded-2xl sm:rounded-3xl overflow-hidden shadow-card animate-scale-in">
+              <div className={`bg-gradient-to-br ${gradientClass} p-6 sm:p-8 text-center`}>
+                <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-float">{categoryInfo.emoji}</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{getCategoryLabel(profile.category)}</h2>
+                <p className="text-white/80 text-xs sm:text-sm">{t('profile.your_type')}</p>
+              </div>
+              <div className="p-4 sm:p-6">
+                <div className="bg-secondary/50 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+                  <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">{t('profile.about_type')}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    {profile.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Share hint */}
+          <button 
+            onClick={() => setShowShareModal(true)}
+            className="w-full flex items-center gap-2.5 sm:gap-3 h-14 sm:h-16 px-3 sm:px-4 bg-card rounded-full border border-border hover:bg-muted transition-colors"
+          >
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-foreground truncate">{t('profile.share')}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t('profile.share_desc')}</p>
+            </div>
+          </button>
 
           {/* Friendship Score History */}
           {friends.length > 0 && (
