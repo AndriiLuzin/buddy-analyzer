@@ -10,13 +10,16 @@ import {
   Clock, 
   Users, 
   Check,
-  MapPin
+  MapPin,
+  Link as LinkIcon,
+  Copy,
+  Share2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TimeWheelPicker } from '@/components/TimeWheelPicker';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { toast } from 'sonner';
 
 interface Friend {
   id: string;
@@ -24,7 +27,17 @@ interface Friend {
   friend_last_name: string;
 }
 
-type Step = 'type' | 'datetime' | 'friends' | 'location';
+type Step = 'type' | 'datetime' | 'friends' | 'location' | 'share';
+
+// Generate a short random invite code
+const generateInviteCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 const meetingTypeIds = [
   'coffee', 'lunch', 'movie', 'sport', 'shopping', 'party',
@@ -52,7 +65,6 @@ const meetingTypeEmojis: Record<string, string> = {
 export default function MeetingCreate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const { t, language } = useLanguage();
   
   const dateLocale = language === 'ru' || language === 'uk' ? ruLocale : enUS;
@@ -70,6 +82,7 @@ export default function MeetingCreate() {
   const [selectedType, setSelectedType] = useState('');
   const [meetingLocation, setMeetingLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
   const [showCalendar, setShowCalendar] = useState(false);
 
   const handleTimeChange = useCallback((val: { hours: number; minutes: number }) => {
@@ -124,7 +137,7 @@ export default function MeetingCreate() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedType || selectedFriends.length === 0) return;
+    if (!selectedDate || !selectedType) return;
 
     setIsSubmitting(true);
     
@@ -162,9 +175,23 @@ export default function MeetingCreate() {
       .single();
 
     if (error) {
-      toast({ title: t('meeting_create.error'), description: t('meeting_create.error_desc'), variant: 'destructive' });
+      toast.error(t('meeting_create.error'));
       setIsSubmitting(false);
       return;
+    }
+
+    // Generate invite link for external guests
+    const inviteCode = generateInviteCode();
+    const { error: inviteError } = await supabase
+      .from('meeting_external_invites')
+      .insert({
+        meeting_id: meeting.id,
+        invite_code: inviteCode,
+      });
+
+    if (!inviteError) {
+      const baseUrl = window.location.origin;
+      setInviteLink(`${baseUrl}/meeting-invite/${inviteCode}`);
     }
 
     if (selectedFriends.length > 0 && meeting) {
@@ -212,8 +239,35 @@ export default function MeetingCreate() {
       }
     }
 
-    toast({ title: t('meeting_create.success'), description: t('meeting_create.success_desc') });
-    navigate('/meetings');
+    toast.success(t('meeting_create.success'));
+    setIsSubmitting(false);
+    setStep('share');
+  };
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success(language === 'ru' ? 'Ссылка скопирована!' : 'Link copied!');
+    } catch {
+      toast.error(language === 'ru' ? 'Не удалось скопировать' : 'Failed to copy');
+    }
+  };
+
+  const shareInviteLink = async () => {
+    const meetingTitle = `${meetingTypeEmojis[selectedType]} ${getMeetingTypeLabel(selectedType)}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: meetingTitle,
+          text: language === 'ru' ? `Приглашаю вас на ${meetingTitle}!` : `Join me for ${meetingTitle}!`,
+          url: inviteLink,
+        });
+      } catch {
+        // User cancelled
+      }
+    } else {
+      copyInviteLink();
+    }
   };
 
   const getStepTitle = () => {
@@ -222,6 +276,7 @@ export default function MeetingCreate() {
       case 'datetime': return t('meeting_create.when');
       case 'friends': return t('meeting_create.who');
       case 'location': return t('meeting_create.where');
+      case 'share': return language === 'ru' ? 'Ссылка для гостей' : 'Invite link';
     }
   };
 
@@ -229,8 +284,9 @@ export default function MeetingCreate() {
     switch (step) {
       case 'type': return !!selectedType;
       case 'datetime': return !!selectedDate;
-      case 'friends': return selectedFriends.length > 0;
+      case 'friends': return true; // Friends are optional now
       case 'location': return true;
+      case 'share': return true;
     }
   };
 
@@ -240,6 +296,7 @@ export default function MeetingCreate() {
       case 'datetime': setStep('friends'); break;
       case 'friends': setStep('location'); break;
       case 'location': handleSubmit(); break;
+      case 'share': navigate('/meetings'); break;
     }
   };
 
@@ -248,6 +305,7 @@ export default function MeetingCreate() {
       case 'datetime': setStep('type'); break;
       case 'friends': setStep('datetime'); break;
       case 'location': setStep('friends'); break;
+      case 'share': navigate('/meetings'); break;
       default: navigate('/meetings'); break;
     }
   };
@@ -281,21 +339,25 @@ export default function MeetingCreate() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-foreground">{t('meeting_create.title')}</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              {step === 'share' ? (language === 'ru' ? 'Встреча создана!' : 'Meeting created!') : t('meeting_create.title')}
+            </h2>
             <p className="text-sm text-muted-foreground">{getStepTitle()}</p>
           </div>
-          <div className="flex gap-1.5">
-            {['type', 'datetime', 'friends', 'location'].map((s, i) => (
-              <div 
-                key={s}
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                  step === s ? "bg-primary scale-110" : 
-                  ['type', 'datetime', 'friends', 'location'].indexOf(step) > i ? "bg-primary/50" : "bg-muted"
-                )}
-              />
-            ))}
-          </div>
+          {step !== 'share' && (
+            <div className="flex gap-1.5">
+              {['type', 'datetime', 'friends', 'location'].map((s, i) => (
+                <div 
+                  key={s}
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                    step === s ? "bg-primary scale-110" : 
+                    ['type', 'datetime', 'friends', 'location'].indexOf(step as Step) > i ? "bg-primary/50" : "bg-muted"
+                  )}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -552,10 +614,12 @@ export default function MeetingCreate() {
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="w-4 h-4" />
-                <span>{getSelectedFriendsNames()}</span>
-              </div>
+              {selectedFriends.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span>{getSelectedFriendsNames()}</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -573,6 +637,70 @@ export default function MeetingCreate() {
             </div>
           </div>
         )}
+
+        {/* Step 5: Share Link */}
+        {step === 'share' && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center py-6">
+              <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                <Check className="w-10 h-10 text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                {meetingTypeEmojis[selectedType]} {getMeetingTypeLabel(selectedType)}
+              </h3>
+              <p className="text-muted-foreground">
+                {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: dateLocale })}
+                {selectedTime && ` ${language === 'ru' ? 'в' : 'at'} ${selectedTime}`}
+              </p>
+            </div>
+
+            <div className="bg-secondary/50 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <LinkIcon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">
+                    {language === 'ru' ? 'Ссылка для гостей' : 'Invite link'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'ru' ? 'Отправьте людям без аккаунта' : 'Send to people without an account'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-background rounded-xl p-3 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inviteLink}
+                  readOnly
+                  className="flex-1 bg-transparent text-sm text-foreground truncate outline-none"
+                />
+                <button
+                  onClick={copyInviteLink}
+                  className="shrink-0 w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+
+              <Button
+                onClick={shareInviteLink}
+                variant="outline"
+                className="w-full h-12 rounded-xl gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                {language === 'ru' ? 'Поделиться ссылкой' : 'Share link'}
+              </Button>
+            </div>
+
+            <p className="text-sm text-muted-foreground text-center">
+              {language === 'ru' 
+                ? 'Когда гости откроют ссылку и ответят, вы получите уведомление'
+                : 'When guests open the link and respond, you will be notified'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
@@ -582,8 +710,18 @@ export default function MeetingCreate() {
           disabled={!canProceed() || isSubmitting}
           className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg"
         >
-          {step === 'location' ? (
-            isSubmitting ? t('auth.loading') : t('meeting_create.create')
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+              <span>{t('auth.loading')}</span>
+            </div>
+          ) : step === 'location' ? (
+            <div className="flex items-center gap-2">
+              <Check className="w-5 h-5" />
+              <span>{t('meeting_create.create')}</span>
+            </div>
+          ) : step === 'share' ? (
+            language === 'ru' ? 'Готово' : 'Done'
           ) : (
             t('meeting_create.next')
           )}

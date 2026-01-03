@@ -124,7 +124,7 @@ export default function PartyCreate() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedType || selectedFriends.length === 0 || !partyTitle.trim()) return;
+    if (!selectedDate || !selectedType || !partyTitle.trim()) return;
 
     setIsSubmitting(true);
     
