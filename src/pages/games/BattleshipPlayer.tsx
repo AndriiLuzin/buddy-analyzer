@@ -704,7 +704,7 @@ const BattleshipPlayer = () => {
             className="grid gap-0.5 mx-auto"
             style={{
               gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
-              maxWidth: "320px",
+              maxWidth: "368px",
             }}
           >
             {renderUnifiedGrid()}
