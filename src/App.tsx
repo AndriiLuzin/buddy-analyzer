@@ -15,6 +15,7 @@ import Meetings from "./pages/Meetings";
 import MeetingCreate from "./pages/MeetingCreate";
 import Parties from "./pages/Parties";
 import PartyCreate from "./pages/PartyCreate";
+import PartyDetail from "./pages/PartyDetail";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import FriendProfile from "./pages/FriendProfile";
@@ -72,6 +73,7 @@ const App = () => {
                 <Route path="/meetings/create" element={<MeetingCreate />} />
                 <Route path="/parties" element={<Parties />} />
                 <Route path="/parties/create" element={<PartyCreate />} />
+                <Route path="/parties/:partyId" element={<PartyDetail />} />
                 <Route path="/share" element={<Share />} />
                 {/* Games */}
                 <Route path="/games" element={<GamesHome />} />

@@ -1,0 +1,277 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { ArrowLeft, Calendar, MapPin, Users, Check, X, Clock, Trash2, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { partyTypeIcons } from '@/components/icons/PartyTypeIcons';
+
+interface Participant {
+  id: string;
+  friend_id: string;
+  status: string;
+  friend_name: string;
+  friend_last_name: string;
+}
+
+interface Party {
+  id: string;
+  title: string;
+  party_type: string;
+  party_date: string;
+  party_time: string | null;
+  location: string | null;
+  description: string | null;
+  participants: Participant[];
+}
+
+const partyTypeEmojis: Record<string, string> = {
+  birthday: '🎂',
+  party: '🎉',
+  bbq: '🍖',
+  wedding: '💒',
+  newyear: '🎄',
+  corporate: '🏢',
+  other: '🎊',
+};
+
+export default function PartyDetail() {
+  const navigate = useNavigate();
+  const { partyId } = useParams<{ partyId: string }>();
+  const { toast } = useToast();
+  const [party, setParty] = useState<Party | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (partyId) {
+      fetchParty();
+    }
+  }, [partyId]);
+
+  const fetchParty = async () => {
+    const { data: partyData, error } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .single();
+
+    if (error || !partyData) {
+      toast({ title: 'Ошибка', description: 'Мероприятие не найдено', variant: 'destructive' });
+      navigate('/parties');
+      return;
+    }
+
+    // Fetch participants
+    const { data: participants } = await supabase
+      .from('party_participants')
+      .select(`
+        id,
+        friend_id,
+        status,
+        friends!inner(friend_name, friend_last_name)
+      `)
+      .eq('party_id', partyId);
+
+    setParty({
+      ...partyData,
+      participants: (participants || []).map((p: any) => ({
+        id: p.id,
+        friend_id: p.friend_id,
+        status: p.status,
+        friend_name: p.friends.friend_name,
+        friend_last_name: p.friends.friend_last_name,
+      })),
+    });
+    setIsLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!party) return;
+    
+    const { error } = await supabase
+      .from('parties')
+      .delete()
+      .eq('id', party.id);
+
+    if (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось удалить мероприятие', variant: 'destructive' });
+      return;
+    }
+
+    toast({ title: 'Готово', description: 'Мероприятие удалено' });
+    navigate('/parties');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'bg-green-500/10 text-green-500 border-green-500/30';
+      case 'declined': return 'bg-red-500/10 text-red-500 border-red-500/30';
+      default: return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted': return <Check className="w-4 h-4" />;
+      case 'declined': return <X className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'Придёт';
+      case 'declined': return 'Не придёт';
+      default: return 'Ожидает ответа';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!party) return null;
+
+  const IconComponent = partyTypeIcons[party.party_type];
+  const acceptedCount = party.participants.filter(p => p.status === 'accepted').length;
+  const pendingCount = party.participants.filter(p => p.status === 'pending').length;
+  const declinedCount = party.participants.filter(p => p.status === 'declined').length;
+
+  return (
+    <div className="min-h-[100dvh] bg-background pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
+        <div className="px-5 py-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/parties')}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-foreground">{party.title}</h1>
+              <p className="text-sm text-muted-foreground">Детали мероприятия</p>
+            </div>
+            <button
+              onClick={handleDelete}
+              className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors"
+            >
+              <Trash2 className="w-5 h-5 text-destructive" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 py-6 space-y-6">
+        {/* Party Info Card */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              {IconComponent ? <IconComponent size={52} /> : <span className="text-3xl">{partyTypeEmojis[party.party_type] || '🎊'}</span>}
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-foreground">{party.title}</h2>
+              <p className="text-muted-foreground capitalize">{party.party_type === 'other' ? 'Мероприятие' : party.party_type}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-foreground">
+              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium">{format(new Date(party.party_date), 'd MMMM yyyy', { locale: ru })}</p>
+                {party.party_time && <p className="text-sm text-muted-foreground">{party.party_time.slice(0, 5)}</p>}
+              </div>
+            </div>
+
+            {party.location && (
+              <div className="flex items-center gap-3 text-foreground">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="font-medium">{party.location}</p>
+              </div>
+            )}
+
+            {party.description && (
+              <div className="flex items-start gap-3 text-foreground">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground pt-2">{party.description}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-green-500/10 rounded-2xl p-4 text-center border border-green-500/20">
+            <div className="flex items-center justify-center gap-1.5 text-green-500 mb-1">
+              <Check className="w-5 h-5" />
+              <span className="text-2xl font-bold">{acceptedCount}</span>
+            </div>
+            <p className="text-xs text-green-600">Придут</p>
+          </div>
+          <div className="bg-yellow-500/10 rounded-2xl p-4 text-center border border-yellow-500/20">
+            <div className="flex items-center justify-center gap-1.5 text-yellow-500 mb-1">
+              <Clock className="w-5 h-5" />
+              <span className="text-2xl font-bold">{pendingCount}</span>
+            </div>
+            <p className="text-xs text-yellow-600">Ожидают</p>
+          </div>
+          <div className="bg-red-500/10 rounded-2xl p-4 text-center border border-red-500/20">
+            <div className="flex items-center justify-center gap-1.5 text-red-500 mb-1">
+              <X className="w-5 h-5" />
+              <span className="text-2xl font-bold">{declinedCount}</span>
+            </div>
+            <p className="text-xs text-red-600">Не придут</p>
+          </div>
+        </div>
+
+        {/* Participants List */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">Приглашённые ({party.participants.length})</h3>
+          </div>
+
+          <div className="space-y-2">
+            {party.participants.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Нет приглашённых</p>
+            ) : (
+              party.participants.map((participant) => (
+                <div
+                  key={participant.id}
+                  className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                    {participant.friend_name[0]}{participant.friend_last_name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">
+                      {participant.friend_name} {participant.friend_last_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{getStatusLabel(participant.status)}</p>
+                  </div>
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${getStatusColor(participant.status)}`}>
+                    {getStatusIcon(participant.status)}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
